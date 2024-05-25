@@ -1,0 +1,386 @@
+"""Library for interacting with Brenthy Core and its blockchain types."""
+
+import json
+import os
+from inspect import signature
+from types import FunctionType, ModuleType
+
+from brenthy_tools_beta import bt_endpoints, log
+from brenthy_tools_beta.bt_endpoints import CantConnectToSocketError
+from brenthy_tools_beta.utils import function_name, load_module_from_path
+from brenthy_tools_beta.version_utils import (
+    decode_version,
+    encode_version,
+    version_to_string,
+)
+from brenthy_tools_beta.versions import BRENTHY_TOOLS_VERSION
+
+BLOCKCHAIN_RETURNED_NO_RESPONSE = "blockchain returned no response"
+UNKNOWN_BLOCKCHAIN_TYPE = "unknown blockchain type"
+
+
+# list of files and folders in the brenthy_api_protocols folder
+# which are not BrenthyAPI protocol modules
+BAP_EXCLUDED_MODULES = ["__init__.py", "__main__.py", "__pycache__", ".tmp"]
+
+bap_protocol_modules: list[ModuleType] = []
+
+log.LOG_FILENAME = ".brenthy_api.log"
+log.LOG_ARCHIVE_DIRNAME = ".brenthy_api_log_archive"
+
+
+def _load_brenthy_api_protocols() -> None:
+    # files in the current directory which don't define bap_protocol_modules
+    global bap_protocol_modules  # pylint: disable=global-statement
+    bap_protocol_modules = []
+    protocols_path = os.path.join(
+        os.path.dirname(__file__), "brenthy_api_protocols"
+    )
+    for filename in os.listdir(protocols_path):
+        if filename in BAP_EXCLUDED_MODULES:
+            continue
+        try:
+            bap_protocol_modules.append(
+                load_module_from_path(os.path.join(protocols_path, filename))
+            )
+        except:
+            error_message = (
+                "BrenthyAPI: Failed to load Brenthy API Protocol module "
+                f"{filename}"
+            )
+            log.error(error_message)
+            raise ImportError(error_message)
+    # sort bap modules in order of BAP version, newest to oldest
+    bap_protocol_modules.sort(key=lambda x: x.BAP_VERSION, reverse=True)
+
+
+def send_request(
+    blockchain_type: str, payload: bytearray | bytes
+) -> bytearray:
+    """Send a request to Brenthy or one of its installed blockchain types.
+
+    Args:
+        blockchain_type(str): the blockchain type to forward the payload to
+            use 'Brenthy' if the request is to Brenthy itself
+        payload(bytearray): the message to send to Brenthy or the blockchain
+    Returns:
+        bytearray: the reply from Brenthy or the blockchain.
+    """
+    if isinstance(payload, bytes):
+        payload = bytearray(payload)
+    if not isinstance(blockchain_type, str):
+        error_message = (
+            "blockchain_type must be of type str, not "
+            f"{type(blockchain_type)}"
+        )
+        log.error(f"BrenthyAPI: {function_name()}: {error_message}")
+        raise TypeError(error_message)
+    if not isinstance(payload, bytearray):
+        error_message = (
+            "payload must be of type bytearray, not " f"{type(payload)}"
+        )
+        log.error(f"BrenthyAPI: {function_name()}: {error_message}")
+        raise TypeError(error_message)
+
+    request = blockchain_type.encode() + bytearray([0]) + payload
+
+    request = encode_version(BRENTHY_TOOLS_VERSION) + bytearray([0]) + request
+
+    # try sending request via different protocols
+    reply: bytearray = bytearray()
+    # whether or not we've managed to establish communication with Brenthy-Core
+    communicated = False
+    for protocol in bap_protocol_modules:
+        try:
+            reply = protocol.send_request(request)
+        except (CantConnectToSocketError, BrenthyReplyDecodeError):
+            # try next BrenthyAPI protocol
+            continue
+        communicated = True
+        # if we can't read the reply
+        try:
+            brenthy_core_version = decode_version(  # pylint: disable=unused-variable
+                reply[: reply.index(bytearray([0]))]
+            )
+            reply = reply[reply.index(bytearray([0])) + 1:]
+        except:
+            continue
+        if not reply:
+            continue
+        # log.debug(f"Used BAP-{protocol.BAP_VERSION}")
+        break  # request sent, got reply,so move on
+    if not reply:
+        if communicated:
+            raise BrenthyReplyDecodeError()
+        else:
+            raise BrenthyNotRunningError()
+    # Request was processed successfully by Brenthy.
+
+    success = reply[0] == 1
+    reply = reply[1:]
+    if success:
+        return reply
+    # Brenthy failed to process our request.
+    raise _analyse_no_success_reply(reply)
+
+
+def _analyse_no_success_reply(reply: bytearray) -> Exception:
+    """Get the appropriate Exception for the given reply from Brenthy.
+
+    Assumes the reply is from a request which Brenthy (not its blockchains)
+    failed to execute.
+
+    Args:
+        reply (bytearray): the response from Brenthy for the failed RPC
+    """
+    data = None
+    try:
+        data = json.loads(reply.decode())
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return BrenthyReplyDecodeError(
+            "Failed to decode Brenthy's binary reply to JSON.", reply=data
+        )  # pylint: disable=
+    if not data:
+        return BrenthyReplyDecodeError(
+            "Received empty reply from Brenthy.", reply=data
+        )
+    if "error" in data.keys():
+        if data["error"] == BLOCKCHAIN_RETURNED_NO_RESPONSE:
+            error_message = "Blockchain returned no response to request."
+            log.error(f"BrenthyAPI: {function_name()}: {error_message}")
+            return BrenthyError("Blockchain returned no response to request.")
+        if data["error"] == UNKNOWN_BLOCKCHAIN_TYPE:
+            error_message = "Unknown blockchain type."
+            log.error(f"BrenthyAPI: {function_name()}: {error_message}")
+            return UnknownBlockchainTypeError(
+                blockchain_type=data["blockchain_type"]
+            )
+    return BrenthyReplyDecodeError(
+        "Failed to decode Brenthy's reply. "
+        "It indicated failure, but included no error message.",
+        reply=data,
+    )
+
+
+def send_brenthy_request(function_name: str, payload: bytearray) -> bytearray:
+    """Make a request to Brenthy (NOT a Brenthy blockchain).
+
+    Args:
+        function_name (str): the name of the function in api_terminal
+                                which we want to call
+        payload (bytearray): the data the function in api_terminal
+                                needs to process our request, its arguments
+    Returns:
+        bytearray: the reply from the function we called in
+                                api_terminal
+    """
+    request = function_name.encode() + bytearray([0]) + payload
+    return send_request("Brenthy", request)
+
+
+class EventListener:
+    """Class for listening to the messages published by a blockchain type."""
+
+    def __init__(
+        self,
+        blockchain_type: str,
+        eventhandler: FunctionType,
+        topics: str | list[str],
+    ):
+        """Listen messages published by a blockchain type.
+
+        Args:
+            blockchain_type (str): the blockchain type whose messages to listen
+                                    to
+            eventhandler (FunctionType): the function to be called when a
+                                    message is received
+            topics (list[str] | str): the topic or topic to filter the
+                                    blockchain type's publication's by
+        """
+        if not topics:
+            topics = []
+        if isinstance(topics, str):
+            topics = [topics]
+        if not isinstance(topics, list):
+            error_message = (
+                f"BrenthyAPI: EventListener("
+                f"{topics}): Parameter topics must be of type list or str, "
+                f"not {type(topics)}"
+            )
+            log.error(error_message)
+            raise ValueError(error_message)
+        self.blockchain_type = blockchain_type
+        brenthy_topics = [
+            f"{self.blockchain_type}-{topic}" for topic in topics
+        ]
+        self.users_eventhandler = eventhandler
+
+        eventlistener: bt_endpoints.EventListener
+        # go through the different BrenthyAPI Protocols, newest version first,
+        # until one succeeds at connecting an EventListener to Brenthy
+        for protocol in bap_protocol_modules:
+            try:
+                eventlistener = protocol.EventListener(
+                    self._handler, brenthy_topics
+                )
+            except (CantConnectToSocketError, NotImplementedError):
+                # try next BrenthyAPI protocol
+                continue
+            break  # EventListener connected
+
+        if not eventlistener:
+            raise BrenthyNotRunningError
+
+        self._eventlistener = eventlistener
+
+    def _handler(self, message: dict, topic: str) -> None:
+        """Process an event from Brenthy Core."""
+        topic = topic.strip(f"{self.blockchain_type}-")
+        # call the eventhandler, passing it the data and topic
+        n_params = len(signature(self.users_eventhandler).parameters)
+        if n_params == 1:
+            self.users_eventhandler(
+                message,
+            )
+        else:
+            self.users_eventhandler(message, topic)
+
+    def terminate(self) -> None:
+        """Stop listening to publications and clean up resources."""
+        self._eventlistener.terminate()
+
+    def __del__(self):
+        """Stop listening to publications and clean up resources."""
+        self.terminate()
+
+
+# pylint: disable=unused-variable
+
+
+def get_brenthy_version() -> tuple:
+    """Get the software version of the locally running Brenthy node.
+
+    Returns:
+        tuple: the software version of the locally running Brenthy node
+    """
+    return tuple(
+        json.loads(
+            send_brenthy_request("get_brenthy_version", bytearray([])).decode()
+        )["brenthy_core_version"]
+    )
+
+
+def get_brenthy_version_string() -> str:
+    """Get the software version of the locally running Brenthy node.
+
+    Returns:
+        str: the software version of the locally running Brenthy node
+    """
+    return version_to_string(get_brenthy_version())
+
+
+def get_brenthy_tools_beta_version() -> tuple:
+    """Get the software version of the this brenthy_tools_beta library.
+
+    Returns:
+        tuple: the software version of the this brenthy_tools_beta library
+    """
+    return BRENTHY_TOOLS_VERSION
+
+
+def get_brenthy_tools_beta_version_string() -> str:
+    """Get the software version of the this brenthy_tools_beta library.
+
+    Returns:
+        str: the software version of the this brenthy_tools_beta library
+    """
+    return version_to_string(get_brenthy_tools_beta_version())
+
+
+class BrenthyNotRunningError(Exception):
+    """When no communication can be established with Brenthy."""
+
+    def_message = "Can't connect to Brenthy. Is it running?"
+
+    def __init__(self, message: str = def_message):
+        """Raise a BrenthyNotRunningError exception.
+
+        Args:
+            message (str): the error message to store in this Exception
+        """
+        self.message = message
+
+    def __str__(self):
+        """Get this exception's error message."""
+        return self.message
+
+
+class BrenthyReplyDecodeError(Exception):
+    """When Brenthy's reply can't be decoded."""
+
+    def_message = (
+        "error parsing the reply from Brenthy. " "This is probably a bug."
+    )
+
+    def __init__(self, message: str = def_message, reply: bytearray = ""):
+        """Raise a BrenthyReplyDecodeError exception.
+
+        Args:
+            message (str): the error message to store in this Exception
+            reply (str): the reply received from Brenthy
+        """
+        self.message = message
+        self.reply = str(reply)
+
+    def __str__(self):
+        """Get this exception's error message."""
+        return self.message + " \n" + self.reply
+
+
+class BrenthyError(Exception):
+    """When Brenthy runs into an error processing a request (Brenthy bug)."""
+
+    def_message = (
+        "Brenthy (NOT brenthy_api) failed to process our request. "
+        "This is probably a bug."
+    )
+
+    def __init__(self, message: str = def_message):
+        """Raise a BrenthyError exception.
+
+        Args:
+            message (str): the error message to store in this Exception
+        """
+        self.message = message
+
+    def __str__(self):
+        """Get this exception's error message."""
+        return self.message
+
+
+class UnknownBlockchainTypeError(Exception):
+    """When the provided blockchain type isn't installed on Brenthy."""
+
+    def_message = (
+        "We don't know this type of blockchain. "
+        "Perhaps give Brenthy a chance to update by restarting it."
+    )
+
+    def __init__(self, message: str = def_message, blockchain_type: str = ""):
+        """Raise a UnknownBlockchainTypeError exception.
+
+        Args:
+            message (str): the error message to store in this Exception
+            blockchain_type (str): the unknown blockchain type
+        """
+        self.message = message
+        self.blockchain_type = blockchain_type
+
+    def __str__(self):
+        """Get this exception's error message."""
+        if self.blockchain_type:
+            self.message = self.blockchain_type + ": " + self.message
+        return self.message
+
+
+_load_brenthy_api_protocols()

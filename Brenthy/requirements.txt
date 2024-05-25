@@ -1,0 +1,9 @@
+appdirs>=1.4.3
+cryptography>=2.8
+IPFS-Toolkit>=0.5.19
+pyzmq>=23.2.0
+setuptools>=45.2.0
+termcolor
+cryptem>=0.1.1
+tqdm
+pytest

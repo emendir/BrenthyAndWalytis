@@ -1,0 +1,138 @@
+"""Test that Walytys' block ancestry analysis functions work properly.
+
+Make sure brenthy isn't running before you run these tests.
+Don't run pytest yet, compatibility with it hasn't been fully tested.
+Simply execute this script instead.
+"""
+
+import os
+import sys
+from datetime import datetime
+
+from testing_utils import mark
+
+if True:
+    brenthy_dir = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "Brenthy"
+    )
+    sys.path.insert(0, brenthy_dir)
+    from blockchains.Walytis_Beta import block_ancestry
+    from blockchains.Walytis_Beta.walytis_beta_api import (
+        short_from_long_id,
+    )
+    from blockchains.Walytis_Beta.walytis_beta_api.block_model import Block
+    from blockchains.Walytis_Beta.walytis_beta_api.versions import (
+        WALYTIS_BETA_CORE_VERSION,
+    )
+
+
+class BlockchainModel:
+    """Model of a blockchain used by the test_block_ancestry_funcs test."""
+
+    blocks: list[Block] = []
+
+    def add_block(self, parents: list | None = None) -> Block:
+        """Add a model block, given its parents, to this blockchain model."""
+        if not parents:
+            parents = []
+        block = Block()
+        block.creator_id = "TESTING".encode("utf-8")
+        block.creation_time = datetime.utcnow()
+        block.topics = ["TESTING"]
+        block.content = "TESTING".encode()
+        block.content_length = len(block.content)
+        block.parents = [short_from_long_id(parent) for parent in parents]
+        block.n_parents = len(block.parents)
+        block.generate_content_hash()
+        block.generate_parents_hash()
+        block.ipfs_cid = "FALSE_BLOCK"
+        block.blockchain_version = WALYTIS_BETA_CORE_VERSION
+        block.generate_id()
+        self.blocks.append(block)
+        return block
+
+    def find_block(self, block_id: bytearray) -> bytearray:
+        """Given a block ID, get that block's long ID or raise an error."""
+        short_id = short_from_long_id(block_id)  # ensure it's a short_id
+        for block in self.blocks:
+            if block.short_id == short_id:
+                return block.long_id
+        raise Exception(
+            f"BlockchainModel.find_block: block not found:\n{block_id}"
+        )
+
+
+blockchain: BlockchainModel
+block0: Block
+block1: Block
+block2: Block
+block3: Block
+block4: Block
+block5: Block
+block6: Block
+block7: Block
+block8: Block
+
+
+def test_preparations() -> None:
+    """Get everything needed to run the tests ready."""
+    global blockchain
+    global block0, block1, block2, block3
+    global block4, block5, block6, block7, block8
+    blockchain = BlockchainModel()
+    block0 = blockchain.add_block()
+    block1 = blockchain.add_block([block0.short_id])
+    block2 = blockchain.add_block([block0.short_id, block1.short_id])
+    block3 = blockchain.add_block([block1.short_id, block2.short_id])
+
+    block4 = blockchain.add_block([block2.short_id, block3.short_id])
+    block5 = blockchain.add_block([block0.short_id, block4.short_id])
+
+    block6 = blockchain.add_block([block1.short_id, block2.short_id])
+    block7 = blockchain.add_block([block0.short_id, block6.short_id])
+
+    block8 = blockchain.add_block([block5.short_id, block7.short_id])
+
+
+def test_unshared_ancestors() -> None:
+    """Test that block_ancestry.list_unshared_ancestors works correctly."""
+    blocks = [block5, block7, block8]
+    expected_result = [6, 4, 3, 5, 7]
+    result = block_ancestry.list_unshared_ancestors(blockchain, blocks)
+
+    # get result in terms of block indeces instead of IDs
+    block_ids = [block.long_id for block in blockchain.blocks]
+    result = [block_ids.index(ancestor) for ancestor in result]
+
+    result.sort()
+    expected_result.sort()
+
+    print(mark(result == expected_result), "list_unshared_ancestors")
+
+
+def test_remove_ancestors() -> None:
+    """Test that block_ancestry.remove_ancestors works correctly."""
+    blocks = [block4, block5, block6, block7, block7, block8]
+    expected_result = [8]
+    result = block_ancestry.remove_ancestors(blockchain, blocks)
+
+    # get result in terms of block indeces instead of IDs
+    block_ids = [block.long_id for block in blockchain.blocks]
+    result = [block_ids.index(ancestor) for ancestor in result]
+
+    expected_result.sort()
+
+    result.sort()
+    print(mark(result == expected_result), "remove_ancestors")
+
+
+def run_tests() -> None:
+    """Run all tests."""
+    print("\nRunning tests for Walytis' ancestry machinery...")
+    test_preparations()
+    test_unshared_ancestors()
+    test_remove_ancestors()
+
+
+if __name__ == "__main__":
+    run_tests()

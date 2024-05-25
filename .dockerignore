@@ -1,0 +1,14 @@
+.git
+.gitignore
+Dockerfile*
+docker-compose*
+.log_archive
+**.egg-info
+build
+Demos
+dist
+Documentation
+Publisher
+Testing
+Web*
+*.html
