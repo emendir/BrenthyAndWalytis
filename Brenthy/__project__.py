@@ -22,12 +22,13 @@ if os.path.exists("ReadMe.md"):
 long_description_content_type = "text/markdown"
 url = (
     "https://ipfs.io/ipns/"
-    "k2k4r8nismm5mmgrox2fci816xvj4l4cudnuc55gkfoealjuiaexbsup/Sites/"
-    "BrenthyAndWalytis_Beta/Documentation/Brenthy/Meaning/Introduction.md.html"
+    "k2k4r8nismm5mmgrox2fci816xvj4l4cudnuc55gkfoealjuiaexbsup"
+    "/Sites/BrenthyAndWalytis/"
+    # "Documentation/Brenthy/Meaning/Introduction.md.html"
 )
 project_urls = {
-    "Source Code on IPNS": url,
-    "Github": "",
+    "IPNS": url,
+    "Github": "https://github.com/emendir/BrenthyAndWalytis",
 }
 classifiers = [
     "Programming Language :: Python :: 3",

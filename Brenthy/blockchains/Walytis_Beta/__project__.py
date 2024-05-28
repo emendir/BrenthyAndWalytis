@@ -20,16 +20,12 @@ long_description_content_type = "text/markdown"
 url = (
     "https://ipfs.io/ipns/"
     "k2k4r8nismm5mmgrox2fci816xvj4l4cudnuc55gkfoealjuiaexbsup"
-    "/Sites/BrenthyAndWalytis_Beta/"
-    "Documentation/Walytis/Meaning/Introduction.md.html"
+    "/Sites/BrenthyAndWalytis/"
+    # "Documentation/Walytis/Meaning/Introduction.md.html"
 )
 project_urls = {
-    "Source Code on IPNS": (
-        "ipns://k2k4r8nismm5mmgrox2fci816xvj4l4cudnuc55gkfoealjuiaexbsup"
-        "/Sites/BrenthyAndWalytis_Beta/"
-        "Documentation/Walytis/Meaning/Introduction.md.html"
-    ),
-    "Github": "",
+    "IPNS": url,
+    "Github": "https://github.com/emendir/BrenthyAndWalytis",
 }
 classifiers = [
     "Programming Language :: Python :: 3",
