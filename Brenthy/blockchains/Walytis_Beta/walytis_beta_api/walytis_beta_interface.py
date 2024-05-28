@@ -807,6 +807,9 @@ class BlocksListener:
 
     def _eventhandler(self, data: dict, topic: str) -> None:
         """Handle new block messages, calling the user's eventhandler."""
+        # decapsulate topic for documentation purposes
+        blockchain_topic = topic.strip(f"{self.blockchain_id}-")
+
         block_id = string_to_bytes(data["block_id"])
         block = get_block(self.blockchain_id, block_id)
         log.info(
@@ -1001,10 +1004,8 @@ def _send_request(function_name: str, payload: bytearray | bytes) -> bytearray:
                                 walytis_beta_api_terminal
     """
     request = (
-        encode_version(WALYTIS_BETA_API_PROTOCOL_VERSION)
-        + bytearray([0])
-        + function_name.encode()
-        + bytearray([0])
+        encode_version(WALYTIS_BETA_API_PROTOCOL_VERSION) + bytearray([0])
+        + function_name.encode() + bytearray([0])
         + payload
     )
     reply = brenthy_api.send_request("Walytis_Beta", request)

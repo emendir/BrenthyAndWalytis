@@ -40,44 +40,78 @@ Let's look at how `brenthy_api` and `api_terminal` use these BAP modules.
 
 ### `brenthy_tools.brenthy_api`
 
-First of all, `brenthy_api` loads all the modules it finds in the `brenthy_api_protocols` folder. You can see this in the `load_brenthyapi_protocols()` function.
+First of all, `brenthy_api` loads all the modules it finds in the `brenthy_api_protocols` folder. You can see this in the `_load_brenthy_api_protocols()` function:
+```python
+def _load_brenthy_api_protocols() -> None:
+    ...
+    for filename in os.listdir(protocols_path):
+	    ...
+		bap_protocol_modules.append(
+			load_module_from_path(os.path.join(protocols_path, filename))
+		)
+```
 
-When an application wants to send a request, it tries all the different modules in order of novelty, until one succeeds in making the request.
+When an application wants to send a request to a blockchain, `brenthy_api` tries all the different modules in order of novelty, until one succeeds in making the request.
+It also encapsulates the application's request into a message in which it also encodes its own `brenthy_tools` version as well as the request's destination blockchain type.
+
 Here's that code in `send_request()`:
 
 ```python
 # from Brenthy/brenthy_tools_beta/brenthy_api.py
-def send_request(blockchain_type: str, payload: bytearray | bytes) -> bytearray:
+def send_request(
+    blockchain_type: str, payload: bytearray | bytes
+) -> bytearray:
+    # encapsulate the request together with the blockchain type
+    # and brenthy_tools version
+    request = blockchain_type.encode() + bytearray([0]) + payload
+    request = encode_version(BRENTHY_TOOLS_VERSION) + bytearray([0]) + request
 	...
-	for protocol in bap_protocol_modules:
-	    try:
-	        reply = protocol.send_request(request)
-	    except (CantConnectToSocketError, BrenthyReplyDecodeError):
-	        # try next BrenthyAPI protocol
-	        continue
-	    break   # request sent, got reply,so move on
+    # try sending request via different protocols
+    for protocol in bap_protocol_modules:
+        try:
+            reply = protocol.send_request(request)
+        except CantConnectToSocketError:
+            # try next BrenthyAPI protocol
+            continue
+        # decapsulate the reply
+		brenthy_core_version = decode_version(
+			reply[: reply.index(bytearray([0]))]
+		)
+		reply = reply[reply.index(bytearray([0])) + 1:]
+		success = reply[0] == 1
+		reply = reply[1:]
+		break  # request sent, got reply,so move on
+	...	
+    if success:
+        return reply
+    # Brenthy/blockchain failed to process our request.
+    raise _analyse_no_success_reply(reply)
 ```
 
 So when communicating with Brenthy, `brenthy_api` starts by trying to use the latest BAP version it has, and if it fails, it repeatedly tries again with the next latest BAP version until it succeeds via the latest BAP version which the Brenthy instance supports.
 
-It follows the same strategy with the `EventListener` class, by which applications listen to messages published by `brenthy_core`.
+`brenthy_api` follows the same strategy in the `EventListener` class, with which applications listen to messages published by `brenthy_core`.
 Here's the code in the `brenthy_api`'s `EventListener` class' constructor:
 ```python
 # from Brenthy/brenthy_tools_beta/brenthy_api.py
 
-class EventListener():
-	def __init__(
-	...
+class EventListener:
+    def __init__(
+		...
 	):
 		...
+		# go through the different BrenthyAPI Protocols, newest version first,
+        # until one succeeds at connecting an EventListener to Brenthy
 		for protocol in bap_protocol_modules:
-			try:
-				eventlistener = protocol.EventListener(
-					self._handler, brenthy_topics)
-			except (CantConnectToSocketError, NotImplementedError):
-				# try next BrenthyAPI protocol
-				continue
-			break   # EventListener connected
+            try:
+                eventlistener = protocol.EventListener(
+                    self._handler, brenthy_topics
+                )
+            except (CantConnectToSocketError, NotImplementedError):
+                # try next BrenthyAPI protocol
+                continue
+            break  # EventListener connected
+		
 		self._eventlistener = eventlistener
 ```
 
@@ -87,29 +121,64 @@ Thus `brenthy_tools.brenthy_api` achieves full backward compatibility with Brent
 
 ### Brenthy Core's `api_terminal`
 
-`api_terminal` also loads the modules it finds in its `brenthy_api_protocols` folder, in its `initialise()` function.
+`api_terminal` also loads the modules it finds in its `brenthy_api_protocols` folder, in its `start_listening_for_requests()` function.
 
 In `start_listening_for_requests()` it runs the `initialise()` function of each BAP module:
 
 ```python
 # from Brenthy/api_terminal/api_terminal.py
-def initialise():
+def start_listening_for_requests() -> None:
 	...
 	for protocol in bap_protocol_modules:
 	    protocol.initialise()
 ```
 
 So essentially Brenthy always has its ears open to communication for all versions of BAP.
-We can see that in the `bap_3_brenthy_core` module the `request_router()` function is imported from `api_terminal` and executed in the `handle_request()` function:
+
+Upon receiving requests from applications, the BAP modules pass them to `api_terminal's` `handle_request()` function, which, after decapsulation the message to extract the encoded brenthy_tools version and blockchain type, passes on the application's request to the `request_router()` function:
 
 ```python
-# from Brenthy/api_terminal/brenthy_api_protocols/bap_3_brenthy_core.py
-def handle_request(request):
-	...
-	reply = request_router(payload)
+# from Brenthy/api_terminal/api_terminal.py
+def handle_request(request: bytearray) -> bytearray:
+	# extract brenthy_tools version
+	brenthy_tools_version = decode_version(  # pylint: disable=unused-variable
+		request[: request.index(bytearray([0]))]
+	)
+	request = request[request.index(bytearray([0])) + 1:]
+	
+	# extract blockchain type
+	blockchain_type = request[: request.index(bytearray([0]))].decode()
+	payload = request[request.index(bytearray([0])) + 1:]
+	
+	# forward request to its destination blockchain type or brenthy
+	reply = request_router(payload, blockchain_type)
+	
+	# encapsulate reply in message with the Brenthy Core version
+    reply = encode_version(BRENTHY_CORE_VERSION) + bytearray([0]) + reply
+    return reply
 ```
 
-The `bap_4_brenthy_core` module does exactly the same thing, passing requests to the exact same function from `api_terminal` whenever it receives a request via its BrenthyAPI protocol.
+The `request_router()` function then passes on the request to the destination blockchain, or to Brenthy itself.
+It returns the blockchain's reply encapsulated in a message also containing a byte indicating whether or not the blockchain type managed to process the request.
+```python
+# from Brenthy/api_terminal/api_terminal.py
+def request_router(request: bytearray, blockchain_type: str) -> bytearray:
+
+    if blockchain_type == "Brenthy":
+        return bytearray([1]) + brenthy_request_handler(request)
+    for blockchain_module in blockchain_manager.blockchain_modules:
+        if blockchain_module.blockchain_type == blockchain_type:
+            reply = blockchain_module.api_request_handler(request)
+            # bytearray([1]) signals success
+            return bytearray([1]) + reply
+	
+    # bytearray([0]) signals failure
+    return bytearray([0]) + json.dumps({
+        "success": False,
+        "error": UNKNOWN_BLOCKCHAIN_TYPE,
+        "blockchain_type": blockchain_type,
+    }).encode()
+```
 
 And so every request, whatever BAP protocol it was transmitted via, is processed by the `api_terminal`, to be passed on to the correct blockchain (or the Brenthy requests handler).
 
@@ -117,7 +186,7 @@ When publishing messages, `api_terminal` publishes them using each BAP module, c
 
 ```python
 # from Brenthy/api_terminal/api_terminal.py
-def publish_on_all_endpoints(data: dict):
+def publish_on_all_endpoints(data: dict) -> None:
     for protocol in bap_protocol_modules:
         protocol.publish(data)
 ```

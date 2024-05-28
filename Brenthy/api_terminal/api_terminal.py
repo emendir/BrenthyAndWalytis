@@ -52,78 +52,60 @@ def brenthy_request_handler(request: bytes) -> bytes:
         ).encode()
 
 
-def request_router(request: bytearray) -> bytearray:  # pylint: disable=unused-variable
+def request_router(request: bytearray, blockchain_type: str) -> bytearray:
     """Forward a BrenthyAPI RPC to the Brenthy or the correct blockchain.
 
     This function processes requests incoming from the apps,
     relaying them to the correct specialised task-specific handlers.
     """
-    try:
-        blockchain_type = request[: request.index(bytearray([0]))].decode()
-        payload = request[request.index(bytearray([0])) + 1:]
+    if blockchain_type == "Brenthy":
+        return bytearray([1]) + brenthy_request_handler(request)
+    for blockchain_module in blockchain_manager.blockchain_modules:
+        if blockchain_module.blockchain_type == blockchain_type:
+            reply = blockchain_module.api_request_handler(request)
+            if reply:
+                # bytearray([1]) signals success
+                return bytearray([1]) + reply
 
-        if blockchain_type == "Brenthy":
-            return bytearray([1]) + brenthy_request_handler(payload)
-        for blockchain_module in blockchain_manager.blockchain_modules:
-            if blockchain_module.blockchain_type == blockchain_type:
-                reply = blockchain_module.api_request_handler(payload)
-                if reply:
-                    # bytearray([1]) signals success
-                    return bytearray([1]) + reply
-
-                log.warning(
-                    f"Blockchain type {blockchain_type} returned a null "
-                    "response to a brenthy_api request."
-                )
-                # bytearray([0]) signals failure
-                return (
-                    bytearray([0])
-                    + json.dumps(
-                        {"error": BLOCKCHAIN_RETURNED_NO_RESPONSE}
-                    ).encode()
-                )
-        # bytearray([0]) signals failure
-        return (
-            bytearray([0])
-            + json.dumps(
-                {
-                    "success": False,
-                    "error": UNKNOWN_BLOCKCHAIN_TYPE,
-                    "blockchain_type": blockchain_type,
-                }
+            log.warning(
+                f"Blockchain type {blockchain_type} returned a null "
+                "response to a brenthy_api request."
+            )
+            # bytearray([0]) signals failure
+            return bytearray([0]) + json.dumps(
+                {"error": BLOCKCHAIN_RETURNED_NO_RESPONSE}
             ).encode()
-        )
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        log.error(
-            "Unhandled Exception in api_terminal.request_router:\n"
-            f"{str(request)}\n{e}"
-        )
-        # bytearray([0]) signals failure
-        return (
-            bytearray([0])
-            + json.dumps(
-                {
-                    "success": False,
-                    "error": (
-                        "Internal Brenthy error. Check Brenthy log to debug."
-                    ),
-                }
-            ).encode()
-        )
+
+    # bytearray([0]) signals failure
+    return bytearray([0]) + json.dumps({
+        "success": False,
+        "error": UNKNOWN_BLOCKCHAIN_TYPE,
+        "blockchain_type": blockchain_type,
+    }).encode()
 
 
-def handle_request(request: bytearray) -> bytearray:  # pylint: disable=unused-variable
+def handle_request(request: bytearray) -> bytearray:
     """Handle RPC requests made via BrenthyAPI.
 
     Extract's encoded brenthy_tools.brenthy_api version from requests,
     passes on the requests to request_router for processing,
     and encode our Brenthy-Core version into the response.
     """
-    try:  # try to extract brenthy_api_version
-        brenthy_api_version = decode_version(  # pylint: disable=unused-variable
+    # try to decapsulate request and pass it on to its destination
+    try:
+        # extract brenthy_tools version
+        brenthy_tools_version = decode_version(  # pylint: disable=unused-variable
             request[: request.index(bytearray([0]))]
         )
+        request = request[request.index(bytearray([0])) + 1:]
+
+        # extract blockchain type
+        blockchain_type = request[: request.index(bytearray([0]))].decode()
         payload = request[request.index(bytearray([0])) + 1:]
+
+        # forward request to its destination blockchain type or brenthy
+        reply = request_router(payload, blockchain_type)
+
     except Exception as e:  # pylint: disable=broad-exception caught
         log.error(
             f"Unhandled Exception in api_terminal.{function_name()}:\n"
@@ -137,15 +119,15 @@ def handle_request(request: bytearray) -> bytearray:  # pylint: disable=unused-v
                 "error": "Internal Brenthy error. Check Brenthy log to debug.",
             }).encode()
         )
-    else:
-        reply = request_router(payload)
+
+    # encapsulate reply in message with the Brenthy Core version
     reply = encode_version(BRENTHY_CORE_VERSION) + bytearray([0]) + reply
     return reply
 
 
 def publish_event(
     blockchain_type: str, payload: dict, topics: list | None = None
-) -> None:  # pylint: disable=unused-variable
+) -> None:
     """Publish a blockchain type's message to all subscribed applications."""
     if not isinstance(blockchain_type, str):
         error_message = (
@@ -225,7 +207,7 @@ def load_brenthy_api_protocols() -> None:  # pylint: disable=unused-variable
         )
 
 
-def start_listening_for_requests() -> None:  # pylint: disable=unused-variable
+def start_listening_for_requests() -> None:
     """Asynchronously run the ZMQ and TCP listeners for App Requests."""
     for protocol in bap_protocol_modules:
         log.info(f"Initialising BAP protocol {protocol.BAP_VERSION}")

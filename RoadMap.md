@@ -27,11 +27,11 @@ _further quality improvement & DevOps_
 
 # Phase IV 2023-2024
 _preparing for release_
-- [ ] finish urgent features
-- [ ] full code cleanup
+- [x] finish urgent features
+- [x] full code cleanup
 - [x] thorough Documentation
 - [ ] website
-- [ ] publish Beta release
+- [x] publish Beta release
 - [ ] set up github discussions
 - [ ] put docs on wiki?
 

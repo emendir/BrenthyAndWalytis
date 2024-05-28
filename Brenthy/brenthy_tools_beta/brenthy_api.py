@@ -82,45 +82,47 @@ def send_request(
         log.error(f"BrenthyAPI: {function_name()}: {error_message}")
         raise TypeError(error_message)
 
+    # encapsulate the request together with the blockchain type
+    # and brenthy_tools version
     request = blockchain_type.encode() + bytearray([0]) + payload
-
     request = encode_version(BRENTHY_TOOLS_VERSION) + bytearray([0]) + request
 
-    # try sending request via different protocols
     reply: bytearray = bytearray()
     # whether or not we've managed to establish communication with Brenthy-Core
     communicated = False
+    # try sending request via different protocols
     for protocol in bap_protocol_modules:
         try:
             reply = protocol.send_request(request)
-        except (CantConnectToSocketError, BrenthyReplyDecodeError):
+        except CantConnectToSocketError:
             # try next BrenthyAPI protocol
             continue
         communicated = True
-        # if we can't read the reply
+
+        # decapsulate the reply
         try:
-            brenthy_core_version = decode_version(  # pylint: disable=unused-variable
+            brenthy_core_version = decode_version(
                 reply[: reply.index(bytearray([0]))]
             )
             reply = reply[reply.index(bytearray([0])) + 1:]
+            if not reply:
+                continue
+            # Request was processed successfully by Brenthy.
+            success = reply[0] == 1
+            reply = reply[1:]
+
+            break  # request sent, got reply,so move on
         except:
             continue
-        if not reply:
-            continue
-        # log.debug(f"Used BAP-{protocol.BAP_VERSION}")
-        break  # request sent, got reply,so move on
     if not reply:
         if communicated:
             raise BrenthyReplyDecodeError()
         else:
             raise BrenthyNotRunningError()
-    # Request was processed successfully by Brenthy.
-
-    success = reply[0] == 1
-    reply = reply[1:]
     if success:
         return reply
-    # Brenthy failed to process our request.
+
+    # Brenthy/blockchain failed to process our request.
     raise _analyse_no_success_reply(reply)
 
 
@@ -322,7 +324,7 @@ class BrenthyReplyDecodeError(Exception):
         "error parsing the reply from Brenthy. " "This is probably a bug."
     )
 
-    def __init__(self, message: str = def_message, reply: bytearray = ""):
+    def __init__(self, message: str = def_message, reply: bytearray | None = None):
         """Raise a BrenthyReplyDecodeError exception.
 
         Args:

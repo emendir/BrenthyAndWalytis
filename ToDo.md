@@ -1,7 +1,7 @@
 ## [Docs](Documentation/DocsRoadmap.md)
 - contributions
 - docs wiki?
-- [ ] double check BrenthyAPI and BrenthyAPI-Protocol
+- [x] double check BrenthyAPI and BrenthyAPI-Protocol
 
 ## Urgent Features
 

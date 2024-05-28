@@ -4,8 +4,7 @@ import os
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
-from md_utils import get_markdown_files, PROJECT_DIR
-
+from md_utils import PROJECT_DIR, get_markdown_files
 
 # relative to PROJECT_DIR
 DOCS_DIR = "Documentation"

@@ -27,7 +27,10 @@ Here's that encoding being done in `brenthy_api`'s `send_request` function:
 ```python
 # from Brenthy/brenthy_tools_beta/brenthy_api.py
 
-def send_request(blockchain_type: str, payload: bytearray | bytes) -> bytearray:
+def send_request(
+    blockchain_type: str, payload: bytearray | bytes
+) -> bytearray:
+	...
 	request = blockchain_type.encode() + bytearray([0]) + payload
 ```
 
@@ -37,14 +40,13 @@ Here's the `_send_request` function from the Walytis blockchain's `walytis_api` 
 ```python
 # from Brenthy/blockchains/Walytis_Beta/walytis_beta_api/walytis_beta_interface.py
 
-def _send_request(function_name: str, payload: bytearray):
+def _send_request(function_name: str, payload: bytearray | bytes) -> bytearray:
 	# compose request to Walytis, encoding the library's version, remote function to call, and payload
 	request = (
-		encode_version(WALYTIS_BETA_API_PROTOCOL_VERSION)
-	    + bytearray([0]) + function_name.encode()
-	    + bytearray([0]) + payload
-	)
-	
+        encode_version(WALYTIS_BETA_API_PROTOCOL_VERSION) + bytearray([0])
+        + function_name.encode() + bytearray([0])
+        + payload
+    )
 	# use brenthy_api to send this request to Walytis
 	reply = brenthy_api.send_request("Walytis_Beta", request)
 ```
@@ -57,7 +59,7 @@ Here's that being done in `brenthy_api`'s `send_brenthy_request` function:
 ```python
 # from Brenthy/brenthy_tools_beta/brenthy_api.py
 
-def send_brenthy_request(function_name: str, payload: bytearray):
+def send_brenthy_request(function_name: str, payload: bytearray) -> bytearray:
 	request = function_name.encode() + bytearray([0]) + payload
 	return send_request("Brenthy", request)
 ```
@@ -66,32 +68,22 @@ In summary, each BrenthyAPI message is tagged with a blockchain type or with "Br
 We can see this decision making coded in the `request_router` function in Brenthy's `api_terminal` module:
 ```python
 # from Brenthy/api_terminal/api_terminal.py
+def request_router(request: bytearray, blockchain_type: str) -> bytearray:
 
-def request_router(request: bytearray):
-	# extract the blockchain type and payload from the request
-	blockchain_type = request[: request.index(bytearray([0]))].decode()
-	payload = request[request.index(bytearray([0])) + 1:]
-
-	# handle Brenthy requests
-	if blockchain_type == "Brenthy":
-	    return bytearray([1]) + brenthy_request_handler(payload)
-
-	# look for the destination blockchain, forward the request to it
-	for blockchain_module in blockchain_manager.blockchain_modules:
-	    if blockchain_module.blockchain_type == blockchain_type:
-
-			# ask the blockchain to process the request
-	        reply = blockchain_module.api_request_handler(payload)
-
-			# return response or error message, to be sent back to brenthy_api
-	        if reply:
-				# bytearray([1]) means success
-				return bytearray([1]) + reply
-			else:
-		# bytearray([0]) signals failure
-		return bytearray([0]) + json.dumps(
-			{'error': BLOCKCHAIN_RETURNED_NO_RESPONSE}
-		)
+    if blockchain_type == "Brenthy":
+        return bytearray([1]) + brenthy_request_handler(request)
+    for blockchain_module in blockchain_manager.blockchain_modules:
+        if blockchain_module.blockchain_type == blockchain_type:
+            reply = blockchain_module.api_request_handler(request)
+            # bytearray([1]) signals success
+            return bytearray([1]) + reply
+	
+    # bytearray([0]) signals failure
+    return bytearray([0]) + json.dumps({
+        "success": False,
+        "error": UNKNOWN_BLOCKCHAIN_TYPE,
+        "blockchain_type": blockchain_type,
+    }).encode()
 ```
 
 Now we've seen how with BrenthyAPI requests, applications can perform Blockchain operations (RPCs - Remote Procedure Calls), or simply ask for a certain piece of information.
@@ -119,8 +111,8 @@ In `walytis.Blockchain.download_and_process_block()`:
 
 # inform applications about the new block
 walytis_beta_api_terminal.publish_event(
-	self.id,
-	message={'block_id': bytes_to_string(block.short_id)},
+	self.blockchain_id,
+	message={"block_id": bytes_to_string(block.short_id)},
 	topics="NewBlocks",
 )
 ```
@@ -128,15 +120,15 @@ walytis_beta_api_terminal.publish_event(
 `walytis_beta_api_terminal.publish_event` encodes the blockchain ID into the topic, before passing on the event to `api_terminal.publish_event`, along with its blockchain type:
 
 ```python
-# from Brenthy/blockchains/Walytis_Beta/walytis_beta_api_terminal.py
+# Brenthy/brenthy_tools_beta/brenthy_api.py
 def publish_event(
-	...
-	):
+    blockchain_id: str, message: dict, topics: list[str] | str | None = None
+) -> None:
 	...
 	api_terminal.publish_event(
         "Walytis_Beta",
         message,
-        topics=[f"{blockchain_id}-{topic}" for topic in topics]
+        topics=[f"{blockchain_id}-{topic}" for topic in topics],
     )
 ```
 
@@ -144,7 +136,9 @@ In `api_terminal.publish_event`, the blockchain type is encoded into the topics:
 ```python
 # from Brenthy/api_terminal/api_terminal.py
 
-def publish_event(blockchain_type: str, payload: dict, topics: list = []):
+def publish_event(
+    blockchain_type: str, payload: dict, topics: list | None = None
+) -> None:
 	...
 	for topic in topics:
 		data = {"topic": f"{blockchain_type}-{topic}"}
@@ -162,21 +156,21 @@ Let's go through the process backwards, and look at the decapsulation of receive
 `brenthy_api`' provides the `EventListener` class for listening to to events published by a specific blockchain type.
 We see in its event-handler function for processing received messages how it removes the encoded blockchain-type from the topics before passing on the event to the blockchain-type's event-handler:
 ```python
-class EventListener():
-    """Class for listening to the messages published by a blockchain type."""
-	
-    def __init__(
+# from Brenthy/brenthy_tools_beta/brenthy_api.py
+class EventListener:
+	def __init__(
         self,
         blockchain_type: str,
         eventhandler: FunctionType,
-        topics: str | list[str]
+        topics: str | list[str],
     ):
 	    ...
-	    brenthy_topics = [
-            f"{self.blockchain_type}-{topic}" for topic in topics]
+		brenthy_topics = [
+            f"{self.blockchain_type}-{topic}" for topic in topics
+        ]
         ...
 	
-    def _handler(self, message, topic):
+    def _handler(self, message: dict, topic: str) -> None:
         """Process an event from Brenthy Core."""
         topic = topic.strip(f"{self.blockchain_type}-")
         ...
@@ -189,19 +183,19 @@ Again, we see its event-handler remove the encoded blockchain ID from the topic,
 # from Brenthy/blockchains/Walytis_Beta/walytis_beta_api/walytis_beta_interface.py
 
 class BlocksListener:
-    """A helper for the Blockchain class, taking care of calling Blockchain's
-    block-received eventhandler whenever its blockchain receives a new block.
-    """
     event_listener = None
     
-    def __init__(self, blockchain_id: str, eventhandler, topics=[]):
+	def __init__(
+        self,
+        blockchain_id: str,
+        eventhandler: Callable[[Block, str], None] | Callable[[Block], None],
+        topics: list[str] | None = None,
+    ):
 	    ...
-	    self.event_listener = brenthy_api.EventListener(
-            "Walytis_Beta",
-            self._eventhandler,
-            f"{blockchain_id}-NewBlocks"
+		self.event_listener = brenthy_api.EventListener(
+            "Walytis_Beta", self._eventhandler, f"{blockchain_id}-NewBlocks"
         )
     
-    def _eventhandler(self, data: dict, topic: str):
+    def _eventhandler(self, data: dict, topic: str) -> None:
         blockchain_topic = topic.strip(f"{self.blockchain_id}-")
 ```
