@@ -7,28 +7,28 @@ Walytis is a lightweight, flexible, accessible and application-oriented type of 
 
 Developed together, they share a repository because they rely on each other very strongly.
 
-## [Walytis](IntroductionToWalytis.md)
+## [Walytis](Documentation/Walytis/Meaning/IntroductionToWalytis.md)
 
-A flexible, lightweight, nonlinear blockchain, built to be built upon.
+_A flexible, lightweight, nonlinear blockchain, built to be built upon._
 
 Walytis is a type of blockchain that is essentially a fully distributed database-management system with a focus on accessibility, flexibility and lightweightedness.
 Applications can create a new Walytis blockchain (i.e. a new database) whenever they need one.
 While they can always add new data to it, existing data can never be deleted or modified.
 
-Learn about Walytis here: [Introduction to Walytis](/Documentation/Walytis/Meaning/IntroductionToWalytis.md)
-Learn why Walytis was developed: [Walytis' Rationale](/Documentation/Walytis/Meaning/WalytisRationale.md)
+Learn about Walytis here: [Introduction to Walytis](/Documentation/Walytis/Meaning/IntroductionToWalytis.md)  
+Learn why Walytis was developed: [Walytis' Rationale](/Documentation/Walytis/Meaning/WalytisRationale.md)  
 Walytis project source: [./Brenthy/blockchains/Walytis_Beta](/Brenthy/blockchains/Walytis_Beta/ReadMe.md)
 
-## [Brenthy](Documentation/Brenthy/Meaning/IntroductionToBrenthy.md)
+## [Brenthy](/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md)
 
-A framework for developing and deploying new kinds of blockchains.
+_A framework for developing and deploying new kinds of blockchains._
 
 Brenthy takes care of all the non-blockchain-related machinery like installation, update and auto-start of itself and its blockchain types.
 It also provides API-infrastructure to ease the development of blockchain APIs for applications.
 Using these ready-made features of Brenthy's allows developers of new blockchains to focus on developing their blockchain's core.
 
-Learn about Brenthy here: [Introduction to Brenthy](Documentation/Brenthy/Meaning/IntroductionToBrenthy.md)  
-Brenthy project source: [./Brenthy](Brenthy/ReadMe.md)
+Learn about Brenthy here: [Introduction to Brenthy](/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md)  
+Brenthy project source: [./Brenthy](/Brenthy/ReadMe.md)
 
 ### What makes Walytis special to Brenthy:
 

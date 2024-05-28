@@ -1,5 +1,5 @@
 _how Brenthy's installation process works_
-_For user instructions on how to install Brenthy using an automated installer, see [../User/Installation.md](InstallingBrenthy.md)._
+_For user instructions on how to install Brenthy using an automated installer, see [../User/Installation.md](/Documentation/Brenthy/User/InstallingBrenthy.md)._
 _For instructions on how to install Brenthy and its components manually, see [../User/ManualInstallation.md](../User/ManualInstallation.md)_
 
 # Brenthy Installation

@@ -4,8 +4,8 @@ import os
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
+from md_utils import get_markdown_files, PROJECT_DIR
 
-PROJECT_DIR = ".."
 
 # relative to PROJECT_DIR
 DOCS_DIR = "Documentation"
@@ -13,14 +13,8 @@ DOCS_DIR = "Documentation"
 # lines in code-snippets which should not be checked
 IGNORED_LINES = ["..."]
 
-markdown_files = []
-
+markdown_files = get_markdown_files()
 os.chdir(PROJECT_DIR)
-for folder, subfolders, filenames in os.walk(os.path.basename(DOCS_DIR)):
-    # print(folder)
-    for filename in filenames:
-        if filename[-3:] == ".md":
-            markdown_files.append(os.path.join(folder, filename))
 
 
 def extract_code_blocks(md_file: str) -> list[Token]:

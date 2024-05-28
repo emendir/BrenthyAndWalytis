@@ -71,7 +71,7 @@ The role of a Walytis blockchain is solely to interlink its blocks into an etern
 How this database is used is the concern of the blockchain applications.
 
 The mechanisms for using Walytis blockchains in such a way to achieve linearity can be outsourced from applications, by building modules on top of Walytis that contain this functionality and present to applications a virtual blockchain with different properties than Walytis.
-See [Virtual Blockchains](IntroductionToWalytis#virtual-blockchains) for details on this and other modules that provide other kinds of properties such as mutability and privacy.
+See [Virtual Blockchains](/Documentation/Walytis/Meaning/IntroductionToWalytis.md#virtual-blockchains) for details on this and other modules that provide other kinds of properties such as mutability and privacy.
 
 # Chronology
 Chronology is the set of features and properties of a blockchain which revolve around the questions of, assuming unreliable timestamps, if/how/when it is possible to determine which block in any pair of blocks was created first, or whether instead the pair of blocks must be treated as having been created at the same time.

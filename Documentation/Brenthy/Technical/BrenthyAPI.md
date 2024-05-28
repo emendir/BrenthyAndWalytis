@@ -1,5 +1,5 @@
 _the API infrastructure Brenthy provides to blockchain types_
-_To learn how BrenthyAPI is used by WalytisAPI to allow applications to interact with Walytis, see [WalytisAPI](WalytisAPI.md)_.
+_To learn how BrenthyAPI is used by WalytisAPI to allow applications to interact with Walytis, see [WalytisAPI](/Documentation/Walytis/Technical/WalytisAPI.md)_.
 
 # BrenthyAPI
 

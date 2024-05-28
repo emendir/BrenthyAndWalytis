@@ -1,6 +1,8 @@
-## [Docs](Documentation/DocsRoadMap.md)
-
+## [Docs](Documentation/DocsRoadmap.md)
+- contributions
+- docs wiki?
 - [ ] double check BrenthyAPI and BrenthyAPI-Protocol
+
 ## Urgent Features
 
 - [x] WalytisAPI make all communications JSON
@@ -12,7 +14,7 @@
 - [x] custom blockchain data path.
 	  - update
 	    - [/Documentation/Brenthy/Technical/Installation.md](/Documentation/Brenthy/Technical/Installation.md)
-	    - [/Documentation/Brenthy/User/Installation.md](InstallingBrenthy.md)
+	    - [/Documentation/Brenthy/User/InstallingBrenthy.md](/Documentation/Brenthy/User/InstallingBrenthy.md)
 	    - [/Documentation/Brenthy/User/ManualInstallation.md](/Documentation/Brenthy/User/ManualInstallation.md)
 - [X] sort the parent block IDs before creating the parents' hash
 - [X] `brenthy_updates` signature version and IPFS-CID

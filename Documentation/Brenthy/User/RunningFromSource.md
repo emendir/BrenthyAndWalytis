@@ -19,7 +19,7 @@ _how to run Brenthy from the project's source code, without installing it_
 		pip3 --version
 		```
 - IPFS
-	- Make sure you have installed and initialised [IPFS](https://ipfs.io/install)
+	- Make sure you have installed and initialised [IPFS](https://docs.ipfs.tech/install/command-line/)
 	- Enable IPFS' experimental LibP2P-Stream-Mounting feature by running the following command:
 		```sh
 		ipfs config --json Experimental.Libp2pStreamMounting true

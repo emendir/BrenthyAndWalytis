@@ -67,7 +67,7 @@ They're probably more likely to try to find loopholes in the integrity verificat
 
 Local block storage isn't all that provides security in Walytis.
 Like most blockchains, it relies heavily on the cryptographic chaining of blocks.
-To learn how this works in Walytis, read [The Walytis Blockchain-Architecture Security](WalytisBlockchainSecurity.md).
+To learn how this works in Walytis, read [The Walytis Blockchain-Architecture Security](/Documentation/Walytis/Technical/WalytisBlockchainSecurity.md).
 
 ## Techy Details:
 To gain a full understanding of how Walytis works, check out the [overview of the technical documentation](../../DocsOverview.md#brenthy---technical).
@@ -88,7 +88,7 @@ Currently, `walytis_api` is implemented in Python, but due to its simplicity and
 
 ## Running Walytis
 Walytis is run by [Brenthy](/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md), a framework for developing and deploying new kinds of blockchains.
-Walytis comes preinstalled with Brenthy, so simply follow the instructions from Brenthy's [installation](InstallingBrenthy.md) or [running-from-source](../../Brenthy/User/RunningFromSource.md) guides to install or run it.
+Walytis comes preinstalled with Brenthy, so simply follow the instructions from Brenthy's [installation](/Documentation/Brenthy/User/InstallingBrenthy.md) or [running-from-source](../../Brenthy/User/RunningFromSource.md) guides to install or run it.
 
 ### What Exactly is Brenthy?
 Brenthy and Walytis run together.

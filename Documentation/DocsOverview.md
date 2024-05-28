@@ -2,7 +2,7 @@
 
 ## Most Important
 ### Front Pages
-- [ ] [ReadMe](/ReadMe.md): contributions
+- [ ] [ReadMe](/ReadMe.md)
 - [ ] [IntroductionToWalytis](Walytis/Meaning/IntroductionToWalytis.md): 
 - [ ] [IntroductionToBrenthy](Brenthy/Meaning/IntroductionToBrenthy.md): 
 
@@ -40,7 +40,7 @@
 - [ ] [Block-Chaining](Walytis/Technical/Block-Chaining.md): how blocks are chained in Walytis
 - [ ] [WalytisBlockchainSecurity](Walytis/Technical/WalytisBlockchainSecurity.md): an analysis of the mechanisms built into Walytis to preserve blockchains' data integrity
 - [ ] [Networking](Walytis/Technical/Networking.md): the different ways in which Walytis nodes communicate with each other
-- [ ] [LeafBlockBroadcasts](LeafBlockBroadcasts.md): When a blockchain is quiet, how do members coming online get the blocks they've missed out on?
+- [ ] [LeafBlockBroadcasts](Walytis/Technical/LeafBlockBroadcasts.md): When a blockchain is quiet, how do members coming online get the blocks they've missed out on?
 - [ ] [BlockchainBirth](Walytis/Technical/BlockchainBirth.md): how the process of creating new blockchains works
 - [ ] [Joining](Walytis/Technical/Joining.md): the mechanisms behind nodes becoming new members of existing blockchains
 - [ ] [WalytisAPI](Walytis/Technical/WalytisAPI.md): how the Walytis API works to connect applications with blockchains
@@ -52,7 +52,7 @@
 
 - [ ] [BackwardCompatibilityGuarantee](Brenthy/Technical/BackwardCompatibilityGuarantee.md): Brenthy and Walytis aim to provide full bidirectional backward compatibility between themselves and their API libraries. Why do we strive for this ideal, how do we achieve it, and what implications does this have?.
 - [ ] [BrenthyAPI](Brenthy/Technical/BrenthyAPI.md): Here we explain the underlying technologies that allow programs to communicate with Brenthy.
-- [ ] [BrenthyAPI-Protocol](Brenthy/Technical/BrenthyAPI-Protocol.md): Here we go explain about how `brenthy_api` and `api_terminal` work, including how they manage to achieve their [hyperintercompatibility](BackwardCompatibilityGuarantee.md).
+- [ ] [BrenthyAPI-Protocol](Brenthy/Technical/BrenthyAPI-Protocol.md): Here we go explain about how `brenthy_api` and `api_terminal` work, including how they manage to achieve their [hyperintercompatibility](Brenthy/Technical/BackwardCompatibilityGuarantee.md).
 - [ ] [BrenthyVersioning](Brenthy/Technical/BrenthyVersioning.md): the version numbering systems for Brenthy and the `brenthy_tools` library
 - [ ] [Installation](Brenthy/Technical/Installation.md): How Brenthy's installation process works.
 - [ ] [Local-IP-Usage](Brenthy/Technical/Local-IP-Usage.md): Brenthy's usage of the loopback IP network of the computer it is running on.

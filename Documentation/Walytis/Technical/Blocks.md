@@ -5,11 +5,11 @@ _blocks' components and how they work_
 - block-file: a file in which all of a block's components are encoded
 ### Block Metadata
 - ipfs_cid: the IPFS content ID (i.e. a hash) of the block-file
-- short_id: the short ID of the block (see [Short ID vs Long ID](./Blocks.md#Short-ID-vs-Long-ID) below)
+- short_id: the short ID of the block (see [Short ID vs Long ID](./Blocks.md#short-id-vs-long-id) below)
 - long_id: the long ID of the block (see [Short ID vs Long ID](./Blocks.md#short-id-vs-long-id) below)
 - creator_id: the IPFS peer ID of the Walytis node that created this block
 - creation_time: the date and time at which this block was created
-- topics: the [topics](#Topics) which the application assigned to this block
+- topics: the [topics](./Blocks.md#topics) which the application assigned to this block
 - content_length: the length of the block's content (number of bytes)
 - content_hash: a cryptographic hash of this block's content
 - content_hash_algorithm: the algorithm used to generate the content hash

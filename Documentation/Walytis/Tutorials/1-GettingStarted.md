@@ -1,7 +1,7 @@
 ## Preparing to Start
 
 ### Install Prerequisites
-- **Brenthy & Walytis:** First of all, you'll need Brenthy & Walytis installed. Brenthy is a program that runs in the background on your computer as a service, which runs the software of various blockchain types, such as the Walytis software which runs Walytis blockchains. Follow [these instructions](InstallingBrenthy.md) for installing them.
+- **Brenthy & Walytis:** First of all, you'll need Brenthy & Walytis installed. Brenthy is a program that runs in the background on your computer as a service, which runs the software of various blockchain types, such as the Walytis software which runs Walytis blockchains. Follow [these instructions](/Documentation/Brenthy/User/InstallingBrenthy.md) for installing them.
 - **`walytis_beta_api`:** To interact with Walytis, you'll need the `walytis_beta_api` Python library installed. See [Installing walytis_api](../User/Installing-walytis_api.md).
 - **Python3:** If you need help with this, visit its homepage at https://python.org to get started.
 

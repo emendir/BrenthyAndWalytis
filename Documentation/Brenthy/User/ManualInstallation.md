@@ -27,7 +27,7 @@ _This guide is written generically to apply to all operating systems. It therefo
 	sudo apt install python3-virtualenv
 	```
 - IPFS
-	- Make sure you have installed and initialised [IPFS](https://ipfs.io/install)
+	- Make sure you have installed and initialised [IPFS](https://docs.ipfs.tech/install/command-line/)
 	- Enable IPFS' experimental LibP2P-Stream-Mounting feature by running the following command:
 	```sh
 	ipfs config --json Experimental.Libp2pStreamMounting true

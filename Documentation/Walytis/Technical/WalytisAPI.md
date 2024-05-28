@@ -1,6 +1,6 @@
 _how applications interact with blockchains_
 _To get an overview of the API from the application programmer's perspective, see [walytis_api-Overview](/Documentation/Walytis/User/walytis_api-Overview.md)_.
-_For more detailed information about the API's functions and classes, see the [API-Reference](../API-Reference/walytis_beta_api/walytis_beta_interface.html)_.
+_For more detailed information about the API's functions and classes, see the [API-Reference](/Documentation/Walytis/API-Reference/walytis_beta_api/walytis_beta_interface.html)_.
 _For a more user-friendly guide on how to use the API, see the [the walytis_api tutorials](../Tutorials/0-TutorialOverview.md) ._
 _For more technical detail on how the communication technologies underlying WalytisAPI work, see [BrenthyAPI](/Documentation/Brenthy/Technical/BrenthyAPI.md)_.
 
@@ -24,7 +24,7 @@ Let's list and define them, then explain how they relate to each other
 - Walytis blockchains: instances of the Walytis blockchain type, databases
 - Walytis applications: programs that uses one or more Walytis blockchains to achieve their goals
 - Walytis Core: Walytis' main set of software components which manages and runs Walytis blockchains, installed and run by Brenthy
-- [`walytis_api`](walytis_api-Overview.md): a library which programmers use in their applications to interact with Walytis blockchains
+- [`walytis_api`](/Documentation/Walytis/User/walytis_api-Overview.md): a library which programmers use in their applications to interact with Walytis blockchains
 - `walytis_api_terminal`: the component of Walytis Core which handles interactions with `walytis_api`
 - WalytisAPI-Protocol: the communication protocol that specifies how `walyti_api` and `walytis_api_terminal` communicate with each other
 - WalytisAPI: the whole system which allows Walytis applications to interact with Walytis Core, comprising `walytis_api`, Walytis Core's `walytis_api_terminal`, and the WalytisAPI-Protocol
@@ -48,5 +48,5 @@ Together they constitute the system called BrenthyAPI, which other libraries suc
 
 WalytisAPI is built on top of BrenthyAPI: `walytis_api` passes its WalytisAPI requests to the `brenthy_tools.brenthy_api` library, which encapsulates them into BrenthyAPI requests which it sends to Brenthy Core, which passes on the encapsulated WalytisAPI requests to Walytis Core.
 
-![](/Documentation/Walytis/Technical/DataFlow.drawio.svg)
+![](/Documentation/Walytis/Technical/Dataflow.drawio.svg)
 
