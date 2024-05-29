@@ -59,5 +59,10 @@ If you don't have the time to learn how to contribute code directly, feel free t
 
 #TODO
 %% GitHub wiki? %%
+
 ### Financial Support
-#TODO
+
+To financially support me in my work on this and other projects, you can make donations with the following currencies (more methods coming soon):
+
+- **Bitcoin:**  `BC1Q45QEE6YTNGRC5TSZ42ZL3MWV8798ZEF70H2DG0`
+- **Ethereum:** `0xA32C3bBC2106C986317f202B3aa8eBc3063323D4`
