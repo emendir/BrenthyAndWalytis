@@ -27,13 +27,14 @@ except:  # pylint:disable=bare-except
     ZMQ_CONTEXT = None
 
 BUFFER_SIZE = 4096  # the TCP buffer size for processing reveived data
-DEF_TIMEOUT_S = 20
+REQUEST_TIMEOUT_S = 180
+CONNECT_TIMEOUT_S = 2
 
 
 def send_request_zmq(
     request: bytearray | bytes,
     socket_address: tuple[str, int],
-    timeout: int = DEF_TIMEOUT_S,
+    timeout: int = REQUEST_TIMEOUT_S,
 ) -> bytes:
     """Send a request to the given address, expecting a reply.
 
@@ -50,7 +51,10 @@ def send_request_zmq(
     zmq_socket = ZMQ_CONTEXT.socket(zmq.REQ)
     zmq_socket.setsockopt(zmq.LINGER, 1)
 
-    zmq_socket.connect(f"tcp://{socket_address[0]}:{socket_address[1]}")
+    zmq_socket.connect(
+        f"tcp://{socket_address[0]}:{socket_address[1]}",
+        # timeout=CONNECT_TIMEOUT_S*1000
+    )
 
     zmq_socket.send(request)
     zmq_socket.poll(timeout=timeout * 1000, flags=zmq.PollEvent.POLLIN)

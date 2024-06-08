@@ -5,6 +5,7 @@ COPY tests /opt/Brenthy/tests
 
 ## Install Prerequisites:
 RUN apt install -y virtualenv
+RUN python3 -m pip install --upgrade pip setuptools wheel build
 RUN python3 -m pip install -r /opt/brenthy_installer/Brenthy/requirements.txt
 RUN python3 -m pip install /opt/brenthy_installer/Brenthy
 RUN python3 -m pip install /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta

@@ -29,6 +29,7 @@ def initialise() -> None:  # pylint: disable=unused-variable
     # its port number. The other socket waits for the RPC to finish and sends
     # its result to the requester, so that this RequestsReceiver doesn't get
     # blockced waiting for the RPC to complete.
+    log.info("BAP-4 ZMQ creating listener...")
     zmq_listener = ZmqMultiRequestsReceiver(
         BAP_4_RPC_ADDRESS,
         api_terminal.handle_request,
@@ -39,8 +40,10 @@ def initialise() -> None:  # pylint: disable=unused-variable
 def terminate() -> None:  # pylint: disable=unused-variable
     """Stop listening for RPC requests and clean up resources."""
     if zmq_listener:
+        log.info("BAP-4 ZMQ terminating listener socket.")
         zmq_listener.terminate()
     if pub_socket:
+        log.info("BAP-4 ZMQ terminating PubSub socket..")
         pub_socket.terminate()
 
 
@@ -52,4 +55,6 @@ def publish(data: dict) -> None:  # pylint: disable=unused-variable
         )
         log.error(error_message)
         return
+    log.debug("BAP-4 ZMQ publishing...")
     pub_socket.publish(data)
+    log.debug("BAP-4 ZMQ published!")

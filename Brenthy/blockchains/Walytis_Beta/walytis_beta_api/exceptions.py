@@ -28,10 +28,13 @@ class WalytisBugError(Exception):
         "Walytis_Beta ran into a problem processing a request. This is a bug."
     )
 
-    def __init__(self, message: str = def_message):
+    def __init__(self, message: str = def_message, error_message: str = ""):
         self.message = message
+        self.error_message = message
 
     def __str__(self):
+        if self.error_message:
+            return f"{self.message}\nWalytis says: {self.error_message}"
         return self.message
 
 

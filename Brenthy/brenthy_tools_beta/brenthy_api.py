@@ -116,7 +116,10 @@ def send_request(
             continue
     if not reply:
         if communicated:
-            raise BrenthyReplyDecodeError()
+            raise BrenthyReplyDecodeError(
+                BrenthyReplyDecodeError.def_message
+                + "\nThe reply received was empty."
+            )
         else:
             raise BrenthyNotRunningError()
     if success:
@@ -135,16 +138,20 @@ def _analyse_no_success_reply(reply: bytearray) -> Exception:
     Args:
         reply (bytearray): the response from Brenthy for the failed RPC
     """
+    if not reply:
+        return BrenthyReplyDecodeError(
+            "Received empty JSON reply from Brenthy.", reply=data
+        )
     data = None
     try:
         data = json.loads(reply.decode())
     except (json.JSONDecodeError, UnicodeDecodeError):
         return BrenthyReplyDecodeError(
-            "Failed to decode Brenthy's binary reply to JSON.", reply=data
+            "Failed to decode Brenthy's binary reply to JSON.", reply=reply
         )  # pylint: disable=
     if not data:
         return BrenthyReplyDecodeError(
-            "Received empty reply from Brenthy.", reply=data
+            "Received empty JSON reply from Brenthy.", reply=data
         )
     if "error" in data.keys():
         if data["error"] == BLOCKCHAIN_RETURNED_NO_RESPONSE:

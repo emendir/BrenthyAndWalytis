@@ -980,13 +980,14 @@ def _read_appcomterm_error_message(
             elif data["error"] == NO_SUCH_INVITATION_MESSAGE:
                 return NoSuchInvitationError()
             elif data["error"] == WALYTIS_BETA_ERROR_MESSAGE:
-                return WalytisBugError()
+                return WalytisBugError(error_message=data["error"])
             if default_error:
                 return default_error
             else:
                 return WalytisReplyDecodeError(reply=str(data))
     if default_error:
         return default_error
+    log.error(str(WalytisReplyDecodeError(reply=str(data))))
     return WalytisReplyDecodeError(reply=str(data))
 
 

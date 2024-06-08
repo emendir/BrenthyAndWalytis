@@ -83,13 +83,13 @@ class Networking(ABC):
         if not sender_id == ipfs_api.my_id():
             self.peer_monitor.register_contact_event(sender_id)
         if message == "New block!":
-            log.info(f"PubSub: Received data for new block on {self.name}.")
+            # log.info(f"PubSub: Received data for new block on {self.name}.")
             self.lastcoms_time = datetime.utcnow()
             self.update_shared_leaf_blocks([data["block_id"]])
             self.new_block_published(string_to_bytes(data["block_id"]))
 
         elif message == "Leaf blocks:":
-            log.info(f"PubSub: Received leaf blocks broadcast on {self.name}.")
+            # log.info(f"PubSub: Received leaf blocks broadcast on {self.name}.")
             self.lastcoms_time = datetime.utcnow()
             # leaf_blocks = [
             #     string_to_bytes(block_id) for block_id in data["leaf_blocks"]

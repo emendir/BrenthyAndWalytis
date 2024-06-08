@@ -37,6 +37,8 @@ class ZmqMultiRequestsReceiver:
 
     def _listen(self) -> None:
         try:
+            log.debug("ZMQ creating socket...")
+
             self.zmq_socket = self.zmq_context.socket(zmq.ROUTER)
             self.zmq_socket.setsockopt(zmq.LINGER, 1)
             self.zmq_socket.bind(
@@ -49,8 +51,14 @@ class ZmqMultiRequestsReceiver:
         try:
             while True:
                 # Accept incoming connections
+                log.debug("ZMQ waiting for request...")
+
                 identity, _, request = self.zmq_socket.recv_multipart()
+                log.debug("ZMQ processing request...")
+
                 if request == TERMINATTION_CODE:
+                    log.debug("ZMQ closing socket...")
+
                     self.zmq_socket.close()
                     return
                 # Spawn a new thread to handle each connection
@@ -60,12 +68,16 @@ class ZmqMultiRequestsReceiver:
                     daemon=True,
                 ).start()
         finally:
+            log.debug("ZMQ closing socket...")
             self.zmq_socket.close()
 
     def handle_zmq_connection(self, identity: bytes, request: bytes) -> None:
         """Handle a freshly accepted ZeroMQ connection."""
         # Process the request
+        log.debug("ZMQ handling new connection...")
         reply = self.handle_request(request)
+
+        log.debug("ZMQ sending reply...")
 
         # Send the reply back to the client
         self.zmq_socket.send_multipart([identity, b"", reply])
@@ -73,7 +85,10 @@ class ZmqMultiRequestsReceiver:
     def terminate(self) -> None:
         """Stop listening for requests and clean up resources."""
         try:
+            log.debug("ZMQ shutting down socket...")
             if not self.listener_thread.is_alive():
+                log.debug("ZMQ socket must already be shut down.")
+
                 return
             self._terminate = True
             sock = self.zmq_context.socket(zmq.REQ)
@@ -90,8 +105,8 @@ class ZmqMultiRequestsReceiver:
                 "error in API-Terminal.ZMQ-ZmqRequestsReceiver.terminate(): "
                 f"{error}"
             )
-        # log.debug("Shutting down ZMQ resources.")
-        self.zmq_context.term()
+        log.debug("ZMQ: terminating context.")
+        # self.zmq_context.term()
 
     def __del__(self):
         """Stop listening for requests and clean up resources."""
@@ -196,7 +211,7 @@ class ZmqPublisher:
         if not self._terminated:
             log.debug("Shutting down ZMQ resources.")
             self.pub_socket.close()
-            self.zmq_context.term()
+            # self.zmq_context.term()
             self._terminated = True
 
     def __del__(self):
