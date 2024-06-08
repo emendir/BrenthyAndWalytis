@@ -26,79 +26,101 @@ class ZmqMultiRequestsReceiver:
         self,
         socket_address: tuple[str, int],
         handle_request: Callable[[bytes], bytes],
+        max_parallel_handlers: int = 4
     ):
         """Listen to incoming RPC requests using the ZMQ protocol."""
         self.zmq_context = zmq.Context()
         self.socket_address = socket_address
         self.handle_request = handle_request
+        self.max_parallel_handlers = max_parallel_handlers
         self._terminate = False
-        self.listener_thread = Thread(target=self._listen, args=())
+        self.listener_thread = Thread(
+            target=self._listen, args=(),
+            name="ZmqMultiRequestsReceiver-listener"
+        )
         self.listener_thread.start()
+        self.workers: list[Thread] = []
+        self._start_workers()
+
+    def _start_workers(self) -> None:
+        """Start worker threads which will handle requests."""
+        for i in range(self.max_parallel_handlers):
+            worker = Thread(
+                target=self._worker_routine, args=(), daemon=True,
+                name=f"ZmqMultiRequestsReceiver-worker-{i}"
+            )
+            worker.start()
+            self.workers.append(worker)
 
     def _listen(self) -> None:
         try:
-            log.debug("ZMQ creating socket...")
-
-            self.zmq_socket = self.zmq_context.socket(zmq.ROUTER)
-            self.zmq_socket.setsockopt(zmq.LINGER, 1)
-            self.zmq_socket.bind(
+            # log.debug("ZMQ creating router and dealer sockets...")
+            self.router_socket = self.zmq_context.socket(zmq.ROUTER)
+            self.router_socket.bind(
                 f"tcp://{self.socket_address[0]}:{self.socket_address[1]}"
             )
-        except Exception as error:  # pylint: disable=broad-exception-caught
-            log.error(str(error))
-            return
 
-        try:
-            while True:
-                # Accept incoming connections
-                log.debug("ZMQ waiting for request...")
+            self.dealer_socket = self.zmq_context.socket(zmq.DEALER)
+            self.dealer_socket.bind("inproc://workers")
 
-                identity, _, request = self.zmq_socket.recv_multipart()
-                log.debug("ZMQ processing request...")
+            # log.debug("ZMQ creating proxy...")
+            zmq.proxy(self.router_socket, self.dealer_socket)
+            # log.debug("ZMQ created proxy!")
 
-                if request == TERMINATTION_CODE:
-                    log.debug("ZMQ closing socket...")
-
-                    self.zmq_socket.close()
-                    return
-                # Spawn a new thread to handle each connection
-                Thread(
-                    target=self.handle_zmq_connection,
-                    args=(identity, request),
-                    daemon=True,
-                ).start()
+        except Exception as error:
+            if not self._terminate:
+                log.error(str(error))
         finally:
-            log.debug("ZMQ closing socket...")
-            self.zmq_socket.close()
+            # log.debug("ZMQ closing rouet & dealer sockets...")
+            self.router_socket.close()
+            self.dealer_socket.close()
 
-    def handle_zmq_connection(self, identity: bytes, request: bytes) -> None:
-        """Handle a freshly accepted ZeroMQ connection."""
-        # Process the request
-        log.debug("ZMQ handling new connection...")
-        reply = self.handle_request(request)
+    def _worker_routine(self) -> None:
+        """Worker thread routine to handle requests."""
+        worker_socket = self.zmq_context.socket(zmq.DEALER)
+        worker_socket.connect("inproc://workers")
 
-        log.debug("ZMQ sending reply...")
-
-        # Send the reply back to the client
-        self.zmq_socket.send_multipart([identity, b"", reply])
+        while not self._terminate:
+            identity, _, request = worker_socket.recv_multipart()
+            if self._terminate:
+                worker_socket.close()
+                return
+            # log.debug("ZMQ worker processing request...")
+            reply = self.handle_request(request)
+            # log.debug("ZMQ worker sending reply...")
+            worker_socket.send_multipart([identity, b"", reply])
 
     def terminate(self) -> None:
         """Stop listening for requests and clean up resources."""
+        if self._terminate:
+            return
         try:
-            log.debug("ZMQ shutting down socket...")
-            if not self.listener_thread.is_alive():
-                log.debug("ZMQ socket must already be shut down.")
-
-                return
+            log.debug("ZMQ shutting down ZmqMultiRequestsReceiver...")
+            # if not self.listener_thread.is_alive():
+            #     log.debug("ZMQ socket must already be shut down.")
+            #
+            #     return
             self._terminate = True
-            sock = self.zmq_context.socket(zmq.REQ)
-            self.zmq_socket.setsockopt(zmq.LINGER, 1)
+            # log.debug("Waiting for workers to stop...")
+            for i in range(2*self.max_parallel_handlers):
+                all_workers_stopped = True
+                for worker in self.workers:
+                    worker.join(1)
+                    if worker.is_alive():
+                        all_workers_stopped = False
+                        break
+                if all_workers_stopped:
+                    break
+                sock = self.zmq_context.socket(zmq.REQ)
+                sock.setsockopt(zmq.LINGER, 1)
 
-            sock.connect(
-                f"tcp://{self.socket_address[0]}:{self.socket_address[1]}"
-            )
-            sock.send("close".encode())
-            sock.close()
+                sock.connect(
+                    f"tcp://{self.socket_address[0]}:{self.socket_address[1]}"
+                )
+                sock.send("close".encode())
+                sock.close()
+            self.router_socket.close()
+            self.dealer_socket.close()
             self.listener_thread.join()
         except Exception as error:
             log.error(
@@ -106,7 +128,7 @@ class ZmqMultiRequestsReceiver:
                 f"{error}"
             )
         log.debug("ZMQ: terminating context.")
-        # self.zmq_context.term()
+        self.zmq_context.term()
 
     def __del__(self):
         """Stop listening for requests and clean up resources."""
@@ -256,7 +278,9 @@ def _tcp_recv_counted(sock: socket.socket, timeout: int = 5) -> bytes:
                     if len(total_data) == length:
                         return total_data
                     if len(total_data) > length:
-                        raise OverflowError("Received more data than expected!")
+                        raise OverflowError(
+                            "Received more data than expected!"
+                        )
                     # change the beginning time for measurement
                     begin = time.time()
         except:
