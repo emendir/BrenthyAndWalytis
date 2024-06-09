@@ -26,6 +26,9 @@ from brenthy_tools_beta.utils import function_name
 
 BAP_VERSION = 4  # pylint: disable=unused-variable
 
+# keep track of contexts to avoid problems caused by garbage collector
+CONTEXTS = []
+
 
 def send_request(request: bytearray | bytes) -> bytes:  # pylint: disable=unused-variable
     """Send a BrenthyAPI request to Brenthy-Core, returning its reply.
@@ -73,6 +76,7 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
         """
         try:
             self.zmq_context = zmq.Context()
+            CONTEXTS.append(self.zmq_context)
         except:
             raise CantConnectToSocketError(protocol="ZMQ") from None
         if not topics:

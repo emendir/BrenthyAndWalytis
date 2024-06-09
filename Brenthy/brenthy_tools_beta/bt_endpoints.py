@@ -17,18 +17,40 @@ from types import FunctionType
 from brenthy_tools_beta import log
 from brenthy_tools_beta.utils import from_b255_no_0s, to_b255_no_0s
 
-try:
-    # load ZMQ
-    import zmq
-
-    ZMQ_CONTEXT: zmq.sugar.context.Context | None = zmq.Context()
-except:  # pylint:disable=bare-except
-    log.error("Failed to set up ZMQ communications. Using TCP only.")
-    ZMQ_CONTEXT = None
-
 BUFFER_SIZE = 4096  # the TCP buffer size for processing reveived data
 REQUEST_TIMEOUT_S = 180
 CONNECT_TIMEOUT_S = 2
+
+_INITIALISED_ZMQ = False
+try:
+    import zmq
+    ZMQ_CONTEXT: zmq.sugar.context.Context | None
+except:
+    pass
+
+
+CONTEXTS = []
+
+
+def initialise() -> None:
+    """Reinitialising them if they have been cleaned up."""
+    global zmq
+    global ZMQ_CONTEXT
+    global _INITIALISED_ZMQ
+    if _INITIALISED_ZMQ:
+        if ZMQ_CONTEXT and not ZMQ_CONTEXT.closed:
+            return
+    try:
+        # load ZMQ
+        import zmq
+
+        ZMQ_CONTEXT = zmq.Context()
+        CONTEXTS.append(ZMQ_CONTEXT)
+
+        _INITIALISED_ZMQ = True
+    except:  # pylint:disable=bare-except
+        log.error("Failed to set up ZMQ communications. Using TCP only.")
+        ZMQ_CONTEXT = None
 
 
 def send_request_zmq(
@@ -171,7 +193,9 @@ def _tcp_recv_counted(sock: socket.socket, timeout: int = 5) -> bytes:
                     if len(total_data) == length:
                         return total_data
                     if len(total_data) > length:
-                        raise OverflowError("Received more data than expected!")
+                        raise OverflowError(
+                            "Received more data than expected!"
+                        )
                     # change the beginning time for measurement
                     begin = time.time()
         except:  # pylint:disable=bare-except
@@ -194,3 +218,15 @@ class EventListener(ABC):
     def terminate(self) -> None:
         """Stop listening for events and clean up resources."""
         pass
+
+
+def terminate() -> None:
+    """Clean up all resources."""
+    if ZMQ_CONTEXT:
+        try:
+            ZMQ_CONTEXT.term()
+        except Exception as error:
+            log.error(str(error))
+
+
+initialise()

@@ -50,6 +50,7 @@ def run_brenthy() -> None:
     global api_terminal
     global blockchain_manager
     global update
+    global bt_endpoints
     global TRY_INSTALL
     global CHECK_UPDATES
     global DATA_DIR
@@ -102,7 +103,6 @@ def run_brenthy() -> None:
                         log.important("Installation declined by user")
         if "--install-dont-run" in sys.argv:
             log.important(
-                "Brenthy installation disabled/not possible/failed/prevented. "
                 "Exiting because --install-dont-run is specified."
             )
             exit_brenthy = True
@@ -140,6 +140,8 @@ def run_brenthy() -> None:
         import api_terminal
         import blockchain_manager  # Running the core of Brenthy
         import update
+        from brenthy_tools_beta import bt_endpoints
+        bt_endpoints.initialise()
 
         log.important("Starting up communication with applications...")
         api_terminal.load_brenthy_api_protocols()
@@ -190,6 +192,11 @@ def stop_brenthy() -> None:
         update.terminate_updater()
     except:  # pylint: disable=bare-except
         log.error("Error shutting down Brenthy-updater.")
+
+    try:
+        bt_endpoints.terminate()
+    except:  # pylint: disable=bare-except
+        log.error("Error shutting down bt_endpoints.")
     reload(api_terminal)
     reload(blockchain_manager)
     reload(update)

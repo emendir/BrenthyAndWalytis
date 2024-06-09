@@ -18,6 +18,9 @@ BUFFER_SIZE = 4096  # the communication buffer size
 
 TERMINATTION_CODE = b"close"
 
+# keep track of contexts to avoid problems caused by garbage collector
+CONTEXTS = []
+
 
 class ZmqMultiRequestsReceiver:
     """Listen for RPC requests and respond with replies via ZMQ."""
@@ -30,6 +33,7 @@ class ZmqMultiRequestsReceiver:
     ):
         """Listen to incoming RPC requests using the ZMQ protocol."""
         self.zmq_context = zmq.Context()
+        CONTEXTS.append(self.zmq_context)
         self.socket_address = socket_address
         self.handle_request = handle_request
         self.max_parallel_handlers = max_parallel_handlers
@@ -211,6 +215,7 @@ class ZmqPublisher:
         """Create an object for publishing data on a pubsub socket."""
         self._terminated = False
         self.zmq_context = zmq.Context()
+        CONTEXTS.append(self.zmq_context)
         self.address = address
         self.pub_socket = self.zmq_context.socket(zmq.PUB)
         self.pub_socket.setsockopt(zmq.LINGER, 1)
@@ -231,7 +236,7 @@ class ZmqPublisher:
     def terminate(self) -> None:
         """Clean up resources."""
         if not self._terminated:
-            log.debug("Shutting down ZMQ resources.")
+            # log.debug("Shutting down ZMQ resources.")
             self.pub_socket.close()
             self.zmq_context.term()
             self._terminated = True

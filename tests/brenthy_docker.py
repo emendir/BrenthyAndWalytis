@@ -274,23 +274,21 @@ class BrenthyDockerContainer:
             and not address.startswith("/ip4/127.0.0.1/")
             and address.split("/")[3] == "udp"
         ]
-
+        commands = []
         if ip6_tcp_maddr:  # if any such addresses were found, try to connect
-            self.run_shell_command(
-                f"ipfs swarm connect {ip6_tcp_maddr[0]}", check=False
-            )
+            commands.append(f"ipfs swarm connect {ip6_tcp_maddr[0]}")
+
         if ip6_udp_maddr:  # if any such addresses were found, try to connect
-            self.run_shell_command(
-                f"ipfs swarm connect {ip6_udp_maddr[0]}", check=False
-            )
+            commands.append(f"ipfs swarm connect {ip6_udp_maddr[0]}")
+
         if ip4_tcp_maddr:  # if any such addresses were found, try to connect
-            self.run_shell_command(
-                f"ipfs swarm connect {ip4_tcp_maddr[0]}", check=False
-            )
+            commands.append(f"ipfs swarm connect {ip4_tcp_maddr[0]}")
+
         if ip4_udp_maddr:  # if any such addresses were found, try to connect
-            self.run_shell_command(
-                f"ipfs swarm connect {ip4_udp_maddr[0]}", check=False
-            )
+            commands.append(f"ipfs swarm connect {ip4_udp_maddr[0]}")
+
+        self.run_shell_command(" & ".join(commands), check=False)
+
         # print(f"ipfs swarm connect {ip6_tcp_maddr}")
         # print(f"ipfs swarm connect {ip6_udp_maddr}")
         # print(f"ipfs swarm connect {ip4_tcp_maddr}")
