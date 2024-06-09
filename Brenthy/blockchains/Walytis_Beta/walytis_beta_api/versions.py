@@ -10,7 +10,7 @@ WALYTIS_BETA_API_PROTOCOL_VERSION = (WALYTIS_BETA_PROTOCOL_VERSION, 3)
 
 # the version of the walytis_api library which is used by applications
 # to communicate with the Walytis_Beta node to interact with blockchains
-WALYTIS_BETA_API_VERSION = (*WALYTIS_BETA_API_PROTOCOL_VERSION, 5)
+WALYTIS_BETA_API_VERSION = (*WALYTIS_BETA_API_PROTOCOL_VERSION, 6)
 
-# the version of the Walytis node software, which runs blockchains
+# the version of the Walytis core software, which runs blockchains
 WALYTIS_BETA_CORE_VERSION = (*WALYTIS_BETA_API_PROTOCOL_VERSION, 4)

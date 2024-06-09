@@ -26,7 +26,7 @@ class ZmqMultiRequestsReceiver:
         self,
         socket_address: tuple[str, int],
         handle_request: Callable[[bytes], bytes],
-        max_parallel_handlers: int = 4
+        max_parallel_handlers: int = 20
     ):
         """Listen to incoming RPC requests using the ZMQ protocol."""
         self.zmq_context = zmq.Context()
@@ -95,7 +95,7 @@ class ZmqMultiRequestsReceiver:
         if self._terminate:
             return
         try:
-            log.debug("ZMQ shutting down ZmqMultiRequestsReceiver...")
+            # log.debug("ZMQ shutting down ZmqMultiRequestsReceiver...")
             # if not self.listener_thread.is_alive():
             #     log.debug("ZMQ socket must already be shut down.")
             #
@@ -127,7 +127,7 @@ class ZmqMultiRequestsReceiver:
                 "error in API-Terminal.ZMQ-ZmqRequestsReceiver.terminate(): "
                 f"{error}"
             )
-        log.debug("ZMQ: terminating context.")
+        # log.debug("ZMQ: terminating context.")
         self.zmq_context.term()
 
     def __del__(self):
@@ -233,7 +233,7 @@ class ZmqPublisher:
         if not self._terminated:
             log.debug("Shutting down ZMQ resources.")
             self.pub_socket.close()
-            # self.zmq_context.term()
+            self.zmq_context.term()
             self._terminated = True
 
     def __del__(self):

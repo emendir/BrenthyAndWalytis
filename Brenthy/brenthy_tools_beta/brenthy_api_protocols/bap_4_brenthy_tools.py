@@ -164,7 +164,7 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
                         ).start()
         except Exception as e:  # pylint:disable=broad-exception-caught
             log.error(f"BrenthyAPI.EventListener.listen: {e}")
-        # self.zmq_context.term()
+        self.zmq_context.term()
 
     def terminate(self) -> None:
         """Stop listening for events and clean up resources."""

@@ -327,7 +327,7 @@ class Blockchain:
             block (Block): the newly received block
             save_blocks_list (bool): whether or not to save our updated list
                         of blocks to appdata
-            already_loked (bool): whether or not we've already acquired the
+            already_locked (bool): whether or not we've already acquired the
                         lock for working with the blocks list
         """
         # if not already_locked:
@@ -355,14 +355,12 @@ class Blockchain:
                             args=(block,),
                             name=f"WAPI-{self.name}-block_received_handler",
                         ).start()
-
                 if not already_locked:
                     self._blocklist_lock.acquire()
 
                 self.block_ids.append(block.short_id)
                 if save_blocks_list:
-                    # self._save_blocks_list(already_locked=True)
-                    self._save_blocks_list(already_locked=already_locked)
+                    self._save_blocks_list(already_locked=True)
 
                 if not already_locked:
                     self._blocklist_lock.release()
@@ -441,6 +439,7 @@ class Blockchain:
         """Load our list of known/processed block IDs from an appdata file."""
         if not self.appdata_dir:
             return
+
         self._blocklist_lock.acquire()
 
         if os.path.exists(os.path.join(self.appdata_dir, "blocks_list")):

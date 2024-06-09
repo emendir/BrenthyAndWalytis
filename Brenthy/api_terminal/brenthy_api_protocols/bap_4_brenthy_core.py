@@ -55,6 +55,6 @@ def publish(data: dict) -> None:  # pylint: disable=unused-variable
         )
         log.error(error_message)
         return
-    log.debug("BAP-4 ZMQ publishing...")
+    # log.debug("BAP-4 ZMQ publishing...")
     pub_socket.publish(data)
-    log.debug("BAP-4 ZMQ published!")
+    # log.debug("BAP-4 ZMQ published!")
