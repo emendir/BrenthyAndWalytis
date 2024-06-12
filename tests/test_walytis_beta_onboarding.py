@@ -30,12 +30,11 @@ NUMBER_OF_FIND_ATTEMPTS = 10
 NUMBER_OF_JOIN_ATTEMPTS = 10
 DOCKER_CONTAINER_NAME = "brenthy_onboarding_test"
 NUMBER_OF_CONTAINERS = 5
+
 # enable/disable breakpoints when checking intermediate test results
 testing_utils.BREAKPOINTS = True
 
-# if you do not have any other important brenthy docker containers,
-# you can set this to true to automatically remove unpurged docker containers
-# after failed tests
+# automatically remove all docker containers after failed tests
 DELETE_ALL_BRENTHY_DOCKERS = True
 
 if True:

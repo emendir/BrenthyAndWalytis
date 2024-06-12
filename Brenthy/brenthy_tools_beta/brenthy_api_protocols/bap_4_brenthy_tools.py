@@ -96,7 +96,7 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
         n_params = len(signature(self.eventhandler).parameters)
         if n_params == 0:
             error_message = (
-                f"BrenthyAPI.EventListener {topics}: "
+                f"BAP-4-BT.EventListener {topics}: "
                 "eventhandler must have 1 or 2 parameters: (data, topic)"
             )
             log.error(f"BrenthyAPI: {function_name()}: {error_message}")
@@ -106,6 +106,13 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
         if not self.topics:
             self.topics = [""]
 
+        self.listener_thread = Thread(
+            target=self._listen, args=(), name="BrenthyAPI-ListenToEvents"
+        )
+        self.listener_thread.start()
+
+    def _listen(self) -> None:
+        """Listen for messages and call user's eventhandler when received."""
         self.socket = self.zmq_context.socket(zmq.SUB)
         self.socket.setsockopt(zmq.LINGER, 1)
 
@@ -117,23 +124,15 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
             self.socket.subscribe(json.dumps({"topic": topic})[:-1] + ",")
 
             log.info(
-                "BrenthyAPI.EventListener.listen: "
+                "BAP-4-BT.EventListener.listen: "
                 + str(json.dumps({"topic": topic})[:-1] + ", ")
             )
-
-        listener_thread = Thread(
-            target=self._listen, args=(), name="BrenthyAPI-ListenToEvents"
-        )
-        listener_thread.start()
-
-    def _listen(self) -> None:
-        """Listen for messages and call user's eventhandler when received."""
         try:
             poller = zmq.Poller()
             poller.register(self.socket, zmq.POLLIN)
             while True:
                 if self._terminate:
-                    return
+                    break
                 events = dict(poller.poll(1000))
                 if events:
                     if events.get(self.socket) == zmq.POLLIN:
@@ -156,7 +155,7 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
                         else:
                             params = (data, topic)
                         log.info(
-                            "BrenthyAPI.EventListener.listen: passing on "
+                            "BAP-4-BT.EventListener.listen: passing on "
                             f"received block to eventhandler with {n_params} "
                             "parameters"
                         )
@@ -164,10 +163,13 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
                         Thread(
                             target=self.eventhandler,
                             args=params,
-                            name="BlockListener.eventhandler",
+                            name="EventListener.eventhandler",
                         ).start()
         except Exception as e:  # pylint:disable=broad-exception-caught
             log.error(f"BrenthyAPI.EventListener.listen: {e}")
+
+        # clean up resources
+        self.socket.close()
         self.zmq_context.term()
 
     def terminate(self) -> None:
