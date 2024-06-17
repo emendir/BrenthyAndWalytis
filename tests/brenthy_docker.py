@@ -9,9 +9,8 @@ import subprocess
 import sys
 import tempfile
 import threading
-import time
+from time import sleep
 from types import FrameType
-
 import ipfs_api
 
 
@@ -69,20 +68,21 @@ class BrenthyDockerContainer:
             while self.ipfs_id == "":
                 self._docker_swarm_connect()
                 self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"')
-                time.sleep(1)
+                sleep(1)
 
     def run(self) -> None:
         """Start this docker container."""
+        print("Docker container starting...")
         threading.Thread(
             target=self._run_docker,
             args=(),
             name=f"Docker-{self.container_name}",
         ).start()
-        time.sleep(1)
+        sleep(1)
 
         # getting container id from container name
         while not self.container_id:
-            time.sleep(1)
+            sleep(1)
             # getting container id from container name
             result = subprocess.run(
                 f'docker ps -aqf "name=^{self.container_name}$"',
@@ -97,7 +97,7 @@ class BrenthyDockerContainer:
 
         # wait till IPFS is running and till we can reach it
         while not self.ipfs_id or not ipfs_api.find_peer(self.ipfs_id):
-            time.sleep(1)
+            sleep(1)
             self._docker_swarm_connect()
             self.ipfs_id = subprocess.run(
                 (
@@ -109,6 +109,16 @@ class BrenthyDockerContainer:
                 text=True,
                 check=False,
             ).stdout
+
+        # wait till docker container's Brenthy has renamed its update blockhain
+        # and restarted
+        while not self.run_python_code(
+            "import os;"
+            "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"
+        ) == "True":
+            sleep(0.2)
+        sleep(0.2)
+        print("Docker container up and running!")
 
     def log(self) -> None:
         """Open the docker container's Brenthy log in gedit."""
@@ -164,7 +174,8 @@ class BrenthyDockerContainer:
         ):
             print(result.stdout)
             # breakpoint()
-        return result.stdout
+
+        return result.stdout.strip("\n")
 
     def run_shell_command(
         self, command: str, brenthy_user: bool = False, check: bool = True
@@ -206,7 +217,7 @@ class BrenthyDockerContainer:
                 text=True,
                 check=False,
             ).stdout:
-                time.sleep(1)
+                sleep(1)
             # wait till we can connect to docker via IPFS
             while not ipfs_api.find_peer(self.ipfs_id):
                 pass

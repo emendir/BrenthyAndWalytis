@@ -204,6 +204,7 @@ def stop_brenthy() -> None:
 
 def restart_brenthy() -> None:  # pylint: disable=unused-variable
     """Restart Brenthy."""
+    log.important("Restarting Brenthy...")
     stop_brenthy()
     run_brenthy()
 

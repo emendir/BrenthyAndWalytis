@@ -1,6 +1,7 @@
 """Manages the installed blockchain types."""
 # pylint: disable=global-statement
 
+from threading import Thread
 import os
 from types import ModuleType
 
@@ -81,5 +82,11 @@ def load_blockchain_modules() -> list:
 
 def terminate() -> None:  # pylint: disable=unused-variable
     """Shut down all blockchain types."""
+    log.debug("Terminating all blockchain types...")
+    threads: list[Thread] = []
     for module in blockchain_modules:
-        module.terminate()
+        thread = Thread(target=module.terminate, args=())
+        thread.start()
+        threads.append(thread)
+    for thread in threads:
+        thread.join()

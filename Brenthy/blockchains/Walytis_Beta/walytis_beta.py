@@ -11,7 +11,7 @@ import time
 import traceback
 from datetime import datetime
 from random import randint, seed
-from threading import Lock
+from threading import Lock, Thread
 
 # import api_terminal as AppCom
 import ipfs_api
@@ -935,6 +935,8 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
     def terminate(self) -> None:
         """Stop running this blockchain."""
+        if self._terminate:
+            return
         self._terminate = True
         self.terminate_networking()
         self.conv_lis.terminate()
@@ -1305,7 +1307,12 @@ def terminate() -> None:
     """Stop all running blockchains."""
     log.debug("Terminating all blockchains...")
     global blockchains
+    threads: list[Thread] = []
     for blockchain in blockchains:
-        blockchain.terminate()
+        thread = Thread(target=blockchain.terminate, args=())
+        thread.start()
+        threads.append(thread)
+    for thread in threads:
+        thread.join()
     blockchains = []
     log.debug("Terminated all blockchains!")

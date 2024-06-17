@@ -121,6 +121,7 @@ def switch_to_test_blockchain() -> None:
             dir_list = os.listdir(dirname)
         log.error(f"BrenthyUpdates appdata doesn't exist! {dir_list}")
         sys.exit()
+    log.important("Restarting Brenthy to using BrenthyUpdatesTEST")
     run.stop_brenthy()
     os.rename(brenthy_updates_dir, brenthy_updates_test_dir)
     run.run_brenthy()
