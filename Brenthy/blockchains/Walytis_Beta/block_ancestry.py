@@ -58,10 +58,12 @@ def list_unshared_ancestors(
         else:  # if it is a block ID
             long_id = blockchain.find_block(block)  # ensure it's a long ID
             if not long_id:
-                log.error(
+                error_message = (
                     f"block_ancestry: blockchain {blockchain.name}: couldn't "
                     f"find block {block}"
                 )
+                log.error(error_message)
+                raise Exception(error_message)
             parents = decode_long_id(long_id)["parents"]
 
         # create a BlockModel to represent this block

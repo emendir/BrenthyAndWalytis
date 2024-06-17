@@ -53,6 +53,9 @@ N_GENESIS_BLOCKS = 5
 # for use as potential parent blocks for blocks we create
 N_STARTUP_ENDBLOCKS = 10
 
+JOIN_COMMS_TIMEOUT_S = 10
+JOIN_COMMS_FILE_TIMEOUT_S = 30
+
 
 class Blockchain(BlockchainAppdata, BlockRecords, Networking):
     """The Walytis_Beta blockchain.
@@ -722,18 +725,6 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
         if not genesis_short_id:
             genesis_short_id = short_from_long_id(self.get_genesis_block())
-        # ensure no parents are ancestors of each other
-        # remove genesis parent if block has only one direct parent
-        if len(parents) == 2 and genesis_short_id in parents:
-            parents.remove(genesis_short_id)
-        if len(parents) != len(self.remove_ancestors(parents)):
-            log.warning(
-                (
-                    f"{self.name}:  Some of the block's parents are "
-                    "ancestors of each other."
-                )
-            )
-            return "invalid"
 
         # Checking if we know all of the parent blocks
         known_parents_count = 0
@@ -750,6 +741,19 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                     self.blocks_to_confirm_lock.release()
         if known_parents_count < len(parents):
             return "unconfirmed"
+
+        # ensure no parents are ancestors of each other
+        # remove genesis parent if block has only one direct parent
+        if len(parents) == 2 and genesis_short_id in parents:
+            parents.remove(genesis_short_id)
+        if len(parents) != len(self.remove_ancestors(parents)):
+            log.warning(
+                (
+                    f"{self.name}:  Some of the block's parents are "
+                    "ancestors of each other."
+                )
+            )
+            return "invalid"
 
         return "confirmed"
 
@@ -888,9 +892,15 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         conv = ipfs_datatransmission.Conversation()
         try:
             conv.join(conversation_name, peer_id, conversation_name)
-            invitation = conv.listen().decode()
+            log.debug("WJR: joined conversation")
+            invitation = conv.listen(timeout=JOIN_COMMS_TIMEOUT_S).decode()
             if self.get_invitation(invitation):
-                conv.say("All right.".encode())
+                success = conv.say("All right.".encode())
+                if not success:
+                    log.debug("WJR: failed to respond to requester.")
+                    conv.terminate()
+                    return
+                log.debug("replied")
                 appdata_zip = self.zip_appdata()
 
                 def check_on_progress(progress: float) -> None:
@@ -899,12 +909,13 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                     )
                     if progress == 1:
                         os.remove(appdata_zip)
-
+                log.debug("WJR: Transmitting appdata...")
                 conv.transmit_file(
                     appdata_zip,
                     "Here you go".encode(),
                     progress_handler=check_on_progress,
                 )
+                log.debug("WJR: Transmitted appdata!")
                 if json.loads(invitation)["one_time"]:
                     self.delete_invitation(invitation)
 
@@ -974,9 +985,11 @@ def join_blockchain(
     peers = invitation_d["peers"]
     log.info("Walytis_Beta: Joining blockchain...")
     for peer in peers:
+        log.debug(f"WJ: trying peer {peer}")
         tempdir = tempfile.mkdtemp()
         conv = None
         try:
+            log.debug("WJ: starting conversation")
             conv = ipfs_datatransmission.start_conversation(
                 f"{blockchain_id}:JoinRequest:{ipfs_api.my_id()}",
                 peer,
@@ -985,8 +998,12 @@ def join_blockchain(
             )
             log.info("Asking peer for AppdataZip")
 
-            conv.say(json.dumps(invitation_d).encode())
-            response = conv.listen(60)
+            success = conv.say(json.dumps(invitation_d).encode())
+            if not success:
+                log.debug("WJ: Failed to communicate with peer.")
+                conv.terminate()
+                continue
+            response = conv.listen(JOIN_COMMS_TIMEOUT_S)
             if not response:
                 log.info("Walytis_Beta: Join: No response from peer")
                 conv.terminate()
@@ -1076,8 +1093,9 @@ def join_blockchain_from_cid(
             + "blockchain's appdata path already exists"
         )
         return None
-
+    log.debug("WJ: getting join data from IPFS...")
     ipfs_api.download(blockchain_data_cid, path=bc_appdata_path)
+    log.debug("WJ: got join data from IPFS!")
 
     return check_and_start_joined_blockchain(blockchain_id, blockchain_name)
 
@@ -1131,6 +1149,8 @@ def check_and_start_joined_blockchain(
         blockchain: Blockchain = Blockchain(
             blockchain_id, name=blockchain_name
         )
+        log.debug("WJ: Reconstructed blockchain.")
+
         blockchains.append(blockchain)
 
         genesis_block = blockchain.load_block(
@@ -1165,6 +1185,7 @@ def check_and_start_joined_blockchain(
         if not blockchain_ok:
             delete_blockchain(blockchain_id)
             return None
+        log.debug("WJ: checked joined blockchain")
         return blockchain
     except Exception as error:
         log.error(error)

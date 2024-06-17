@@ -65,6 +65,8 @@ if True:
     )
     import run
     from walytis_beta_api import Block, Blockchain
+    import walytis_beta_api
+    walytis_beta_api.log.PRINT_DEBUG = True
 
 
 brenthy_docker: BrenthyDockerContainer

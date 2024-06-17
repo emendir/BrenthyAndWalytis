@@ -54,7 +54,7 @@ WALYTIS_BETA = "Walytis_Beta"
 
 
 # --------------Settings ---------------------------
-PRINT_LOG = False
+log.PRINT_DEBUG = False
 
 
 NO_SUCH_BLOCKCHAIN_MESSAGE = "no such blockchain"
@@ -90,7 +90,7 @@ def list_blockchains(names_first: bool = False) -> list[tuple[str, str]]:
         # handle unexpected response type
         if not isinstance(response, list):
             _error = _read_appcomterm_error_message(response)
-            log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+            log.error(f"WAPI: {function_name()}: {str(_error)}")
             raise _error
 
         if names_first:
@@ -101,7 +101,7 @@ def list_blockchains(names_first: bool = False) -> list[tuple[str, str]]:
 
     except Exception:
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
 
@@ -142,7 +142,7 @@ def get_blockchain_id(blockchain_name: str) -> str:
         if name == blockchain_name:
             return id
     error = NoSuchBlockchainError(blockchain_name=blockchain_name)
-    log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+    log.error(f"WAPI: {function_name()}: {str(error)}")
     raise error
 
 
@@ -167,7 +167,7 @@ def get_blockchain_name(blockchain_id: str) -> str:
     if blockchain_id in [name for id, name in blockchains]:
         return blockchain_id
     error = NoSuchBlockchainError(blockchain_id=blockchain_id)
-    log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+    log.error(f"WAPI: {function_name()}: {str(error)}")
     raise error
 
 
@@ -197,11 +197,11 @@ def create_blockchain(blockchain_name: str = "") -> str:
         success = response["success"]
     except Exception:
         error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
     if not success:
         error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
 
     blockchain_id = response["blockchain_id"]
@@ -232,7 +232,7 @@ def join_blockchain(invitation: str, blockchain_name: str = "") -> str:
             "The parameter invitation must be of type str or dict,"
             + f" not {type(invitation)}"
         )
-
+    log.debug(f"WAPI: {function_name()}: ")
     # invitation is now of type dict
     blockchain_id = invitation["blockchain_id"]
 
@@ -240,12 +240,14 @@ def join_blockchain(invitation: str, blockchain_name: str = "") -> str:
 
     if blockchain_id in [id for id, name in blockchains]:
         error = BlockchainAlreadyExistsError(blockchain_id=blockchain_id)
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
     if blockchain_name in [name for id, name in blockchains]:
         error = BlockchainAlreadyExistsError(blockchain_name=blockchain_name)
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
+    log.debug(f"WAPI: {function_name()}: Making request...")
+
     response = json.loads(
         _send_request(
             "join_blockchain",
@@ -257,6 +259,8 @@ def join_blockchain(invitation: str, blockchain_name: str = "") -> str:
             ).encode(),
         ).decode()
     )
+    log.debug(f"WAPI: {function_name()}: Got response!")
+
     if response["success"]:
         return blockchain_id
     else:
@@ -264,7 +268,7 @@ def join_blockchain(invitation: str, blockchain_name: str = "") -> str:
         if "error" in response.keys():
             error = response["error"]
         error = JoinFailureError(error_message=error)
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
 
 
@@ -284,6 +288,8 @@ def join_blockchain_from_zip(
                 Applications should use a blockchain's ID (attribute 'id') as
                 its identifier, not the blockchain_name.
     """
+    log.debug(f"WAPI: {function_name()}: Unpacking appdata...")
+
     import tempfile
 
     tempdir = tempfile.mkdtemp()
@@ -291,6 +297,8 @@ def join_blockchain_from_zip(
     shutil.unpack_archive(
         os.path.abspath(blockchain_data_path), tempdir, "zip"
     )
+    log.debug(f"WAPI: {function_name()}: Publishing on IPFS...")
+
     # if the appdata is in the zip file's root directory
     if os.path.exists(os.path.join(tempdir, "KnownBlocksIndex")):
         cid = ipfs_api.publish(tempdir)
@@ -307,6 +315,8 @@ def join_blockchain_from_zip(
         log.error(error_message)
         raise JoinFailureError(error_message=error_message)
     shutil.rmtree(tempdir)
+    log.debug(f"WAPI: {function_name()}: Ready to join blockchain...")
+
     return join_blockchain_from_cid(blockchain_id, cid, blockchain_name)
 
 
@@ -330,11 +340,11 @@ def join_blockchain_from_cid(
 
     if blockchain_id in [id for id, name in blockchains]:
         error = BlockchainAlreadyExistsError(blockchain_id=blockchain_id)
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
     if blockchain_name in [name for id, name in blockchains]:
         error = BlockchainAlreadyExistsError(blockchain_name=blockchain_name)
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
 
     request = json.dumps(
@@ -344,8 +354,10 @@ def join_blockchain_from_cid(
             "blockchain_data_cid": blockchain_data_cid,
         }
     ).encode()
+    log.debug(f"WAPI: {function_name()}: Making request...")
 
     _response = _send_request("join_blockchain_from_cid", request)
+    log.debug(f"WAPI: {function_name()}: Got Response!")
 
     try:
         response = json.loads(_response.decode())
@@ -354,7 +366,7 @@ def join_blockchain_from_cid(
         _error = _read_appcomterm_error_message(
             response, default_error=JoinFailureError()
         )
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
     if not success:
         raise JoinFailureError
@@ -377,11 +389,11 @@ def delete_blockchain(blockchain_id: str) -> None:
         success = response["success"]
     except Exception:
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
     if not success:
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
 
@@ -402,7 +414,7 @@ def create_block(
     blockchain_id = get_blockchain_id(blockchain_id)
     if not (isinstance(content, (bytearray, bytes))):
         error = ValueError("Block content must be of type bytes or bytearray.")
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
 
     if isinstance(topics, str):
@@ -427,7 +439,7 @@ def create_block(
     # if the blockchain says it failed to build the block
     if not response.get("success"):
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
     block = get_and_read_block(
@@ -451,7 +463,7 @@ def get_block(blockchain_id: str, block_id: bytearray) -> Block:
         error = ValueError(
             f"The parameters can't be empty\n{blockchain_id}\n{block_id}"
         )
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
     if not isinstance(blockchain_id, str):
         error_message = (
@@ -479,7 +491,7 @@ def get_block(blockchain_id: str, block_id: bytearray) -> Block:
         _error = _read_appcomterm_error_message(
             response, default_error=BlockNotFoundError()
         )
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
     block = get_and_read_block(
@@ -511,7 +523,7 @@ def is_block_known(blockchain_id: str, block_id: bytearray) -> bool:
     # Reading response from Brenthy
     if not response.get("success"):
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
     return response["is known"]
 
@@ -567,7 +579,7 @@ def get_latest_blocks(
         return block_ids
     except Exception:
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
 
@@ -592,7 +604,7 @@ def get_blockchain_data(blockchain_id: str) -> str:
     except Exception:
         pass
     _error = _read_appcomterm_error_message(response)
-    log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+    log.error(f"WAPI: {function_name()}: {str(_error)}")
     raise _error
 
 
@@ -617,7 +629,7 @@ def get_peers(blockchain_id: str) -> list[str]:
     except Exception:
         pass
     _error = _read_appcomterm_error_message(response)
-    log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+    log.error(f"WAPI: {function_name()}: {str(_error)}")
     raise _error
 
 
@@ -653,7 +665,7 @@ def create_invitation(
         return response["invitation"]
     except Exception:
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
 
@@ -681,12 +693,12 @@ def get_invitations(blockchain_id: str) -> list[str]:
             return response["invitations"]
         else:
             _error = _read_appcomterm_error_message(response)
-            log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+            log.error(f"WAPI: {function_name()}: {str(_error)}")
             raise _error
 
     except Exception:
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
 
@@ -709,11 +721,11 @@ def delete_invitation(blockchain_id: str, invitation: str) -> None:
         response = json.loads(_response.decode())
         if not response["success"]:
             _error = _read_appcomterm_error_message(response)
-            log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+            log.error(f"WAPI: {function_name()}: {str(_error)}")
             raise _error
     except Exception:
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
 
@@ -736,14 +748,14 @@ def get_walytis_beta_version() -> tuple[int, int, int]:
             and (response.get("walytis_beta_core_version"), list)
         ):
             _error = _read_appcomterm_error_message(response)
-            log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+            log.error(f"WAPI: {function_name()}: {str(_error)}")
             raise _error
 
         return tuple(response["walytis_beta_core_version"])
 
     except Exception:
         _error = _read_appcomterm_error_message(response)
-        log.error(f"BrenthyAPI: {function_name()}: {str(_error)}")
+        log.error(f"WAPI: {function_name()}: {str(_error)}")
         raise _error
 
 
@@ -853,12 +865,12 @@ def get_and_read_block(short_id: bytearray) -> Block:
         block_data = ipfs_api.read(ipfs_cid)
     except Exception:
         error = BlockNotFoundError()
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
     try:
         block = read_block(block_data, ipfs_cid)
     except Exception as error:
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
     while short_id[-1] == 0:
         short_id = short_id[:-1]
@@ -870,7 +882,7 @@ def get_and_read_block(short_id: bytearray) -> Block:
         )
 
         exception = BlockIntegrityError(error_message)
-        log.error(f"BrenthyAPI: {function_name()}: {error_message}")
+        log.error(f"WAPI: {function_name()}: {error_message}")
         raise exception
     return block
 
@@ -944,7 +956,7 @@ def read_block(block_data: bytearray, ipfs_cid: str) -> Block:
             "The received block had an incorrect hash. The block is "
             "considered corrupt or fraudulently manipulated."
         )
-        log.error(f"BrenthyAPI: {function_name()}: {str(error)}")
+        log.error(f"WAPI: {function_name()}: {str(error)}")
         raise error
 
     return block

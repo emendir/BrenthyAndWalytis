@@ -32,6 +32,7 @@ from .walytis_beta_interface import (
     get_and_read_block,
     read_block,
 )
+from brenthy_tools_beta import log
 from brenthy_tools_beta.brenthy_api import (
     get_brenthy_version,
     get_brenthy_version_string,

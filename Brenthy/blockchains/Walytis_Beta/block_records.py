@@ -426,8 +426,12 @@ class BlockRecords(ABC):
 
         self.block_record_initialised.wait()
         block_datafilepath = self.get_block_datafile_path(block.short_id)
-        if not os.path.exists(os.path.dirname(block_datafilepath)):
-            os.makedirs(os.path.dirname(block_datafilepath))
+        block_datafile_dir = os.path.dirname(block_datafilepath)
+        if not os.path.exists(block_datafile_dir):
+            try:
+                os.makedirs(block_datafile_dir)
+            except FileExistsError:
+                pass
 
         block.save_block_to_file(block_datafilepath)
 
