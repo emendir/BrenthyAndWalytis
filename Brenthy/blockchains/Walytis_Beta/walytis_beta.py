@@ -893,9 +893,11 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         try:
             conv.join(conversation_name, peer_id, conversation_name)
             log.debug("WJR: joined conversation")
-            invitation = conv.listen(timeout=JOIN_COMMS_TIMEOUT_S).decode()
+            invitation = conv.listen(timeout=2 * JOIN_COMMS_TIMEOUT_S).decode()
             if self.get_invitation(invitation):
-                success = conv.say("All right.".encode())
+                success = conv.say(
+                    "All right.".encode(), timeout_sec=2 * JOIN_COMMS_TIMEOUT_S
+                )
                 if not success:
                     log.debug("WJR: failed to respond to requester.")
                     conv.terminate()
@@ -914,6 +916,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                     appdata_zip,
                     "Here you go".encode(),
                     progress_handler=check_on_progress,
+                    transm_send_timeout_sec=2 * JOIN_COMMS_TIMEOUT_S
                 )
                 log.debug("WJR: Transmitted appdata!")
                 if json.loads(invitation)["one_time"]:
@@ -997,10 +1000,14 @@ def join_blockchain(
                 peer,
                 f"{blockchain_id}:JoinRequest",
                 dir=tempdir,
+                timeout_sec=JOIN_COMMS_TIMEOUT_S
             )
             log.info("Asking peer for AppdataZip")
 
-            success = conv.say(json.dumps(invitation_d).encode())
+            success = conv.say(
+                json.dumps(invitation_d).encode(),
+                timeout_sec=JOIN_COMMS_TIMEOUT_S
+            )
             if not success:
                 log.debug("WJ: Failed to communicate with peer.")
                 conv.terminate()

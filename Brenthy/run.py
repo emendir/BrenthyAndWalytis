@@ -51,6 +51,7 @@ def run_brenthy() -> None:
     global blockchain_manager
     global update
     global bt_endpoints
+    global walytis_beta_api
     global TRY_INSTALL
     global CHECK_UPDATES
     global DATA_DIR
@@ -140,19 +141,25 @@ def run_brenthy() -> None:
         import api_terminal
         import blockchain_manager  # Running the core of Brenthy
         import update
+        from blockchains.Walytis_Beta import walytis_beta_api
+        from blockchains.Walytis_Beta.walytis_beta_api import walytis_beta_interface
+
         from brenthy_tools_beta import bt_endpoints
         bt_endpoints.initialise()
+        walytis_beta_interface.log.PRINT_DEBUG = not am_i_installed() or update.TESTING
 
         log.important("Starting up communication with applications...")
         api_terminal.load_brenthy_api_protocols()
-        log.important("Running blockchains...")
     except:  # pylint: disable=bare-except
         log.fatal(traceback.format_exc())
         log.fatal("Error initialising Brenthy, exiting.")
         sys.exit()
 
     try:
+        log.important("Running blockchains...")
         blockchain_manager.run_blockchains()
+        # re-enable log.PRINT_DEBUG again, as run_blockchains() disables it again
+        walytis_beta_interface.log.PRINT_DEBUG = not am_i_installed() or update.TESTING
     except:  # pylint: disable=bare-except
         log.fatal(traceback.format_exc())
         log.fatal("Error running blockchains, exiting.")
