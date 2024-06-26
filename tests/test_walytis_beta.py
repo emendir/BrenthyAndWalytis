@@ -23,7 +23,7 @@ import time
 import ipfs_api
 import pytest
 import testing_utils
-from brenthy_docker import BrenthyDockerContainer, delete_containers
+from brenthy_docker import BrenthyDocker, delete_containers
 from testing_utils import mark, test_threads_cleanup
 
 NUMBER_OF_JOIN_ATTEMPTS = 10
@@ -69,7 +69,7 @@ if True:
     walytis_beta_api.log.PRINT_DEBUG = True
 
 
-brenthy_docker: BrenthyDockerContainer
+brenthy_docker: BrenthyDocker
 blockchain: Blockchain
 created_block: Block
 invitation = ""
@@ -79,7 +79,7 @@ def prepare() -> None:
     """Get everything needed to run the tests ready."""
     global brenthy_docker
     if DELETE_ALL_BRENTHY_DOCKERS:
-        delete_containers()
+        delete_containers(image="local/brenthy_testing", container_name_substr="brenthy")
 
     if REBUILD_DOCKER:
         from build_docker import build_docker_image
@@ -91,8 +91,10 @@ def prepare() -> None:
     if os.path.exists(false_id_path):
         shutil.rmtree(false_id_path)
 
-    brenthy_docker = BrenthyDockerContainer(
-        DOCKER_CONTAINER_NAME, auto_run=False
+    brenthy_docker = BrenthyDocker(
+        image="local/brenthy_testing",
+        container_name=DOCKER_CONTAINER_NAME,
+        auto_run=False
     )
 
 
@@ -134,7 +136,7 @@ def test_get_brenthy_version() -> None:
 def test_run_docker() -> None:
     """Test that we can run the Brenthy docker container."""
     try:
-        brenthy_docker.run()
+        brenthy_docker.start()
         print(mark(True), "Run BrenthyDocker")
     except Exception as e:
         print(mark(False), "Failed to run BrenthyDocker")
@@ -214,11 +216,7 @@ def test_joining() -> None:
 
     result = "-"
     for i in range(NUMBER_OF_JOIN_ATTEMPTS):
-        brenthy_docker.run_python_code(
-            join_python_code,
-            # only print error on last attempt
-            hide_error=(i != NUMBER_OF_JOIN_ATTEMPTS - 1),
-        )
+        brenthy_docker.run_python_code(join_python_code)
         result = brenthy_docker.run_python_code(test_python_code).strip("\n")
         if result == "True":
             break
@@ -309,7 +307,7 @@ class CantRunTestError(Exception):
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request: pytest.FixtureRequest | None = None) -> None:
     """Clean up after running tests with PyTest."""
-    brenthy_docker.terminate()
+    brenthy_docker.stop()
 
 
 def run_tests() -> None:
@@ -318,7 +316,7 @@ def run_tests() -> None:
     print("\nRunning thorough tests for walytis_beta...")
     test_run_brenthy()
     test_get_brenthy_version()
-    brenthy_docker.run()
+    brenthy_docker.start()
 
     test_find_peer()
     test_create_blockchain()
@@ -328,7 +326,7 @@ def run_tests() -> None:
     test_join_id_check()
     test_delete_blockchain()
     # breakpoint()
-    brenthy_docker.terminate()
+    brenthy_docker.stop()
     blockchain.terminate()
     stop_brenthy()
     test_threads_cleanup()

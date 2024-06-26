@@ -1,7 +1,7 @@
 """Tests that Brenthy Core's automatic update system works."""
 
 import testing_utils
-from brenthy_docker import BrenthyDockerContainer, delete_containers
+from brenthy_docker import BrenthyDocker, delete_containers
 from testing_utils import mark, polite_wait, test_threads_cleanup
 
 # if you do not have any other important brenthy docker containers,
@@ -36,17 +36,20 @@ if True:
     import ipfs_api
     import pytest
     import run
-    from brenthy_docker import BrenthyDockerContainer, delete_containers
+    from brenthy_docker import BrenthyDocker, delete_containers
 
 test_upd_blck_path = ""
-brenthy_docker: BrenthyDockerContainer
+brenthy_docker: BrenthyDocker
 
 
 def prepare() -> None:
     """Get everything needed to run the tests ready."""
     global test_upd_blck_path
     if DELETE_ALL_BRENTHY_DOCKERS:
-        delete_containers()
+        delete_containers(
+            image="local/brenthy_testing",
+            container_name_substr="brenthy"
+        )
     if REBUILD_DOCKER:
         from build_docker import build_docker_image
 
@@ -83,7 +86,10 @@ def stop_brenthy() -> None:
 def run_docker() -> None:
     """Run this test's docker container."""
     global brenthy_docker
-    brenthy_docker = BrenthyDockerContainer(DOCKER_CONTAINER_NAME)
+    brenthy_docker = BrenthyDocker(
+        image="local/brenthy_testing",
+        container_name=DOCKER_CONTAINER_NAME
+    )
     time.sleep(10)
 
 
@@ -127,11 +133,9 @@ def test_walytis_beta_update() -> None:
     print("Reinstalling walytis_beta_api")
     brenthy_docker.run_shell_command(
         "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/build;",
-        check=False,
     )
     brenthy_docker.run_shell_command(
         "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/*.egg-info;",
-        check=False,
     )
     brenthy_docker.run_shell_command(
         "python3 -m pip install /opt/Brenthy/Brenthy/blockchains/Walytis_Beta"
@@ -166,7 +170,7 @@ def test_brenthy_update() -> None:
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request: pytest.FixtureRequest | None = None) -> None:
     """Clean up after running tests with PyTest."""
-    brenthy_docker.terminate()
+    brenthy_docker.stop()
 
 
 def run_tests() -> None:
@@ -179,7 +183,7 @@ def run_tests() -> None:
     test_walytis_beta_update()
     test_brenthy_update()
 
-    brenthy_docker.terminate()
+    brenthy_docker.stop()
     stop_brenthy()
     test_threads_cleanup()
     shutil.rmtree(test_upd_blck_path)

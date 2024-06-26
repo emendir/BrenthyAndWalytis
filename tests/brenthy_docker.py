@@ -1,254 +1,241 @@
-"""Machinery for managing and interacting with Brenthy docker containers.
-
-You can run this script with: --name CONTATINER_NAME
-"""
-
-import os
-import signal
-import subprocess
-import sys
+import tarfile
+import io
 import tempfile
-import threading
+import shutil
+import os
+import docker
 from time import sleep
-from types import FrameType
+from loguru import logger
 import ipfs_api
+from termcolor import colored as coloured
+from termcolor._types import Color as Colour
+import pyperclip
 
 
-def get_option(option: str) -> str:
-    """Get the specified option value from command line arguments."""
-    try:
-        return sys.argv[sys.argv.index(option) + 1]
-    except:
-        print("Invalid arguments.")
-        sys.exit()
-
-
-def delete_containers() -> None:
-    """Delete all Brenthy docker containers."""
-    os.system(
-        "docker stop "
-        "$(docker ps --filter 'ancestor=local/brenthy_testing' -aq) "
-        ">/dev/null 2>&1; "
-        "docker rm $(docker ps --filter 'ancestor=local/brenthy_testing' -aq) "
-        ">/dev/null 2>&1"
-    )
-    os.system(
-        "docker stop $(docker ps  --filter 'name=*brenthy*' "
-        "--filter 'name= ^ brenthy' --filter 'name=brenthy$' -aq) "
-        ">/dev/null 2>&1; "
-        "docker rm $(docker ps --filter 'name=*brenthy*' "
-        "--filter 'name= ^ brenthy' --filter 'name=brenthy$' -aq) "
-        ">/dev/null 2>&1"
-    )
-
-
-class BrenthyDockerContainer:
-    """Represents a Brenthy docker container."""
-
-    container_id = ""
-    container_name = ""
-
+class BrenthyDocker:
     def __init__(
         self,
-        container_name: str,
-        auto_run: bool = True,
+        image: str = "local/brenthy_testing",
+        container_name: str = "",
         container_id: str | None = None,
+
+        auto_run: bool = True
     ):
-        """Create an object to represent a docker container.
-
-        If `container_id` is not passed, creates a new docker container
-        """
-        self.container_name = container_name
-        if auto_run:
-            self.run()
-        elif container_id:
-            self.container_id = container_id
-            self.ipfs_id = ""
-
-            while self.ipfs_id == "":
-                self._docker_swarm_connect()
-                self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"')
-                sleep(1)
-
-    def run(self) -> None:
-        """Start this docker container."""
-        print("Docker container starting...")
-        threading.Thread(
-            target=self._run_docker,
-            args=(),
-            name=f"Docker-{self.container_name}",
-        ).start()
-        sleep(1)
-
-        # getting container id from container name
-        while not self.container_id:
-            sleep(1)
-            # getting container id from container name
-            result = subprocess.run(
-                f'docker ps -aqf "name=^{self.container_name}$"',
-                shell=True,
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            self.container_id = result.stdout.strip("\n")
-
+        self._docker = docker.from_env()
         self.ipfs_id = ""
 
-        # wait till IPFS is running and till we can reach it
-        while not self.ipfs_id or not ipfs_api.find_peer(self.ipfs_id):
-            sleep(1)
-            self._docker_swarm_connect()
-            self.ipfs_id = subprocess.run(
-                (
-                    f"docker exec -it {self.container_id} "
-                    'ipfs id -f="<id>" 2>/dev/null'
-                ),
-                shell=True,
-                capture_output=True,
-                text=True,
-                check=False,
-            ).stdout
+        if container_id:
+            self.container = self._docker.containers.get(container_id)
+        else:
+            self.container = self._docker.containers.create(
+                image, privileged=True, name=container_name
+            )
+        if auto_run:
+            self.start()
 
-        # wait till docker container's Brenthy has renamed its update blockhain
-        # and restarted
-        while not self.run_python_code(
-            "import os;"
-            "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"
-        ) == "True":
+    def start(
+        self, await_brenthy: bool = True, await_ipfs: bool = True
+    ) -> None:
+        """Start this container."""
+        logger.info("Starting container...")
+        self.container.start()
+
+        if await_brenthy:
+            # wait till docker container's Brenthy has renamed its update blockhain
+            # and restarted
+            while not self.run_python_command(
+                ("import os;"
+                 "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"),
+                print_output=False
+            ) == "True":
+                sleep(0.2)
             sleep(0.2)
-        sleep(0.2)
-        print("Docker container up and running!")
+        if await_ipfs:
+            logger.info("Connecting to container via IPFS...")
+            self.ipfs_id = ""
+            self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"', print_output=False)
+            print("IPFS ID:", self.ipfs_id)
 
-    def log(self) -> None:
-        """Open the docker container's Brenthy log in gedit."""
+            while not self.ipfs_id and not ipfs_api.find_peer(self.ipfs_id):
+                self._docker_swarm_connect()
+                self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"', print_output=False)
+                print("IPFS ID:", self.ipfs_id)
+                sleep(1)
+        logger.info("Started container!")
 
-        def _open_brenthy_log() -> None:
-            command = "su brenthy -c '/usr/bin/cat /opt/Brenthy/Brenthy.log'"
-            log_text = self.run_shell_command(command)
+    def stop(self) -> None:
+        """Stop this container."""
+        self.container.stop()
 
-            with tempfile.NamedTemporaryFile() as tp:
-                tp.write(log_text.encode())
-                tp.flush()
-                command = f"gedit {tp.name}"
-                subprocess.run(
-                    command,
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
+    def restart(self) -> None:
+        """Restart this container."""
+        self.container.restart()
 
-        threading.Thread(target=_open_brenthy_log, args=()).start()
+    def delete(self) -> None:
+        self.container.stop()
+        self.container.remove()
+
+    def transfer_file(self, local_filepath: str, remote_filepath: str) -> None:
+        """Copy a local file into the docker container."""
+        dst_dir = os.path.dirname(remote_filepath)
+        stream = io.BytesIO()
+        with (
+            tarfile.open(fileobj=stream, mode='w|') as tar,
+            open(local_filepath, 'rb') as f
+        ):
+            info = tar.gettarinfo(fileobj=f)
+            info.name = os.path.basename(remote_filepath)
+            tar.addfile(info, f)
+        # create remote directory if needed
+        self.run_shell_command(
+            f"mkdir -p {os.path.dirname(remote_filepath)}", print_output=False)
+        self.container.put_archive(dst_dir, stream.getvalue())
+
+    def write_to_tempfile(self, data: str | bytes) -> str:
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+        tempdir = tempfile.mkdtemp()
+        local_tempfile = os.path.join(tempdir, "tempf")
+
+        with open(local_tempfile, "wb+") as file:
+            file.write(data)
+        remote_tempfile = self.run_shell_command(
+            "mktemp", print_output=False).strip()
+        self.transfer_file(local_tempfile, remote_tempfile)
+
+        shutil.rmtree(tempdir)
+        return remote_tempfile
+
+    def is_running(self) -> bool:
+        """Check if this docker container is running or not."""
+        return self._docker.containers.get(
+            self.container.id
+        ).attrs["State"]["Running"]
+
+    def run_shell_command(
+        self,
+        command: str,
+        user: str | None = None,
+        print_output: bool = True,
+        colour: Colour = "light_yellow",
+        background: bool = False
+    ) -> str:
+        """Run shell code from within the container's operating system.
+
+        Not suitable for code that contains double quotes.
+        """
+        if print_output and background:
+            print(
+                "Parameters `print_output` and `background` "
+                "can't both be `True`. Deactivating `print_output`."
+            )
+
+        if user:
+            command = f"su {user} -c \"{command}\""
+
+        if print_output:
+            return self.run_shell_command_printed(
+                command, print_output=True, colour=colour
+            )
+
+        if background:
+            command = f"nohup {command} > /dev/null 2>&1 &"
+        ex_id = self._docker.api.exec_create(self.container.id, command)['Id']
+        output = self._docker.api.exec_start(
+            ex_id, tty=True, detach=background
+        )
+        return output.strip().decode() if not background else ""
+
+    def run_shell_command_printed(
+        self,
+        command: str,
+        print_output: bool = True,
+        colour: Colour = "light_yellow"
+    ) -> str:
+        """Run shell code from within the container's operating system.
+
+        Not suitable for code that contains double quotes.
+        """
+        command = f"docker exec -it {self.container.id} {command}"
+        import pexpect
+        child = pexpect.spawn(command, encoding='utf-8')
+        result = ""
+        # Capture the output line by line
+        while True:
+            try:
+                line = child.readline()
+                if not line:
+                    break
+                if print_output:
+                    if colour:
+                        print(coloured(line.strip(), colour))
+                    else:
+                        print(line.strip())
+                result += line
+
+            except pexpect.EOF:
+                break
+
+        # Ensure the process has finished
+        child.wait()
+
+        # result = subprocess.run(
+        #     command, shell=True, capture_output=True, text=True, check=check
+        # )
+        return result.strip()
+
+    def run_bash_code(
+        self,
+        code: str | list[str],
+        print_output: bool = True,
+        colour: Colour = "light_yellow"
+    ) -> str:
+        """Run any bash code in the docker container, returning its output.
+
+        Suitable for code that contains any quotes and escape characters.
+        """
+        if isinstance(code, list):
+            # concatenate list elements into single string
+            code = "\n".join(code)
+        remote_tempfile = self.write_to_tempfile(code)
+        return self.run_shell_command(
+            f"/bin/bash {remote_tempfile}",
+            print_output=print_output, colour=colour
+        )
+
+    def run_python_command(
+        self,
+        command: str,
+        print_output: bool = True,
+        colour: Colour = "light_yellow"
+    ) -> str:
+        """Run single-line python code, returning its output.
+
+        Not suitable for code that contains double quotes.
+        """
+        python_command = "python -c \"" + command + "\""
+        return self.run_shell_command(
+            python_command,
+            print_output=print_output, colour=colour
+        )
 
     def run_python_code(
         self,
-        python_code: str,
-        hide_error: bool = False,
-        brenthy_user: bool = False,
-        print_command: bool = False,
+        code: str | list[str],
+        print_output: bool = True,
+        colour: Colour = "light_yellow"
     ) -> str:
-        """Run python code from within the container's operating system."""
-        command = (
-            'python3 -c \\"' + python_code.replace('"', '\\\\\\"') + '\\"'
-        )
-        if brenthy_user:
-            command = f'su brenthy -c "{command}"'
-        else:
-            command = f'su -c "{command}"'
-        command = f"docker exec -it {self.container_id} {command}"
-        if print_command:
-            print("Running python code in Docker container:")
-            print(command)
-        # breakpoint()
-        result = subprocess.run(
-            command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            check=False,
-            # check=True
-        )
-        if not hide_error and result.stdout.startswith(
-            "Traceback (most recent call last):\n"
-        ):
-            print(result.stdout)
-            # breakpoint()
+        """Run any python code in the docker container, returning its output.
 
-        return result.stdout.strip("\n")
-
-    def run_shell_command(
-        self, command: str, brenthy_user: bool = False, check: bool = True
-    ) -> str:
-        """Run shell code from within the container's operating system."""
-        command = command.replace("'", "'").replace('"', '"')
-        if brenthy_user:
-            command = f"su brenthy -c '{command}'"
-        command = f"docker exec -it {self.container_id} {command}"
-        result = subprocess.run(
-            command, shell=True, capture_output=True, text=True, check=check
-        )
-        return result.stdout
-
-    def __run_host_shell_command(self, cmd: str) -> tuple[str, str]:
-        """Run shell code from within this operating system."""
-        result = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, check=True
-        )
-        return (result.stdout, result.stderr)
-
-    def stop(self) -> None:
-        """Stop this docker container."""
-        if self.container_id:
-            os.system(f"docker stop {self.container_id}  >/dev/null 2>&1")
-
-    def restart(self) -> None:
-        """Restart this docker container."""
-        if self.container_id:
-            os.system(f"docker restart {self.container_id}  >/dev/null 2>&1")
-            # wait till IPFS is running
-            while not subprocess.run(
-                (
-                    f"docker exec -it {self.container_id} "
-                    'ipfs id -f="<id>" 2>/dev/null'
-                ),
-                shell=True,
-                capture_output=True,
-                text=True,
-                check=False,
-            ).stdout:
-                sleep(1)
-            # wait till we can connect to docker via IPFS
-            while not ipfs_api.find_peer(self.ipfs_id):
-                pass
-        else:
-            self.run()
-
-    def login(self) -> None:
-        """Copy a shell command to log in to this docker container's shell."""
-        import pyperclip
-
-        command = f"docker exec -it {self.container_id} /bin/bash"
-        pyperclip.copy(command)
-        print(command)
-        print("Command copied to clipboard.")
-
-    def terminate(self) -> None:
-        """Stop and remove this docker container."""
-        if self.container_id:
-            self.__run_host_shell_command(
-                f"docker stop {self.container_id}  >/dev/null 2>&1"
-            )
-            self.__run_host_shell_command(
-                f"docker rm {self.container_id}  >/dev/null 2>&1"
-            )
-
-    def _run_docker(self) -> None:
-        """Create and run a Brenthy docker container."""
-        os.system(
-            "docker run --cap-add SYS_ADMIN --privileged "
-            f"--name {self.container_name} local/brenthy_testing "
-            ">/dev/null 2>&1"
+        Suitable for code that contains any quotes and escape characters.
+        """
+        if isinstance(code, list):
+            # concatenate list elements into single string
+            code = "\n".join(code)
+        remote_tempfile = self.write_to_tempfile(code)
+        return self.run_shell_command(
+            f"/bin/python {remote_tempfile}",
+            print_output=print_output, colour=colour
         )
 
     def _docker_swarm_connect(self) -> None:
@@ -298,25 +285,89 @@ class BrenthyDockerContainer:
         if ip4_udp_maddr:  # if any such addresses were found, try to connect
             commands.append(f"ipfs swarm connect {ip4_udp_maddr[0]}")
 
-        self.run_shell_command(" & ".join(commands), check=False)
+        self.run_bash_code(" & ".join(commands))
 
         # print(f"ipfs swarm connect {ip6_tcp_maddr}")
         # print(f"ipfs swarm connect {ip6_udp_maddr}")
         # print(f"ipfs swarm connect {ip4_tcp_maddr}")
         # print(f"ipfs swarm connect {ip4_udp_maddr}")
+    def login(self) -> None:
+        """Copy a shell command to log in to this docker container's shell."""
+
+        command = f"docker exec -it {self.container.id} /bin/bash"
+        pyperclip.copy(command)
+        print(command)
+        print("Command copied to clipboard.")
 
 
+def delete_containers(
+    image: str = "", container_name_substr: str = ""
+) -> None:
+    """Delete all docker containers of the given image or name.
+
+    Any docker image with the given image name in their image ancestry OR
+    containing `container_name_substr` in its container name
+    will be deleted.
+    """
+    if image:
+        os.system(
+            "docker stop "
+            f"$(docker ps --filter 'ancestor={image}' -aq) "
+            ">/dev/null 2>&1; "
+            f"docker rm $(docker ps --filter 'ancestor={image}' -aq) "
+            ">/dev/null 2>&1"
+        )
+    if container_name_substr:
+        os.system(
+            "docker stop $(docker ps  "
+            f"--filter 'name=*{container_name_substr}*' "
+            f"--filter 'name= ^ {container_name_substr}' "
+            f"--filter 'name={container_name_substr}$' -aq) >/dev/null 2>&1; "
+            "docker rm $(docker ps "
+            f"--filter 'name=*{container_name_substr}*' "
+            f"--filter 'name= ^ {container_name_substr}' "
+            f"--filter 'name={container_name_substr}$' -aq) >/dev/null 2>&1"
+        )
+
+
+class ContainerNotRunningError(Exception):
+    """When the container isn't running."""
+
+
+# Example usage:
 if __name__ == "__main__":
-    if "--name" in sys.argv:
-        container_name = get_option("--name")
-    else:
-        container_name = "manually_created"
-    docker_container = BrenthyDockerContainer(container_name)
+    # Create an instance of DockerContainer with the desired image
+    delete_containers(container_name_substr="Demo")
+    docker_container = BrenthyDocker(
+        container_name="Demo",
+        auto_run=False
+    )
+    container_id = docker_container.container.id
+    # Start the container
+    docker_container.start(await_brenthy=False, await_ipfs=True)
 
-    def _signal_handler(sig: int, frame: FrameType | None) -> None:
-        docker_container.terminate()
-        sys.exit(0)
+    # Execute shell command on the container
+    shell_output = docker_container.run_shell_command(
+        "systemctl status brenthy")
+    print("Output of Shell command:", shell_output)
 
-    # Handle Ctrl+C (SIGINT), shutting down docker container
-    signal.signal(signal.SIGINT, _signal_handler)
-    signal.pause()
+    # Execute Python command on the container
+    python_output = docker_container.run_python_command(
+        "import walytis_beta_api;print(walytis_beta_api.get_walytis_beta_version())")
+    print("Output of Python command:", python_output)
+
+    docker_container.transfer_file(
+        "brenthy_docker.py", "/tmp/test/wad.py")
+    docker_container.run_shell_command("ls /tmp/test/")
+
+    remote_tempfile = docker_container.write_to_tempfile("Hello there!")
+    docker_container.run_shell_command(f"cat {remote_tempfile}")
+    # Stop the container
+    docker_container.stop()
+
+    docker_container = BrenthyDocker(container_id=container_id)
+    docker_container.start()
+    shell_output = docker_container.run_shell_command(
+        "systemctl status brenthy")
+    print("Output of Shell command:", shell_output)
+    docker_container.stop()
