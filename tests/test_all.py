@@ -8,7 +8,7 @@ import test_walytis_beta
 import test_walytis_beta_onboarding
 import test_walytis_beta_quick
 import testing_utils
-from build_docker import build_docker_image
+from brenthy_docker import build_docker_image
 
 if __name__ == "__main__":
     build_docker_image(verbose=False)

@@ -16,7 +16,7 @@ RUN python3 ../brenthy_installer/Brenthy --dont-update --install-dont-run
 ## allow brenthy user to use shell for debugging
 RUN usermod -s /bin/bash brenthy
 
-RUN /opt/Brenthy/tests/docker/ipfs_router_mercy.sh
+RUN /opt/Brenthy/tests//ipfs_router_mercy.sh
 
 ## Run with:
 # docker run -it --privileged local/brenthy_prereqs

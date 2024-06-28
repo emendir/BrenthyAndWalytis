@@ -2,6 +2,8 @@
 
 import testing_utils
 from brenthy_docker import BrenthyDocker, delete_containers
+from brenthy_docker.build_docker import build_docker_image
+
 from testing_utils import mark, polite_wait, test_threads_cleanup
 
 # if you do not have any other important brenthy docker containers,
@@ -36,7 +38,6 @@ if True:
     import ipfs_api
     import pytest
     import run
-    from brenthy_docker import BrenthyDocker, delete_containers
 
 test_upd_blck_path = ""
 brenthy_docker: BrenthyDocker
@@ -51,7 +52,6 @@ def prepare() -> None:
             container_name_substr="brenthy"
         )
     if REBUILD_DOCKER:
-        from build_docker import build_docker_image
 
         build_docker_image(verbose=False)
     upd_blck_path = os.path.join(walytis_beta_appdata_dir, "BrenthyUpdates")

@@ -10,7 +10,7 @@ rm -r Brenthy/build >/dev/null 2>/dev/null
 rm -r Brenthy/blockchains/Walytis_Beta/walytis_beta_api.egg-info >/dev/null 2>/dev/null
 rm -r Brenthy/blockchains/Walytis_Beta/build >/dev/null 2>/dev/null
 
-docker build -t local/brenthy_prereqs -f tests/docker/brenthy_prereqs.dockerfile .
+docker build -t local/brenthy_testing -f tests/brenthy_docker/brenthy_testing.dockerfile .
 
 ## Run with:
-# docker run -it --privileged local/brenthy_prereqs
+# docker run -it --privileged local/brenthy_testing

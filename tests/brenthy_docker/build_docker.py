@@ -26,7 +26,7 @@ def build_docker_image(verbose: bool = True) -> None:
     if not verbose:
         args_str += " >/dev/null"
     builder_script_path = os.path.join(
-        os.path.dirname(__file__), "docker", "build_brenthy_testing.sh"
+        os.path.dirname(__file__), "build_brenthy_testing.sh"
     )
     exit_code = os.system(builder_script_path + args_str)
     if exit_code != 0:
