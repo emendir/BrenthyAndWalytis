@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "toml"] # toml included because it is used by version.py to read the package version
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brenthy_docker"
+version = "0.3.0"
+dependencies = [
+  "docker",
+  "ipfs-toolkit",
+  "termcolor",
+  "pyperclip",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["brenthy_docker"]
+namespaces = false
+

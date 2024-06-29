@@ -22,8 +22,7 @@ from threading import Thread
 
 import ipfs_api
 import testing_utils
-from brenthy_docker import BrenthyDocker, delete_containers
-from brenthy_docker.build_docker import build_docker_image
+from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
 from testing_utils import mark, polite_wait, test_threads_cleanup
 
 REBUILD_DOCKER = True

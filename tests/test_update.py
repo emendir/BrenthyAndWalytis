@@ -1,10 +1,5 @@
 """Tests that Brenthy Core's automatic update system works."""
 
-import testing_utils
-from brenthy_docker import BrenthyDocker, delete_containers
-from brenthy_docker.build_docker import build_docker_image
-
-from testing_utils import mark, polite_wait, test_threads_cleanup
 
 # if you do not have any other important brenthy docker containers,
 # you can set this to true to automatically remove unpurged docker containers
@@ -13,7 +8,7 @@ DELETE_ALL_BRENTHY_DOCKERS = True
 DOCKER_CONTAINER_NAME = "brenthy_test"
 REBUILD_DOCKER = True
 # enable/disable breakpoints when checking intermediate test results
-testing_utils.BREAKPOINTS = True
+BREAKPOINTS = True
 if True:
     import os
     import sys
@@ -38,6 +33,12 @@ if True:
     import ipfs_api
     import pytest
     import run
+
+    import testing_utils
+    from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
+
+    from testing_utils import mark, polite_wait, test_threads_cleanup
+    testing_utils.BREAKPOINTS = BREAKPOINTS
 
 test_upd_blck_path = ""
 brenthy_docker: BrenthyDocker

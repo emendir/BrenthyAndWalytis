@@ -1,15 +1,15 @@
-import tarfile
 import io
-import tempfile
-import shutil
 import os
-import docker
+import shutil
+import tarfile
+import tempfile
 from time import sleep
-from loguru import logger
+
+import docker
 import ipfs_api
+import pyperclip
 from termcolor import colored as coloured
 from termcolor._types import Color as Colour
-import pyperclip
 
 
 class BrenthyDocker:
@@ -37,7 +37,6 @@ class BrenthyDocker:
         self, await_brenthy: bool = True, await_ipfs: bool = True
     ) -> None:
         """Start this container."""
-        logger.info("Starting container...")
         self.container.start()
 
         if await_brenthy:
@@ -51,7 +50,6 @@ class BrenthyDocker:
                 sleep(0.2)
             sleep(0.2)
         if await_ipfs:
-            logger.info("Connecting to container via IPFS...")
             self.ipfs_id = ""
             self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"', print_output=False)
             print("IPFS ID:", self.ipfs_id)
@@ -61,7 +59,6 @@ class BrenthyDocker:
                 self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"', print_output=False)
                 print("IPFS ID:", self.ipfs_id)
                 sleep(1)
-        logger.info("Started container!")
 
     def stop(self) -> None:
         """Stop this container."""
@@ -293,7 +290,6 @@ class BrenthyDocker:
         # print(f"ipfs swarm connect {ip4_udp_maddr}")
     def login(self) -> None:
         """Copy a shell command to log in to this docker container's shell."""
-
         command = f"docker exec -it {self.container.id} /bin/bash"
         pyperclip.copy(command)
         print(command)
