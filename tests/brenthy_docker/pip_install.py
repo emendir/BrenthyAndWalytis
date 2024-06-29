@@ -10,16 +10,22 @@ import shutil
 
 import pip
 
-# list of directories that need to be deleted before running pip install
-dirs_to_delete = ["brenthy_docker.egg-info", "build"]
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
+def run():
+    # list of directories that need to be deleted before running pip install
+    dirs_to_delete = ["brenthy_docker.egg-info", "build"]
 
-# delete all necessary directories
-for directory in dirs_to_delete:
-    abs_dir = os.path.join(current_dir, directory)
-    if os.path.isdir(abs_dir):
-        shutil.rmtree(abs_dir)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# run pip install for this package
-pip.main(["install", "--break-system-packages", current_dir])
+    # delete all necessary directories
+    for directory in dirs_to_delete:
+        abs_dir = os.path.join(current_dir, directory)
+        if os.path.isdir(abs_dir):
+            shutil.rmtree(abs_dir)
+
+    # run pip install for this package
+    pip.main(["install", "--break-system-packages", current_dir])
+
+
+if __name__ == "__main__":
+    run()

@@ -2,6 +2,8 @@
 
 # Brenthy & Walytis
 
+_`4D61646520776974682073696E63657265206C6F766520666F72206D616E6B696E642E`_
+
 Brenthy & Walytis are technologies that take the development of blockchain tech to a new level.
 Walytis is a lightweight, flexible, accessible and application-oriented type of blockchain, and Brenthy is a framework to aid the development and deployment of new blockchain types.
 

@@ -1,6 +1,7 @@
 """Various functions used by Brenthy Core and `brenthy_api`."""
 
 import importlib
+import importlib.util
 import os
 import sys
 from base64 import urlsafe_b64decode, urlsafe_b64encode
