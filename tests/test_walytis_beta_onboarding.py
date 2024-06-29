@@ -136,6 +136,7 @@ def get_docker_latest_block_content(
         "import walytis_beta_api;"
         f'bc = walytis_beta_api.Blockchain("{blockchain.blockchain_id}");'
         "print(bc.get_block(bc.block_ids[-1]).content.decode());bc.terminate()",
+        print_output=False
     ).strip("\n")
 
 
@@ -160,10 +161,12 @@ def docker_join_blockchain(index: int) -> bool:
         "walytis_beta_api.list_blockchain_ids())"
     )
     for i in range(NUMBER_OF_JOIN_ATTEMPTS):
-        brenthy_dockers[index].run_python_code(join_python_code)
+        brenthy_dockers[index].run_python_code(
+            join_python_code, print_output=False
+        )
         result = (
             brenthy_dockers[index]
-            .run_python_code(test_join_python_code)
+            .run_python_code(test_join_python_code, print_output=False)
             .strip("\n")
         )
 

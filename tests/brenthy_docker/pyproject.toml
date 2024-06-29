@@ -4,13 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brenthy_docker"
-version = "0.3.0"
+version = "0.3.2"
+description="Interact with docker containers running IPFS and Brenthy."
 dependencies = [
   "docker",
   "ipfs-toolkit",
   "termcolor",
   "pyperclip",
 ]
+readme = "brenthy_docker/ReadMe.md"
+keywords = ["brenthy", "walytis", "docker", "test"]
+
+[project.urls]
+Github = "https://github.com/emendir/BrenthyAndWalytis/tree/master/tests/brenthy_docker/brenthy_docker/ReadMe.md"
+Homepage = "https://ipfs.io/ipns/emendir.tech/#BrenthyAndWalytis/tests/brenthy_docker/brenthy_docker/ReadMe.md"
+IPNS = "https://ipfs.io/ipns/emendir.tech/#BrenthyAndWalytis/tests/brenthy_docker/brenthy_docker/ReadMe.md"
+
 
 [tool.setuptools.packages.find]
 where = ["."]

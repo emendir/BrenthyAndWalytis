@@ -98,7 +98,8 @@ def get_docker_brenthy_version() -> str:
     """Get this test's docker container's running Brenthy-Core version."""
     return brenthy_docker.run_python_code(
         "import brenthy_tools_beta;"
-        "print(brenthy_tools_beta.get_brenthy_version_string())"
+        "print(brenthy_tools_beta.get_brenthy_version_string())",
+        print_output=False
     ).strip("\n")
 
 
@@ -106,7 +107,8 @@ def get_docker_walytis_beta_version() -> str:
     """Get this test's docker container's running Walytis-Core version."""
     return brenthy_docker.run_python_code(
         "import walytis_beta_api;"
-        "print(walytis_beta_api.get_walytis_beta_version_string())"
+        "print(walytis_beta_api.get_walytis_beta_version_string())",
+        print_output=False
     ).strip("\n")
 
 
@@ -134,12 +136,15 @@ def test_walytis_beta_update() -> None:
     print("Reinstalling walytis_beta_api")
     brenthy_docker.run_shell_command(
         "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/build;",
+        print_output=False
     )
     brenthy_docker.run_shell_command(
         "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/*.egg-info;",
+        print_output=False
     )
     brenthy_docker.run_shell_command(
-        "python3 -m pip install /opt/Brenthy/Brenthy/blockchains/Walytis_Beta"
+        "python3 -m pip install /opt/Brenthy/Brenthy/blockchains/Walytis_Beta",
+        print_output=False
     )
     walytis_beta_version_2 = get_docker_walytis_beta_version()
     brenthy_version_2 = get_docker_brenthy_version()

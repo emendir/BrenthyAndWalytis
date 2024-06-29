@@ -15,11 +15,13 @@ from termcolor._types import Color as Colour
 class BrenthyDocker:
     def __init__(
         self,
-        image: str = "local/brenthy_testing",
+        image: str = "emendir/brenthy_testing",
         container_name: str = "",
         container_id: str | None = None,
 
-        auto_run: bool = True
+        auto_run: bool = True,
+        await_brenthy: bool = True,
+        await_ipfs: bool = True
     ):
         self._docker = docker.from_env()
         self.ipfs_id = ""
@@ -31,7 +33,10 @@ class BrenthyDocker:
                 image, privileged=True, name=container_name
             )
         if auto_run:
-            self.start()
+            self.start(
+                await_brenthy=await_brenthy,
+                await_ipfs=await_ipfs,
+            )
 
     def start(
         self, await_brenthy: bool = True, await_ipfs: bool = True
@@ -52,12 +57,10 @@ class BrenthyDocker:
         if await_ipfs:
             self.ipfs_id = ""
             self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"', print_output=False)
-            print("IPFS ID:", self.ipfs_id)
 
             while not self.ipfs_id and not ipfs_api.find_peer(self.ipfs_id):
                 self._docker_swarm_connect()
                 self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"', print_output=False)
-                print("IPFS ID:", self.ipfs_id)
                 sleep(1)
 
     def stop(self) -> None:

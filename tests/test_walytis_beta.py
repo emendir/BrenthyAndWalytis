@@ -215,8 +215,10 @@ def test_joining() -> None:
 
     result = "-"
     for i in range(NUMBER_OF_JOIN_ATTEMPTS):
-        brenthy_docker.run_python_code(join_python_code)
-        result = brenthy_docker.run_python_code(test_python_code).strip("\n")
+        brenthy_docker.run_python_code(join_python_code, print_output=False)
+        result = brenthy_docker.run_python_code(
+            test_python_code, print_output=False
+        ).strip("\n")
         if result == "True":
             break
     success = result == "True"
