@@ -14,7 +14,7 @@
 	- [x] docstrings
 - [ ] check on efficiency of walytis_api.Blockchain._load_missed_blocks amount parameter
 - [ ] fix issue with pip install not updating installed version of package, test for 2nd docker container
-
+- [ ] proper error message when IPFS is turned off
 
 
 ### Installation

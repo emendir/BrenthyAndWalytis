@@ -11,7 +11,7 @@ Brenthy/blockchains/Walytis_Beta/walytis_beta.py
 import os
 import shutil
 from threading import Lock, Thread
-from types import FunctionType
+from typing import Callable
 
 import appdirs
 from brenthy_tools_beta import log
@@ -64,18 +64,19 @@ class Blockchain:
     def __init__(
         self,
         blockchain_id: str,
-        block_received_handler: FunctionType | None = None,
+        block_received_handler: Callable[[Block], None] | None = None,
         app_name: str = "",
         appdata_dir: str = "",
         auto_load_missed_blocks: bool = True,
         forget_appdata: bool = False,
         sequential_block_handling: bool = True,
+        update_blockids_before_handling: bool = False,
     ):
         """Create an object to represent a Walytis blockchain.
 
         Args:
             blockchain_id (str): the id or name of the blockchain
-            block_received_handler (FunctionType): function to be called every
+            block_received_handler (Callable): function to be called every
                 time a new block is received on this blockchain.
                 This function should not have a long execution time because
                 this class waits for its execution to finish before saving
@@ -85,14 +86,14 @@ class Blockchain:
                 The same block is never passed to this handler twice, and
                 no child block will ever be passed to this function before
                 its parent block.
-            auto_load_missed_blocks (bool): whether or not to automatically get
-                and process the blocks received by the blockchain while
-                this application was offline.
             app_name (str): the unique name of this application, to distinguish
                 between different applications that use the same blockchain
                 for appdata management
             appdata_dir (str): the directory in which to save data on which
                 blocks this application has processed for this blockchain
+            auto_load_missed_blocks (bool): whether or not to automatically get
+                and process the blocks received by the blockchain while
+                this application was offline.
             forget_appdata (bool): whether or not to ignore and overwrite any
                 existing records of which blocks applications with the
                 providede `app_name` have processed
@@ -105,6 +106,9 @@ class Blockchain:
                 started on a new thread, meaning it is possible for
                 multiple calls of the handler to be running in parallel
                 for different blocks.
+            update_blockids_before_handling (bool): whether or not the
+                `block_ids` attribute should be updater before running
+                `block_received_handler` when a new block is received
         """
         # declare attribute already to avoid error in destructor
         # if error occurs in constructor
@@ -151,6 +155,8 @@ class Blockchain:
         self._terminate = False
 
         self.sequential_block_handling = sequential_block_handling
+        self.update_blockids_before_handling = update_blockids_before_handling
+
         self._blocks_listener = BlocksListener(
             self.blockchain_id, self._on_new_block_received
         )
@@ -342,6 +348,9 @@ class Blockchain:
                         already_locked=already_locked,
                     )
             try:
+                if self.update_blockids_before_handling:
+                    self._update_blocks_list(block, already_locked=True)
+
                 # call user's block_received_handler
                 # only if the block isn't a genesis block
                 if block.topics == ["genesis"]:
@@ -355,18 +364,26 @@ class Blockchain:
                             args=(block,),
                             name=f"WAPI-{self.name}-block_received_handler",
                         ).start()
-                if not already_locked:
-                    self._blocklist_lock.acquire()
-
-                self.block_ids.append(block.short_id)
-                if save_blocks_list:
-                    self._save_blocks_list(already_locked=True)
-
-                if not already_locked:
-                    self._blocklist_lock.release()
+                if not self.update_blockids_before_handling:
+                    self._update_blocks_list(block, already_locked=True)
 
             except Exception as e:
                 log.error(f"WAPI: Blockchain._on_new_block_received: {e}")
+
+    def _update_blocks_list(
+        self,
+        block: Block,
+        save_blocks_list: bool = True,
+        already_locked: bool = False
+    ) -> None:
+        if not already_locked:
+            self._blocklist_lock.acquire()
+        self.block_ids.append(block.short_id)
+        if save_blocks_list:
+            self._save_blocks_list(already_locked=True)
+
+        if not already_locked:
+            self._blocklist_lock.release()
 
     def _save_blocks_list(self, already_locked: bool = False) -> None:
         """Save our list of known/processed block IDs to an appdata file."""
@@ -473,9 +490,13 @@ class Blockchain:
     @staticmethod
     def create(
         blockchain_name: str = "",
-        block_received_handler: FunctionType | None = None,
+        block_received_handler: Callable[[Block], None] | None = None,
         app_name: str = "",
         appdata_dir: str = "",
+        auto_load_missed_blocks: bool = True,
+        forget_appdata: bool = False,
+        sequential_block_handling: bool = True,
+        update_blockids_before_handling: bool = False,
     ) -> 'Blockchain':
         """Create and run a new blockchain.
 
@@ -487,7 +508,7 @@ class Blockchain:
                 node, meaning it is not guaranteed to be globally unique.
                 Applications should use a blockchain's ID (attribute 'id') as
                 its identifier, not the blockchain_name.
-            block_received_handler (FunctionType):
+            block_received_handler (Callable):
                 A function to be called every
                 time a new block is received on this blockchain.
                 This function should not have a long execution time because
@@ -503,6 +524,24 @@ class Blockchain:
                 for appdata management
             appdata_dir (str): the directory in which to save data on which
                     blocks this application has processed for this blockchain
+            auto_load_missed_blocks (bool): whether or not to automatically get
+                and process the blocks received by the blockchain while
+                this application was offline.
+            forget_appdata (bool): whether or not to ignore and overwrite any
+                existing records of which blocks applications with the
+                providede `app_name` have processed
+            sequential_block_handling (bool): if True, the provided block-
+                received handler will be executed on the main thread, and
+                the handler will only be executed for the next block
+                after the handler for the last block executes witout
+                error.
+                If set to False, the block-received handler will always be
+                started on a new thread, meaning it is possible for
+                multiple calls of the handler to be running in parallel
+                for different blocks.
+            update_blockids_before_handling (bool): whether or not the
+                `block_ids` attribute should be updater before running
+                `block_received_handler` when a new block is received
 
         Returns:
             Blockchain: a Blockchain object representing the created blockchain
@@ -513,15 +552,23 @@ class Blockchain:
             block_received_handler=block_received_handler,
             app_name=app_name,
             appdata_dir=appdata_dir,
+            auto_load_missed_blocks=auto_load_missed_blocks,
+            forget_appdata=forget_appdata,
+            sequential_block_handling=sequential_block_handling,
+            update_blockids_before_handling=update_blockids_before_handling,
         )
 
     @staticmethod
     def join(
         invitation: str,
         blockchain_name: str = "",
-        block_received_handler: FunctionType | None = None,
+        block_received_handler: Callable[[Block], None] | None = None,
         app_name: str = "",
         appdata_dir: str = "",
+        auto_load_missed_blocks: bool = True,
+        forget_appdata: bool = False,
+        sequential_block_handling: bool = True,
+        update_blockids_before_handling: bool = False,
     ) -> 'Blockchain':
         """Join a blockchain using an invitation generated by another node.
 
@@ -534,7 +581,7 @@ class Blockchain:
                 node, meaning it is not guaranteed to be globally unique.
                 Applications should use a blockchain's ID (attribute 'id') as
                 its identifier, not the blockchain_name.
-            block_received_handler (FunctionType):
+            block_received_handler (Callable):
                 A function to be called every
                 time a new block is received on this blockchain.
                 This function should not have a long execution time because
@@ -550,6 +597,25 @@ class Blockchain:
                 for appdata management
             appdata_dir (str): the directory in which to save data on which
                     blocks this application has processed for this blockchain
+            auto_load_missed_blocks (bool): whether or not to automatically get
+                and process the blocks received by the blockchain while
+                this application was offline.
+            forget_appdata (bool): whether or not to ignore and overwrite any
+                existing records of which blocks applications with the
+                providede `app_name` have processed
+            sequential_block_handling (bool): if True, the provided block-
+                received handler will be executed on the main thread, and
+                the handler will only be executed for the next block
+                after the handler for the last block executes witout
+                error.
+                If set to False, the block-received handler will always be
+                started on a new thread, meaning it is possible for
+                multiple calls of the handler to be running in parallel
+                for different blocks.
+            update_blockids_before_handling (bool): whether or not the
+                `block_ids` attribute should be updater before running
+                `block_received_handler` when a new block is received
+
         Returns:
             Blockchain: a Blockchain object representing the joined blockchain
         """
@@ -561,4 +627,68 @@ class Blockchain:
             block_received_handler=block_received_handler,
             app_name=app_name,
             appdata_dir=appdata_dir,
+            auto_load_missed_blocks=auto_load_missed_blocks,
+            forget_appdata=forget_appdata,
+            sequential_block_handling=sequential_block_handling,
+            update_blockids_before_handling=update_blockids_before_handling,
+        )
+
+    @staticmethod
+    def from_blockchain_id(
+        blockchain_id: str,
+        block_received_handler: Callable[[Block], None] | None = None,
+        app_name: str = "",
+        appdata_dir: str = "",
+        auto_load_missed_blocks: bool = True,
+        forget_appdata: bool = False,
+        sequential_block_handling: bool = True,
+        update_blockids_before_handling: bool = False,
+    ) -> 'Blockchain':
+        """Create an object to represent a Walytis blockchain.
+
+        Args:
+            blockchain_id (str): the id or name of the blockchain
+            block_received_handler (Callable): function to be called every
+                time a new block is received on this blockchain.
+                This function should not have a long execution time because
+                this class waits for its execution to finish before saving
+                the received block in its list of processed blocks.
+                If this eventhandler raises an exception, it will be called
+                with the same block at a later stage.
+                The same block is never passed to this handler twice, and
+                no child block will ever be passed to this function before
+                its parent block.
+            app_name (str): the unique name of this application, to distinguish
+                between different applications that use the same blockchain
+                for appdata management
+            appdata_dir (str): the directory in which to save data on which
+                blocks this application has processed for this blockchain
+            auto_load_missed_blocks (bool): whether or not to automatically get
+                and process the blocks received by the blockchain while
+                this application was offline.
+            forget_appdata (bool): whether or not to ignore and overwrite any
+                existing records of which blocks applications with the
+                providede `app_name` have processed
+            sequential_block_handling (bool): if True, the provided block-
+                received handler will be executed on the main thread, and
+                the handler will only be executed for the next block
+                after the handler for the last block executes witout
+                error.
+                If set to False, the block-received handler will always be
+                started on a new thread, meaning it is possible for
+                multiple calls of the handler to be running in parallel
+                for different blocks.
+            update_blockids_before_handling (bool): whether or not the
+                `block_ids` attribute should be updater before running
+                `block_received_handler` when a new block is received
+        """
+        return Blockchain(
+            blockchain_id=blockchain_id,
+            block_received_handler=block_received_handler,
+            app_name=app_name,
+            appdata_dir=appdata_dir,
+            auto_load_missed_blocks=auto_load_missed_blocks,
+            forget_appdata=forget_appdata,
+            sequential_block_handling=sequential_block_handling,
+            update_blockids_before_handling=update_blockids_before_handling,
         )
