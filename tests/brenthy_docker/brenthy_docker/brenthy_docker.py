@@ -18,7 +18,6 @@ class BrenthyDocker:
         image: str = "emendir/brenthy_testing",
         container_name: str = "",
         container_id: str | None = None,
-
         auto_run: bool = True,
         await_brenthy: bool = True,
         await_ipfs: bool = True
@@ -56,11 +55,13 @@ class BrenthyDocker:
             sleep(0.2)
         if await_ipfs:
             self.ipfs_id = ""
-            self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"', print_output=False)
+            self.ipfs_id = self.run_shell_command(
+                'ipfs id -f="<id>"', print_output=False)
 
             while not self.ipfs_id and not ipfs_api.find_peer(self.ipfs_id):
                 self._docker_swarm_connect()
-                self.ipfs_id = self.run_shell_command('ipfs id -f="<id>"', print_output=False)
+                self.ipfs_id = self.run_shell_command(
+                    'ipfs id -f="<id>"', print_output=False)
                 sleep(1)
 
     def stop(self) -> None:
@@ -188,7 +189,9 @@ class BrenthyDocker:
         self,
         code: str | list[str],
         print_output: bool = True,
-        colour: Colour = "light_yellow"
+        colour: Colour = "light_yellow",
+        background: bool = False
+
     ) -> str:
         """Run any bash code in the docker container, returning its output.
 
@@ -200,14 +203,16 @@ class BrenthyDocker:
         remote_tempfile = self.write_to_tempfile(code)
         return self.run_shell_command(
             f"/bin/bash {remote_tempfile}",
-            print_output=print_output, colour=colour
+            print_output=print_output, colour=colour, background=background
         )
 
     def run_python_command(
         self,
         command: str,
         print_output: bool = True,
-        colour: Colour = "light_yellow"
+        colour: Colour = "light_yellow",
+        background: bool = False
+
     ) -> str:
         """Run single-line python code, returning its output.
 
@@ -216,14 +221,15 @@ class BrenthyDocker:
         python_command = "python -c \"" + command + "\""
         return self.run_shell_command(
             python_command,
-            print_output=print_output, colour=colour
+            print_output=print_output, colour=colour, background=background
         )
 
     def run_python_code(
         self,
         code: str | list[str],
         print_output: bool = True,
-        colour: Colour = "light_yellow"
+        colour: Colour = "light_yellow",
+        background: bool = False
     ) -> str:
         """Run any python code in the docker container, returning its output.
 
@@ -235,7 +241,7 @@ class BrenthyDocker:
         remote_tempfile = self.write_to_tempfile(code)
         return self.run_shell_command(
             f"/bin/python {remote_tempfile}",
-            print_output=print_output, colour=colour
+            print_output=print_output, colour=colour, background=background
         )
 
     def _docker_swarm_connect(self) -> None:
@@ -285,7 +291,7 @@ class BrenthyDocker:
         if ip4_udp_maddr:  # if any such addresses were found, try to connect
             commands.append(f"ipfs swarm connect {ip4_udp_maddr[0]}")
 
-        self.run_bash_code(" & ".join(commands))
+        self.run_bash_code(" & ".join(commands), print_output=False)
 
         # print(f"ipfs swarm connect {ip6_tcp_maddr}")
         # print(f"ipfs swarm connect {ip6_udp_maddr}")
@@ -341,9 +347,12 @@ if __name__ == "__main__":
         container_name="Demo",
         auto_run=False
     )
+
     container_id = docker_container.container.id
     # Start the container
     docker_container.start(await_brenthy=False, await_ipfs=True)
+
+    print("Container's IPFS ID: ", docker_container.ipfs_id)
 
     # Execute shell command on the container
     shell_output = docker_container.run_shell_command(
@@ -352,7 +361,9 @@ if __name__ == "__main__":
 
     # Execute Python command on the container
     python_output = docker_container.run_python_command(
-        "import walytis_beta_api;print(walytis_beta_api.get_walytis_beta_version())")
+        "import walytis_beta_api;"
+        "print(walytis_beta_api.get_walytis_beta_version())"
+    )
     print("Output of Python command:", python_output)
 
     docker_container.transfer_file(
