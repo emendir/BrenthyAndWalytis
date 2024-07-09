@@ -2,6 +2,7 @@
 
 # pylint: disable=import-error
 import json
+import os
 
 import api_terminal
 from brenthy_tools_beta import log
@@ -12,6 +13,7 @@ from brenthy_tools_beta.utils import (
     string_to_time,
 )
 from brenthy_tools_beta.version_utils import decode_version, encode_version
+from brenthy_tools_beta.utils import make_file_readable, make_directory_readable
 
 from . import walytis_beta
 from .walytis_beta_api.block_model import short_from_long_id
@@ -254,6 +256,9 @@ def get_blockchain_data(payload: bytearray) -> bytes:
             }
         ).encode()
     result = blockchain.zip_appdata()
+    make_file_readable(result)
+    make_directory_readable(os.path.dirname(result))
+
     return json.dumps(
         {
             "success": True,

@@ -36,6 +36,7 @@ from .walytis_beta_interface import (
     delete_blockchain,
     delete_invitation,
     get_block,
+    get_blockchain_data,
     get_blockchain_id,
     get_blockchain_name,
     get_invitations,
@@ -184,7 +185,7 @@ class Blockchain:
             self.load_missed_blocks(N_STARTUP_BLOCKS)
 
     def add_block(
-        self, content: bytearray, topics: list[str] | str | None = None
+        self, content: bytearray | bytes, topics: list[str] | str | None = None
     ) -> Block:
         """Add a new block to this blockchain.
 
@@ -220,7 +221,7 @@ class Blockchain:
 
         return block
 
-    def get_block(self, id: bytearray) -> Block:
+    def get_block(self, id: bytearray | bytes) -> Block:
         """Get a block object from this blockchain given its block ID.
 
         Args:
@@ -307,6 +308,14 @@ class Blockchain:
             list[str]: a list of IPFS peer IDs of the currently connected nodes
         """
         return get_peers(self.blockchain_id)
+
+    def get_blockchain_data(self) -> str:
+        """Create a zip file of all this blockchain's data, returning its path.
+
+        Returns:
+            str: the path of the zip file created
+        """
+        return get_blockchain_data(self.blockchain_id)
 
     def _run_block_received_handler(self, block: Block) -> None:
         if not self.block_received_handler:

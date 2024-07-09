@@ -1,12 +1,13 @@
 """Various functions used by Brenthy Core and `brenthy_api`."""
 
+import platform
+import stat
 import importlib
 import importlib.util
 import os
 import sys
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime
-from os import stat
 from pwd import getpwuid
 from types import ModuleType
 
@@ -198,7 +199,7 @@ def printable_bytearray(data: bytearray | bytes) -> str:
 
 def get_file_owner(filename: str) -> str:
     """Get the OS-level owner of a file."""
-    return getpwuid(stat(filename).st_uid).pw_name
+    return getpwuid(os.stat(filename).st_uid).pw_name
 
 
 def string_to_bytes(data: str) -> bytearray:
@@ -253,3 +254,24 @@ def function_name(parents: int = 0) -> str:
     """Get the name of the calling function."""
     # pylint:disable=protected-access
     return sys._getframe(1 + parents).f_code.co_name
+
+
+def make_file_readable(file_path: str) -> None:
+    """Make a file readable to all the operating system's users."""
+    if platform.system() in ['Linux', 'Darwin']:  # Unix-based systems
+        os.chmod(file_path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    elif platform.system() == 'Windows':
+        os.chmod(file_path, 0o444)
+    else:
+        raise NotImplementedError(f"Unsupported platform: {platform.system()}")
+
+
+def make_directory_readable(directory_path: str) -> None:
+    """Make a directory readable to all the operating system's users."""
+    if platform.system() in ['Linux', 'Darwin']:  # Unix-based systems
+        os.chmod(directory_path, stat.S_IRUSR | stat.S_IXUSR |
+                 stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+    elif platform.system() == 'Windows':
+        os.chmod(directory_path, 0o555)
+    else:
+        raise NotImplementedError(f"Unsupported platform: {platform.system()}")

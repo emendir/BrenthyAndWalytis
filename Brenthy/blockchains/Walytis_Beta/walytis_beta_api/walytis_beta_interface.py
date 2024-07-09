@@ -609,12 +609,12 @@ def get_blockchain_data(blockchain_id: str) -> str:
 
 
 def get_peers(blockchain_id: str) -> list[str]:
-    """Create a zip file of all this blockchain's data, returning its path.
+    """Get a list of IPFS IDs of the given blockchain's currently online nodes.
 
     Args:
-        blockchain_id (str): the id or name of the blockchain to zip
+        blockchain_id (str): the id or name of the blockchain to look up
     Returns:
-        str: the path of the zip file created
+        list[str]: the IPFS IDs of the blockchain's currently online nodes
     """
     blockchain_id = get_blockchain_id(blockchain_id)
     request = blockchain_id.encode()
