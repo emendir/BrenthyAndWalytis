@@ -4,6 +4,7 @@ import shutil
 import tarfile
 import tempfile
 from time import sleep
+import pexpect
 
 import docker
 import ipfs_api
@@ -158,7 +159,6 @@ class BrenthyDocker:
         Not suitable for code that contains double quotes.
         """
         command = f"docker exec -it {self.container.id} {command}"
-        import pexpect
         child = pexpect.spawn(command, encoding='utf-8')
         result = ""
         # Capture the output line by line
