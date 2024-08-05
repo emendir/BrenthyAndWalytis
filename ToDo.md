@@ -1,28 +1,41 @@
 ## [Docs](Documentation/DocsRoadmap.md)
+
 - contributions
 - docs wiki?
 
+## Technical
+
 ### Core
+
+- [ ] Make `walytis_beta_api` capable of fully verifying a blockchain from block data files, so that the role of Walytis Core is only creating and sharing blocks.
 - [ ] Join Blockchain timeout when no data has been received during file transmission
+- [ ] Remove `block_records` block index? Make more efficient?
+- [ ] clean up threads from failed join requests
+- [ ] Walytis.get_blockchain_data: tests & documentation
+- [ ] Brenthy and Brenthy-Tools: assert that maximum Brenthy API module protocol version is not greater than BAP version
 
 ### API
 
 - [ ] Blockchain: pass directory #phase4
-	- [x] implement
-	- [ ] tests
-	- [x] static function param
-	- [x] docstrings
-- [ ] check on efficiency of walytis_api.Blockchain._load_missed_blocks amount parameter
+  - [x] implement
+  - [ ] tests
+  - [x] static function param
+  - [x] docstrings
+- [ ] check on efficiency of `walytis_api.Blockchain._load_missed_blocks` amount parameter
 - [ ] fix issue with pip install not updating installed version of package, test for 2nd docker container
 - [ ] proper error message when IPFS is turned off
 
-
 ### Installation
+
 - [ ] don't initialise IPFS as root
 - [ ] install ipfs-monitor
 
 ## Tests:
+
 - [ ] auto test installation on clean OSs #phase4
+- [ ] test for no ZMQ
+- [ ] test inter-compatibility of different BrenthyAPI versions
+- [ ] test all security functionality
 
 ## Future Features
 
@@ -32,6 +45,7 @@ _Plan roadmap for following new features._
 
 - [ ] for all essential tests, make them docker-only (remove role of the calling computer) #phase5
 - [ ] ensure pytest compatibility of tests #phase5
+
 ### Features
 
 - [ ] Option to change properties of invitations
@@ -67,21 +81,10 @@ _Plan roadmap for following new features._
 - [ ] blockchain types as malware against other blockchain types: blockchain types should not be able to access each others' appdata. create a user for each blockchain type?
 - [ ] built-in monitoring for corrupt blocks
 
-### Technical
+## Code Cleanup
 
-- [ ] clean up threads from failed join requests
-- [ ] BlockRecords: More efficient looking up and loading of recent blocks from a cache in memory, and from block storage as well?
-- [ ] Walytis.get_blockchain_data: tests & documentation
-- [ ] Brenthy and Brenthy-Tools: assert that maximum Brenthy API module protocol version is not greater than BAP version
-
-### Code Cleanup
 - [ ] remove all bare or broad exceptions #phase5
-### Tests
 
-- [ ] test for no ZMQ
-- [ ] test inter-compatibility of different BrenthyAPI versions
-- [ ] test all security functionality
-
-### Control Panel Web-UI
+## Control Panel Web-UI
 
 _Everything_

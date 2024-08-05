@@ -20,11 +20,12 @@ from brenthy_tools_beta.utils import (  # pylint: disable=unused-import
 from brenthy_tools_beta.version_utils import decode_version, encode_version
 
 from .exceptions import BlockIntegrityError, InvalidBlockIdError
+from .generic_blockchain import _GenericBlockImpl as GenericBlock
 
 PREFERRED_HASH_ALGORITHM = "sha512"
 
 
-class Block:
+class Block(GenericBlock):
     """The Walytis_Beta block.
 
     This class contains the basic functionality of the Walytis_Beta block,

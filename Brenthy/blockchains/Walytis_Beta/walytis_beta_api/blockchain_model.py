@@ -27,6 +27,7 @@ from .exceptions import (  # pylint: disable=unused-import
     BlockNotFoundError,
     NotSupposedToHappenError,
 )
+from .generic_blockchain import _GenericBlockchainImpl as GenericBlockchain
 from .walytis_beta_interface import (
     WALYTIS_BETA,
     BlocksListener,
@@ -56,7 +57,7 @@ N_STARTUP_BLOCKS = (
 # log.set_print_level("info")
 
 
-class Blockchain:
+class Blockchain(GenericBlockchain):
     """Represents a running Walytis_Beta blockchain.
 
     Provides the means to interact with a Walytis blockchain.
