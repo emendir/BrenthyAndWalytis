@@ -1,3 +1,5 @@
 markdown-it-py
 termcolor
 pyperclip
+pandas
+decorate_all

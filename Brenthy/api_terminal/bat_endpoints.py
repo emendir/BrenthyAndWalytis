@@ -13,7 +13,7 @@ from typing import Callable
 import zmq
 from brenthy_tools_beta import log
 from brenthy_tools_beta.utils import from_b255_no_0s, to_b255_no_0s
-
+from time import sleep
 BUFFER_SIZE = 4096  # the communication buffer size
 
 TERMINATTION_CODE = b"close"
@@ -38,6 +38,8 @@ class ZmqMultiRequestsReceiver:
         self.handle_request = handle_request
         self.max_parallel_handlers = max_parallel_handlers
         self._terminate = False
+        self.dealer_socket: None | zmq.Socket = None
+        self.router_socket: None | zmq.Socket = None
         self.listener_thread = Thread(
             target=self._listen, args=(),
             name="ZmqMultiRequestsReceiver-listener"
@@ -58,6 +60,7 @@ class ZmqMultiRequestsReceiver:
 
     def _listen(self) -> None:
         try:
+
             # log.debug("ZMQ creating router and dealer sockets...")
             self.router_socket = self.zmq_context.socket(zmq.ROUTER)
             self.router_socket.bind(
@@ -76,8 +79,10 @@ class ZmqMultiRequestsReceiver:
                 log.error(str(error))
         finally:
             # log.debug("ZMQ closing rouet & dealer sockets...")
-            self.router_socket.close()
-            self.dealer_socket.close()
+            if self.router_socket:
+                self.router_socket.close()
+            if self.dealer_socket:
+                self.dealer_socket.close()
 
     def _worker_routine(self) -> None:
         """Worker thread routine to handle requests."""
@@ -106,10 +111,9 @@ class ZmqMultiRequestsReceiver:
             #     return
             self._terminate = True
             # log.debug("Waiting for workers to stop...")
-            for i in range(2*self.max_parallel_handlers):
+            while True:
                 all_workers_stopped = True
                 for worker in self.workers:
-                    worker.join(1)
                     if worker.is_alive():
                         all_workers_stopped = False
                         break
@@ -123,8 +127,11 @@ class ZmqMultiRequestsReceiver:
                 )
                 sock.send("close".encode())
                 sock.close()
-            self.router_socket.close()
-            self.dealer_socket.close()
+                sleep(0.1)
+            if self.router_socket:
+                self.router_socket.close()
+            if self.dealer_socket:
+                self.dealer_socket.close()
             self.listener_thread.join()
         except Exception as error:
             log.error(
