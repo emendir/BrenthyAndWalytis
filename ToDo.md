@@ -24,6 +24,8 @@
 - [ ] check on efficiency of `walytis_api.Blockchain._load_missed_blocks` amount parameter
 - [ ] fix issue with pip install not updating installed version of package, test for 2nd docker container
 - [ ] proper error message when IPFS is turned off
+- [ ] Blockchain only remembers if user's block handler processed the block if update_blockids_before_handling == False
+- [ ] Blockchain: replace `auto_load_missed_blocks` with `auto_start_block_handling`
 
 ### Installation
 

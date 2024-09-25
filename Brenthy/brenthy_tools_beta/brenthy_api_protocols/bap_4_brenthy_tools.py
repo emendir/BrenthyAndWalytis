@@ -59,8 +59,6 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
     ```
     """
 
-    _terminate = False
-
     def __init__(
         self,
         eventhandler: FunctionType,
@@ -74,6 +72,7 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
                 See class docstring for examples.
             topics (list[str] | str): the topics to filter messages by
         """
+        self._terminate = False
         try:
             self.zmq_context = zmq.Context()
             CONTEXTS.append(self.zmq_context)

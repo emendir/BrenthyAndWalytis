@@ -6,3 +6,4 @@
 - topics: rename to user-metadata? What about non-user metadata ("Genesis", blockchain-ID)? Maybe separate into topics and user-metadata, which is simply a subset of the former 
 - more efficient block lookup, perhaps tell walytis_beta_api to read the blocks' folder?
 - Walytis: get rid of DBMS?
+- class Blockchain: don't provide block info after object is terminated
