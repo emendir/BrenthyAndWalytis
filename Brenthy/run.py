@@ -39,6 +39,10 @@ print(f"Brenthy {BRENTHY_CORE_VERSION}")
 TRY_INSTALL = True
 DATA_DIR = ""
 CHECK_UPDATES = True
+# None: try installing using PyPy, otherwise use CPython
+# True: only try install using PyPy
+# False: only try install using CPython
+INSTALL_PYPY = None
 
 api_terminal = None
 blockchain_manager = None
@@ -55,6 +59,7 @@ def run_brenthy() -> None:
     global TRY_INSTALL
     global CHECK_UPDATES
     global DATA_DIR
+    global INSTALL_PYPY
     # First things first: get logging working
     log.LOG_DIR = logs_dir
     log.LOG_FILENAME = "Brenthy.log"
@@ -80,6 +85,18 @@ def run_brenthy() -> None:
                 log.fatal(error_message)
                 raise ValueError(error_message)
             DATA_DIR = data_dir
+        if "--install-pypy" in sys.argv:
+
+            INSTALL_PYPY = True
+        if "--install-cpython" in sys.argv:
+            if INSTALL_PYPY:
+                error_message = (
+                    "Don't pass both --install-pypy and --install-cpython. "
+                    "To install with either, use none of these flags"
+                )
+                log.fatal(error_message)
+                raise ValueError(error_message)
+            INSTALL_PYPY = False
     except:  # pylint: disable=bare-except
         log.fatal(traceback.format_exc())
         log.fatal(
@@ -92,7 +109,7 @@ def run_brenthy() -> None:
     try:
         if TRY_INSTALL:
             if not am_i_installed():
-                result = install(data_dir=DATA_DIR)
+                result = install(data_dir=DATA_DIR, install_pypy=INSTALL_PYPY)
                 match result:
                     case InstallationResult.INSTALLED:
                         log.important("Installation finished!")

@@ -31,6 +31,8 @@
 
 - [ ] don't initialise IPFS as root
 - [ ] install ipfs-monitor
+- [ ] remove pip github installation of eciespy when ready
+- [ ] don't hardcode version of PyPy
 
 ## Tests:
 
@@ -38,6 +40,8 @@
 - [ ] test for no ZMQ
 - [ ] test inter-compatibility of different BrenthyAPI versions
 - [ ] test all security functionality
+- [ ] test for performance metrics
+- [ ] find out scalability limits, expand and test them
 
 ## Future Features
 

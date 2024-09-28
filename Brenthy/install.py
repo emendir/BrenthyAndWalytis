@@ -25,7 +25,9 @@ class InstallationResult(Enum):
     DECLINED = 3
 
 
-def install(data_dir: str = DEF_DATA_DIR) -> InstallationResult:
+def install(
+    data_dir: str = DEF_DATA_DIR, install_pypy: bool | None = None
+) -> InstallationResult:
     """Install Brenthy.
 
     Args:
@@ -47,24 +49,40 @@ def install(data_dir: str = DEF_DATA_DIR) -> InstallationResult:
             if not ask_user_install():
                 return InstallationResult.DECLINED
 
-        if os.path.exists("we_are_in_docker"):
-            # installation on docker ubuntu
-            exit_code = os.system(
-                "bash ./InstallScripts/install_brenthy_linux_systemd.sh "
-                f"{INSTALL_DIR} {data_dir} "
-                f"{'--install-dont-run' not in sys.argv}"
-            )
-        else:
-            # installation on normal ubuntu
+        sudo = ""
+        # don't reinstall IPFS in Docker version
+        if not os.path.exists("we_are_in_docker"):
             linux_install_ipfs()
 
             print("To install Brenthy, enter your root password here.")
             print("To cancel installation, press Ctrl+D.")
-            exit_code = os.system(
-                "sudo su -c './InstallScripts/install_brenthy_linux_systemd.sh"
-                f" {INSTALL_DIR} {data_dir} "
-                f"{'--install-dont-run' not in sys.argv}'"
-            )
+            sudo = "sudo"   # docker doesn't have sudo, most other distros do
+
+        pypy_cmd = (
+            f"{sudo} bash "
+            "./InstallScripts/install_brenthy_linux_systemd_pypy.sh "
+            f"{INSTALL_DIR} {data_dir} "
+            f"{str('--install-dont-run' not in sys.argv).lower()}"
+        )
+        cpython_cmd = (
+            f"{sudo} bash "
+            "./InstallScripts/install_brenthy_linux_systemd_cpython.sh "
+            f"{INSTALL_DIR} {data_dir} "
+            f"{str('--install-dont-run' not in sys.argv).lower()}"
+        )
+        print(cpython_cmd)
+        if install_pypy is None:
+            # try installing with PyPy instead of CPython
+            exit_code = os.system(pypy_cmd)
+            # if installation failed, install with CPython instead of PyPy
+            if exit_code != 0:
+                exit_code = os.system(cpython_cmd)
+        elif install_pypy:
+            # install with PyPy
+            exit_code = os.system(pypy_cmd)
+        else:
+            # install with CPython
+            exit_code = os.system(cpython_cmd)
 
         if exit_code == 0:  # whether or not shell script exited normally
             return InstallationResult.INSTALLED

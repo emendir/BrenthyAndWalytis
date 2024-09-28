@@ -4,12 +4,12 @@
 # get arguments passed to script:
 install_dir=$1
 data_dir=$2
-run_installation=$3 # True of False; whether or not the installed Brenthy should be run when finished
+run_brenthy=$3 # True of False; whether or not the installed Brenthy should be run when finished
 
-echo "ARGS:"
-echo $install_dir
-echo $data_dir
-echo $run_brenthy
+echo "Running Brenthy Installer for Linux with Systemd using Python with args:"
+echo "Install Dir: $install_dir"
+echo "Data Dir:    $data_dir"
+echo "Run Brenthy: $run_brenthy"
 
 # Check prerequisites:
 PREREQUISITES=("virtualenv")
@@ -89,9 +89,11 @@ find ${data_dir} -type f -exec chmod go-x {} +
 # create python virtual environment in install_dir and install all needed libraries there
 echo "Installing Brenthy's python environment..."
 cd $install_dir ||exit 1
-
-virtualenv Python
-Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
+if [ -d $install_dir/Python ];then
+  rm -r $install_dir/Python
+fi
+virtualenv $install_dir/Python
+$install_dir/Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
 
 # register Brenthy as a service/background process, and running it
 echo "Registering systemd service..."
@@ -112,8 +114,17 @@ WantedBy=multi-user.target
 systemctl daemon-reload
 systemctl enable brenthy
 
-if [[ "$run_installation" = "True" ]]
-then
-echo "Loading brenthy service..."
-systemctl restart brenthy # start brenthy service, restart if old version is still running
+if [[ "$run_brenthy" == "true" || "$run_brenthy" == "True" ]];then
+  echo "Loading brenthy service..."
+  systemctl restart brenthy # start brenthy service, restart if old version is still running
+
+  # Check if brenthy is running
+  sleep 1
+  if systemctl is-active --quiet brenthy; then
+    echo "Installation succeeded!"
+  else
+    echo "Installation failed."
+    exit 1
+  fi
 fi
+
