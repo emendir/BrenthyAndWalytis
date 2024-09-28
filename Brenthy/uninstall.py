@@ -20,7 +20,7 @@ def uninstall() -> bool:
         print("To cancel uninstallation, press Ctrl+D.")
         exit_code = os.system(
             "sudo su -c './InstallScripts/uninstall_brenthy_linux_systemd.sh "
-            f"{install_dir} {data_dir} {sys.executable}'"
+            f"{install_dir} {data_dir}'"
         )
         linux_uninstall_ipfs()
         return exit_code == 0

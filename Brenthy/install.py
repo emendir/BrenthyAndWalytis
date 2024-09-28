@@ -51,7 +51,7 @@ def install(data_dir: str = DEF_DATA_DIR) -> InstallationResult:
             # installation on docker ubuntu
             exit_code = os.system(
                 "bash ./InstallScripts/install_brenthy_linux_systemd.sh "
-                f"{INSTALL_DIR} {data_dir} {sys.executable} "
+                f"{INSTALL_DIR} {data_dir} "
                 f"{'--install-dont-run' not in sys.argv}"
             )
         else:
@@ -62,7 +62,7 @@ def install(data_dir: str = DEF_DATA_DIR) -> InstallationResult:
             print("To cancel installation, press Ctrl+D.")
             exit_code = os.system(
                 "sudo su -c './InstallScripts/install_brenthy_linux_systemd.sh"
-                f" {INSTALL_DIR} {data_dir} {sys.executable} "
+                f" {INSTALL_DIR} {data_dir} "
                 f"{'--install-dont-run' not in sys.argv}'"
             )
 
@@ -79,7 +79,7 @@ def uninstall() -> bool:  # pylint: disable=unused-variable
     """Uninstall Brenthy."""
     exit_code = os.system(
         "sudo su -c './InstallScripts/uninstall_brenthy_linux_systemd.sh "
-        f"{INSTALL_DIR} {DEF_DATA_DIR} {sys.executable}'"
+        f"{INSTALL_DIR} {DEF_DATA_DIR}'"
     )
     return exit_code == 0
 

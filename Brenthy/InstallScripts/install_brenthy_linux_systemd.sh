@@ -4,14 +4,12 @@
 # get arguments passed to script:
 install_dir=$1
 data_dir=$2
-python=$3
-run_installation=$4 # True of False; whether or not the installed Brenthy should be run when finished
+run_installation=$3 # True of False; whether or not the installed Brenthy should be run when finished
 
 echo "ARGS:"
-echo "install_dir"
-echo "data_dir"
-echo "python"
-echo "run_installation"
+echo $install_dir
+echo $data_dir
+echo $run_brenthy
 
 # Check prerequisites:
 PREREQUISITES=("virtualenv")
@@ -29,7 +27,6 @@ done
 
 
 echo "Current working directory: $(pwd)"
-echo "Python Path: $python"
 
 
 

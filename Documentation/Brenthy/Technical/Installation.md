@@ -41,7 +41,6 @@ The Brenthy installation shell script takes four parameters as input:
 _code: [Brenthy/InstallScripts](/Brenthy/InstallScripts)_
   - `install_dir`: directory in which to install Brenthy
   - `data_dir`: the directory in which Brenthy should store its blockchain-types data
-  - `python`: the path of the Python executable to use where it is needed in the installation process (the Brenthy program which is running this installation script provides the Python executable it is currently being run by)
   - `run_installation`: whether or not the installed Brenthy instance should be run after installation
 
 The core installation procedure executed by the shell script is as follows:

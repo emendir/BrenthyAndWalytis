@@ -3,7 +3,6 @@
 # get arguments passed to script:
 install_dir=$1
 data_dir=$2
-python=$3
 
 # Unregistering Brenthy as a service/background process
 echo "Unregistering systemd service..."
