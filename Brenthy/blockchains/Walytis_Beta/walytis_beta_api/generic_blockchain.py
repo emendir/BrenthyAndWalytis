@@ -1,4 +1,4 @@
-"""Interfaces for `Block` and `Blockchain` classes for virtual blockchains."""
+"""Interfaces for `Block` and `Blockchain` classes for blockchain overlays."""
 
 from abc import ABC, abstractmethod, abstractproperty
 from datetime import datetime
