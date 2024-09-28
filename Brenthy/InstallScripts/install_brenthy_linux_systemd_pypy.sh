@@ -96,33 +96,37 @@ find ${install_dir} -type f -exec chmod go-x {} +
 find ${data_dir} -type f -exec chmod go-x {} +
 
 
-# create python virtual environment in install_dir and install all needed libraries there
-echo "Installing Brenthy's python environment using PyPy..."
-cd $install_dir ||exit 1
 
-# create Python dir
-if [ -d $install_dir/Python ];then
-  rm -r $install_dir/Python
+if [ -e $install_dir/we_are_in_docker ] && [ -d $install_dir/Python ];then
+  echo "Skipping Python installation."
+else
+  # create python virtual environment in install_dir and install all needed libraries there
+  echo "Installing Brenthy's python environment using PyPy..."
+  cd $install_dir ||exit 1
+
+  # create Python dir
+  if [ -d $install_dir/Python ];then
+    rm -r $install_dir/Python
+  fi
+  mkdir $install_dir/Python
+
+  # download pypy to a temporary directory
+  TEMP_DIR=$(mktemp -d)
+  wget -P $TEMP_DIR $PYPY_URL
+  ARCHIVE_FILENAME=$(basename $PYPY_URL)
+  tar -xjf $TEMP_DIR/$ARCHIVE_FILENAME -C $TEMP_DIR
+  EXTRACTED_DIR_NAME="${ARCHIVE_FILENAME%.tar.bz2}"
+
+  mv ${TEMP_DIR}/${EXTRACTED_DIR_NAME}/* $install_dir/Python/
+
+  # install pip, the package manager
+  Python/bin/python -m ensurepip
+  Python/bin/python -m pip -qq install --upgrade pip
+
+  # install a specific version of ecies, as the default's doesn't currently work
+  Python/bin/python -m pip -qq install eciespy@git+https://github.com/ecies/py
+  Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
 fi
-mkdir $install_dir/Python
-
-# download pypy to a temporary directory
-TEMP_DIR=$(mktemp -d)
-wget -P $TEMP_DIR $PYPY_URL
-ARCHIVE_FILENAME=$(basename $PYPY_URL)
-tar -xjf $TEMP_DIR/$ARCHIVE_FILENAME -C $TEMP_DIR
-EXTRACTED_DIR_NAME="${ARCHIVE_FILENAME%.tar.bz2}"
-
-mv ${TEMP_DIR}/${EXTRACTED_DIR_NAME}/* $install_dir/Python/
-
-# install pip, the package manager
-/opt/Brenthy/Python/bin/python -m ensurepip
-Python/bin/python -m pip install --upgrade pip
-
-# install a specific version of ecies, as the default's doesn't currently work
-Python/bin/python -m pip install eciespy@git+https://github.com/ecies/py
-Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
-
 # register Brenthy as a service/background process, and running it
 echo "Registering systemd service..."
 echo "[Unit]

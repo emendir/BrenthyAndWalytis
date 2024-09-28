@@ -71,7 +71,9 @@ def install(
             f"{str('--install-dont-run' not in sys.argv).lower()}"
         )
         print(cpython_cmd)
-        if install_pypy is None:
+        if os.path.exists("we_are_in_docker"):
+            exit_code = os.system(cpython_cmd)
+        elif install_pypy is None:
             # try installing with PyPy instead of CPython
             exit_code = os.system(pypy_cmd)
             # if installation failed, install with CPython instead of PyPy

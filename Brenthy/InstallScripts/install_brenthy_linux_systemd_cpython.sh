@@ -29,7 +29,6 @@ done
 echo "Current working directory: $(pwd)"
 
 
-
 # create install_dir
 if [ -d $install_dir/Brenthy ];then
   rm -r $install_dir/Brenthy
@@ -86,14 +85,18 @@ find ${install_dir} -type f -exec chmod go-x {} +
 find ${data_dir} -type f -exec chmod go-x {} +
 
 
-# create python virtual environment in install_dir and install all needed libraries there
-echo "Installing Brenthy's python environment..."
-cd $install_dir ||exit 1
-if [ -d $install_dir/Python ];then
-  rm -r $install_dir/Python
+if [ -e $install_dir/we_are_in_docker ] &&  [ -d $install_dir/Python ];then
+  echo "Skipping Python installation."
+else
+  # create python virtual environment in install_dir and install all needed libraries there
+  echo "Installing Brenthy's python environment..."
+  cd $install_dir ||exit 1
+  if [ -d $install_dir/Python ];then
+    rm -r $install_dir/Python
+  fi
+  virtualenv $install_dir/Python
+  $install_dir/Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
 fi
-virtualenv $install_dir/Python
-$install_dir/Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
 
 # register Brenthy as a service/background process, and running it
 echo "Registering systemd service..."
