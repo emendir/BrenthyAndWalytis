@@ -36,6 +36,7 @@
 
 ## Tests:
 
+- [ ] add docstrings to Brenthy/blockchains/Walytis_Beta/walytis_beta_api/generic_blockchain_testing.py
 - [ ] auto test installation on clean OSs #phase4
 - [ ] test for no ZMQ
 - [ ] test inter-compatibility of different BrenthyAPI versions
