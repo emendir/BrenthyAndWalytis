@@ -21,7 +21,7 @@ if True:
 
 STARTUP_BLOCKLISTENER_PATIENCE = 10  # seconds
 RUNTIME_BLOCKLISTENER_PATIENCE = 20  # seconds
-
+PM_FILE_WRITE_INTERVALL_SEC = 20
 # estimation of the latency in block-message composition, pubsub-transmission
 # and reception-processing  (prefer overestimate, NON-ZERO)
 estimated_pubsub_latency_sec = 10  # TODO: measure pubsub latency
@@ -58,7 +58,7 @@ class Networking(ABC):
         except json.decoder.JSONDecodeError:
             os.remove(self.ipfs_peers_path)
             self.peer_monitor = PeerMonitor(self.ipfs_peers_path)
-
+        self.peer_monitor.file_write_interval_sec = PM_FILE_WRITE_INTERVALL_SEC
         # initialise pubsub peer count tracking
         self._pubsub_peers = 0
         self._last_pubsub_peers_check = datetime.utcnow() - timedelta(
@@ -216,6 +216,7 @@ class Networking(ABC):
             > PUBSUB_PEERS_CHECK_INTERVALL_S
         ):
             self._pubsub_peers = ipfs_api.pubsub_peers(self.blockchain_id)
+            self._last_pubsub_peers_check = datetime.utcnow()
         return self._pubsub_peers
 
     def network_random_duration(self) -> int:
