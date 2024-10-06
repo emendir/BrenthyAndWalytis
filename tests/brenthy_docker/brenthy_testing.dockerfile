@@ -3,8 +3,8 @@ WORKDIR /opt/Brenthy
 COPY Brenthy /opt/brenthy_installer/Brenthy
 
 # reinstall brenthy_api & walytis_beta_api
-RUN python3 -m pip install --root-user-action ignore /opt/brenthy_installer/Brenthy
-RUN python3 -m pip install --root-user-action ignore /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta
+RUN python3 -m pip install  --break-system-packages --root-user-action ignore /opt/brenthy_installer/Brenthy
+RUN python3 -m pip install  --break-system-packages --root-user-action ignore /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta
 
 ## Install Brenthy:
 RUN touch ../brenthy_installer/Brenthy/we_are_in_docker
