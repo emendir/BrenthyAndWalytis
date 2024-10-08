@@ -4,7 +4,7 @@ import json
 import os
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from random import randint
 from threading import Lock
 
@@ -21,10 +21,14 @@ if True:
 
 STARTUP_BLOCKLISTENER_PATIENCE = 10  # seconds
 RUNTIME_BLOCKLISTENER_PATIENCE = 20  # seconds
-
+PM_FILE_WRITE_INTERVALL_SEC = 20
 # estimation of the latency in block-message composition, pubsub-transmission
 # and reception-processing  (prefer overestimate, NON-ZERO)
-estimated_pubsub_latency_sec = 1  # TODO: measure pubsub latency
+estimated_pubsub_latency_sec = 10  # TODO: measure pubsub latency
+IPFS_PEER_ID = ipfs_api.my_id()
+
+# at what intervall should we check the number of pubsub-connected peers
+PUBSUB_PEERS_CHECK_INTERVALL_S = 100
 
 
 class Networking(ABC):
@@ -54,6 +58,13 @@ class Networking(ABC):
         except json.decoder.JSONDecodeError:
             os.remove(self.ipfs_peers_path)
             self.peer_monitor = PeerMonitor(self.ipfs_peers_path)
+        self.peer_monitor.file_write_interval_sec = PM_FILE_WRITE_INTERVALL_SEC
+        # initialise pubsub peer count tracking
+        self._pubsub_peers = 0
+        self._last_pubsub_peers_check = datetime.utcnow() - timedelta(
+            seconds=PUBSUB_PEERS_CHECK_INTERVALL_S+1
+        )
+        self.ipfs_peer_id = ipfs_api.my_id()
 
     def listen_for_blocks(self) -> None:
         """Start listening for new blocks on this blockchain."""
@@ -80,7 +91,7 @@ class Networking(ABC):
                 f"{type(pubsub_packet)}"
             )
         message: str = data["message"]
-        if not sender_id == ipfs_api.my_id():
+        if not sender_id == self.ipfs_peer_id:
             self.peer_monitor.register_contact_event(sender_id)
         if message == "New block!":
             # log.info(f"PubSub: Received data for new block on {self.name}.")
@@ -163,8 +174,10 @@ class Networking(ABC):
             data = json.dumps(
                 {"message": "Leaf blocks:", "leaf_blocks": leaf_blocks}
             ).encode()
-
-            ipfs_api.pubsub_publish(self.blockchain_id, data)
+            try:
+                ipfs_api.pubsub_publish(self.blockchain_id, data)
+            except ipfs_api.ipfshttpclient.exceptions.ConnectionError as e:
+                log.error(e)
         self.update_shared_leaf_blocks(leaf_blocks, already_locked=True)
         self.__lslb_lock.release()
 
@@ -198,6 +211,15 @@ class Networking(ABC):
             )
             self.wait_seconds(waiting_duration)
 
+    def get_pubsub_peers(self):
+        if (
+            (datetime.utcnow() - self._last_pubsub_peers_check).total_seconds()
+            > PUBSUB_PEERS_CHECK_INTERVALL_S
+        ):
+            self._pubsub_peers = ipfs_api.pubsub_peers(self.blockchain_id)
+            self._last_pubsub_peers_check = datetime.utcnow()
+        return self._pubsub_peers
+
     def network_random_duration(self) -> int:
         """Get random waiting duration for simultaneous broadacast avoidance.
 
@@ -206,9 +228,9 @@ class Networking(ABC):
         and the estimated network latency.
         """
         # the number of Brenthy nodes we are connected to on pubsub
-        n_peers = len(ipfs_api.pubsub_peers(self.blockchain_id))
-
-        return randint(0, n_peers * estimated_pubsub_latency_sec)
+        return randint(
+            0, len(self.get_pubsub_peers()) * estimated_pubsub_latency_sec
+        )
 
     def wait_seconds(self, seconds: int) -> bool:
         """Wait for the given duration, breaking if we're shutting down.
@@ -245,7 +267,7 @@ class Networking(ABC):
     def get_peers(self) -> list[str]:
         """Get IPFS peer IDs of nodes who are currently online."""
         # get peers who are currently online
-        pubsub_peers = ipfs_api.pubsub_peers(self.blockchain_id)
+        pubsub_peers = self.get_pubsub_peers()
 
         # get peer IDs and date of last contact of peers from whome we have
         # received messages from recently who are currently online

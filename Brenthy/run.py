@@ -10,7 +10,6 @@ import sys
 import traceback
 from importlib import reload
 
-from app_data import logs_dir
 from install import (
     InstallationResult,
     am_i_installed,
@@ -61,7 +60,16 @@ def run_brenthy() -> None:
     global DATA_DIR
     global INSTALL_PYPY
     # First things first: get logging working
-    log.LOG_DIR = logs_dir
+    try:
+        from app_data import logs_dir
+        log.LOG_DIR = logs_dir
+    except ImportError:
+        print(
+            "Failed to import some required packages. You will be able to "
+            "install Brenthy now, but to run it from source, you will need "
+            "to install its dependencies first from Brenthy/requirements.txt"
+        )
+        logs_dir = "."
     log.LOG_FILENAME = "Brenthy.log"
     log.LOG_ARCHIVE_DIRNAME = ".log_archive"
     log.add_empty_line()

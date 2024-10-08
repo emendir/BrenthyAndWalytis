@@ -73,6 +73,8 @@ MAX_ARCHIVE_LOGS_COUNT = 50
 
 log_file_lock: Lock = Lock()
 
+unlogged_messages = []
+
 
 def record(message: str, record_timestamp: bool = True) -> None:
     """Write a the provided text to the logfile.
@@ -86,16 +88,22 @@ def record(message: str, record_timestamp: bool = True) -> None:
         message = str(message)
     log_file_path = os.path.join(LOG_DIR, LOG_FILENAME)
     log_file_lock.acquire()
+
+    text = message
+    if text[-1] != "\n":
+        text = f"{message}\n"
+    if record_timestamp:
+        text = f"{time_stamp()} {text}"
     try:
-        text = message
-        if text[-1] != "\n":
-            text = f"{message}\n"
-        if record_timestamp:
-            text = f"{time_stamp()} {text}"
-        with open(log_file_path, "a+", encoding="utf-8") as f:
-            f.write(text)
+        unlogged_messages.append(text)
+        for unlogged_message in unlogged_messages:
+            with open(log_file_path, "a+", encoding="utf-8") as f:
+                f.write(unlogged_message)
     except PermissionError:
         print(f"Logging: Permission denied: {os.path.abspath(log_file_path)}")
+    except OSError as e:
+        print(f"Logging: OSError:\n{e}")
+        unlogged_messages.append(text)
 
     # move log file to archive if it has become too big
     if os.stat(log_file_path).st_size >= MAX_LOG_FILE_SIZE_KiB * 1024:

@@ -8,7 +8,6 @@ import os
 import sys
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime
-from pwd import getpwuid
 from types import ModuleType
 
 # pylint:disable=unused-variable
@@ -195,11 +194,6 @@ def print_bytearray(data: bytearray) -> None:
 def printable_bytearray(data: bytearray | bytes) -> str:
     """Convert a bytearray into a string listing each integer in the array."""
     return str(list(data))
-
-
-def get_file_owner(filename: str) -> str:
-    """Get the OS-level owner of a file."""
-    return getpwuid(os.stat(filename).st_uid).pw_name
 
 
 def string_to_bytes(data: str) -> bytearray:

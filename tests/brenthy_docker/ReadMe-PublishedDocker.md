@@ -2,7 +2,7 @@
 
 This is a Ubuntu docker image with systemd, IPFS and Brenthy & Walytis installed, built for testing Brenthy & Walytis and applications built on them.
 
-**See [Security Considerations](./ReadMe.md#security-considerations) below.**
+**See [Security Considerations](./ReadMe-PublishedDocker.md#security-considerations) below.**
 
 ## Running:
 

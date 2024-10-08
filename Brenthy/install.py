@@ -4,12 +4,17 @@ import os
 import platform
 import sys
 from enum import Enum
+from pwd import getpwuid
 from subprocess import PIPE, Popen
 
-from brenthy_tools_beta.utils import get_file_owner
 
 INSTALL_DIR = "/opt/Brenthy"
 DEF_DATA_DIR = "/opt/Brenthy/BlockchainData"
+
+
+def get_file_owner(filename: str) -> str:
+    """Get the OS-level owner of a file."""
+    return getpwuid(os.stat(filename).st_uid).pw_name
 
 
 def am_i_installed() -> bool:  # pylint: disable=unused-variable
@@ -122,7 +127,7 @@ def linux_install_ipfs() -> None:
         if not ("--install-dont-run" in sys.argv or "--install" in sys.argv):
             if input(
                 "Would you like me to install and configure it for you? (y/n):"
-            ).lower() in {"y", "yes"}:
+            ).lower() not in {"y", "yes"}:
                 return
         print(
             "Enter your user password to install IPFS, press Ctrl+D to skip."
@@ -156,6 +161,11 @@ def try_install_python_modules() -> None:  # pylint: disable=unused-variable
         os.path.dirname(__file__), "requirements.txt"
     )
     os.system(f"{sys.executable} -m pip -qq install -r {requirements_path}")
+
+
+def get_file_owner(filename: str) -> str:
+    """Get the OS-level owner of a file."""
+    return getpwuid(os.stat(filename).st_uid).pw_name
 
 
 if __name__ == "__main__":

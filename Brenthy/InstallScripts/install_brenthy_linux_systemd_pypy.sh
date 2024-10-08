@@ -125,7 +125,9 @@ else
 
   # install a specific version of ecies, as the default's doesn't currently work
   Python/bin/python -m pip -qq install eciespy@git+https://github.com/ecies/py
+  if ! [ "$?" = "0" ];then exit 1;fi
   Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
+  if ! [ "$?" = "0" ];then exit 1;fi
 fi
 # register Brenthy as a service/background process, and running it
 echo "Registering systemd service..."

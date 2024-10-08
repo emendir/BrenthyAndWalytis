@@ -49,7 +49,7 @@ def _load_brenthy_api_protocols() -> None:
                 f"{filename}"
             )
             log.error(error_message)
-            raise ImportError(error_message)
+            # raise ImportError(error_message)
     # sort bap modules in order of BAP version, newest to oldest
     bap_protocol_modules.sort(key=lambda x: x.BAP_VERSION, reverse=True)
 
