@@ -38,6 +38,45 @@ Brenthy project source: [./Brenthy](/Brenthy/ReadMe.md)
 - Developed together: Brenthy & Walytis were developed as one project, and were compartmentalised to facilitate other blockchain inventors in developing and deploying their inventions.
 - Live in the same repository: The code for Brenthy & Walytis live in the same repository to ease their development, testing, installation & deployment.
 
+## Getting Started
+
+### Install or Run from Source
+
+Ubuntu quick start:
+```sh
+# install prerequisites
+sudo apt update && sudo apt install -y python3-virtualenv git
+
+# download BrenthyAndWalytis
+git clone https://github.com/emendir/BrenthyAndWalytis
+cd BrenthyAndWalytis
+
+# set up python environment (you can skip this if you only want to install)
+virtualenv .venv && source .venv/bin/activate
+pip install -r Brenthy/requirements.txt
+
+# run Brenthy
+python3 .
+```
+
+### Use Walytis
+1. Install the `walytis_beta_api package`
+```sh
+pip install walytis_beta_api
+```
+2. Start playing around:
+```python
+import walytis_beta_api as waly
+blockchain = waly.Blockchain.create("MyFirstBlockchain")
+block = blockchain.add_block("Hello there!".encode())
+```
+
+Brenthy wil ask you whether you want to install or just run it.
+
+For details on how to run Brenthy & Walytis, see [Running From Source](/Documentation/Brenthy/User/RunningFromSource.md)
+
+For details on how to install Brenthy & Walytis, see [Installing Brenthy](/Documentation/Brenthy/User/InstallingBrenthy.md)
+
 ## Documentation
 
 The above sections already contain some links to relevant parts of Brenthy & Walytis' documentation.

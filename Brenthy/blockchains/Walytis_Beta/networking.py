@@ -28,7 +28,7 @@ estimated_pubsub_latency_sec = 10  # TODO: measure pubsub latency
 IPFS_PEER_ID = ipfs_api.my_id()
 
 # at what intervall should we check the number of pubsub-connected peers
-PUBSUB_PEERS_CHECK_INTERVALL_S = 5
+PUBSUB_PEERS_CHECK_INTERVALL_S = 100
 
 
 class Networking(ABC):
@@ -64,6 +64,7 @@ class Networking(ABC):
         self._last_pubsub_peers_check = datetime.utcnow() - timedelta(
             seconds=PUBSUB_PEERS_CHECK_INTERVALL_S+1
         )
+        self.ipfs_peer_id = ipfs_api.my_id()
 
     def listen_for_blocks(self) -> None:
         """Start listening for new blocks on this blockchain."""
@@ -90,7 +91,7 @@ class Networking(ABC):
                 f"{type(pubsub_packet)}"
             )
         message: str = data["message"]
-        if not sender_id == IPFS_PEER_ID:
+        if not sender_id == self.ipfs_peer_id:
             self.peer_monitor.register_contact_event(sender_id)
         if message == "New block!":
             # log.info(f"PubSub: Received data for new block on {self.name}.")

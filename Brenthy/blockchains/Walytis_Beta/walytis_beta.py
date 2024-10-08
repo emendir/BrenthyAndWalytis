@@ -92,6 +92,8 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         self.blocks_to_confirm_lock = Lock()
         self._terminate = False  # flag when we're shutting down
         self.genesis = False
+        self.ipfs_peer_id = ipfs_api.my_id()
+
         if not id:
             # Create new blockchain:
             self.blockchain_id = ""
@@ -280,7 +282,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             log.error(error_message)
             raise NotSupposedToHappenError(error_message)
 
-        block.creator_id = ipfs_api.my_id().encode("utf-8")
+        block.creator_id = self.ipfs_peer_id.encode("utf-8")
         block.topics = topics
         block.content_length = len(block.content)
         block.n_parents = len(block.parents)
@@ -840,7 +842,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
         data = {
             "blockchain_id": self.blockchain_id,
-            "peers": [ipfs_api.my_id()],
+            "peers": [self.ipfs_peer_id],
             "key": private_key.public_key.format(False).hex(),
             "one_time": one_time,
             "shared": shared,

@@ -6,7 +6,7 @@ install_dir=$1
 data_dir=$2
 run_brenthy=$3 # True of False; whether or not the installed Brenthy should be run when finished
 
-echo "Running Brenthy Installer for Linux with Systemd using Python with args:"
+echo "Running Brenthy Installer for Linux with Systemd using CPython with args:"
 echo "Install Dir: $install_dir"
 echo "Data Dir:    $data_dir"
 echo "Run Brenthy: $run_brenthy"
