@@ -43,6 +43,7 @@ Brenthy project source: [./Brenthy](/Brenthy/ReadMe.md)
 ### Install or Run from Source
 
 Ubuntu quick start:
+
 ```sh
 # install prerequisites
 sudo apt update && sudo apt install -y python3-virtualenv git
@@ -59,23 +60,29 @@ pip install -r Brenthy/requirements.txt
 python3 .
 ```
 
+Brenthy wil ask you whether you want to install or just run it.
+
+For details on how to run Brenthy & Walytis, see [Running From Source](/Documentation/Brenthy/User/RunningFromSource.md)
+
+For details on how to install Brenthy & Walytis, see [Installing Brenthy](/Documentation/Brenthy/User/InstallingBrenthy.md)
+
 ### Use Walytis
+
 1. Install the `walytis_beta_api package`
+
 ```sh
 pip install walytis_beta_api
 ```
+
 2. Start playing around:
+
 ```python
 import walytis_beta_api as waly
 blockchain = waly.Blockchain.create("MyFirstBlockchain")
 block = blockchain.add_block("Hello there!".encode())
 ```
 
-Brenthy wil ask you whether you want to install or just run it.
-
-For details on how to run Brenthy & Walytis, see [Running From Source](/Documentation/Brenthy/User/RunningFromSource.md)
-
-For details on how to install Brenthy & Walytis, see [Installing Brenthy](/Documentation/Brenthy/User/InstallingBrenthy.md)
+Read the [Tutorial](/Documentation/Walytis/Tutorials/0-TutorialOverview.md) to learn how to use Walytis, and start building cool stuff!
 
 ## Documentation
 
@@ -84,7 +91,9 @@ It is still a work in progress, but already covers most aspects.
 Dive into the full documentation here: [Documentation Overview](/Documentation/DocsOverview.md)
 
 ## Contributing
+
 ### Analysis and Review
+
 If you have any thoughts on Brenthy & Walytis or want to discuss the sensibility of their unique features, feel free to share them under GitHub discussions.
 I would especially appreciate reviews and analyses of [Walytis' blockchain-architecture security](/Documentation/Walytis/Technical/WalytisBlockchainSecurity.md).
 
@@ -105,5 +114,5 @@ If you don't have the time to learn how to contribute code directly, feel free t
 
 To financially support me in my work on this and other projects, you can make donations with the following currencies (more methods coming soon):
 
-- **Bitcoin:**  `BC1Q45QEE6YTNGRC5TSZ42ZL3MWV8798ZEF70H2DG0`
+- **Bitcoin:** `BC1Q45QEE6YTNGRC5TSZ42ZL3MWV8798ZEF70H2DG0`
 - **Ethereum:** `0xA32C3bBC2106C986317f202B3aa8eBc3063323D4`
