@@ -68,13 +68,13 @@ For details on how to install Brenthy & Walytis, see [Installing Brenthy](/Docum
 
 ### Use Walytis
 
-1. Install the `walytis_beta_api package`
+1. Install the `walytis_beta_api` Python package:
 
 ```sh
 pip install walytis_beta_api
 ```
 
-2. Start playing around:
+2. Start playing around in Python:
 
 ```python
 import walytis_beta_api as waly
