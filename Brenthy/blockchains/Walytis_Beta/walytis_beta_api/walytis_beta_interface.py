@@ -33,6 +33,7 @@ from brenthy_tools_beta.version_utils import (
 from .block_model import (
     Block,
     decode_short_id,  # pylint: disable=unused-import
+    short_from_long_id
 )
 from .exceptions import (
     BlockchainAlreadyExistsError,
@@ -123,7 +124,7 @@ def list_blockchain_ids() -> list[str]:
     return [id for id, name in list_blockchains()]
 
 
-def get_blockchain_id(blockchain_name: str) -> str:
+def get_blockchain_id(blockchain_name: str | bytearray) -> str:
     """Given a blockchain's name, returns its ID.
 
     If a blockchain's ID is given, it returns the ID.
@@ -533,6 +534,7 @@ def get_latest_blocks(
     amount: int | None = None,
     since_date: datetime | None = None,
     topics: list[str] | None = None,
+    long_ids: bool = False,  # defaults to False for backwards-compatibility
 ) -> list[bytearray]:
     """Get the latest few blocks on the blockchain.
 
@@ -563,6 +565,7 @@ def get_latest_blocks(
             "amount": amount,
             "since_date": since_date,
             "topics": topics,
+            "long_ids": long_ids
         }
     ).encode()
 
@@ -874,10 +877,10 @@ def get_and_read_block(short_id: bytearray) -> Block:
         raise error
     while short_id[-1] == 0:
         short_id = short_id[:-1]
-    if bytearray(block.short_id) != bytearray(short_id):  # suspicious
+    if bytearray(block.short_id) != short_from_long_id(short_id):  # suspicious
         error_message = (
             "The decoded block's ID is not the same as the one we are looking "
-            f"for.\nLooking for:{bytearray(short_id)}"
+            f"for.\nLooking for: {bytearray(short_id)}"
             f"\nGenerated from BlockData: {block.short_id}"
         )
 

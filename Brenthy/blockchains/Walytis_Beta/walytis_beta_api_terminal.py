@@ -211,11 +211,17 @@ def get_latest_blocks(payload: bytearray) -> bytes:
                 }
             ).encode()
         block_id = data.get("block short_id")
-        amount, since_date, topics = (
-            data["amount"],
-            data["since_date"],
-            data["topics"],
+        amount, since_date, topics, long_ids = (
+            data.get("amount"),
+            data.get("since_date"),
+            data.get("topics"),
+            data.get("long_ids"),
         )
+
+        # long_ids is False by default for backwards-compatibility
+        if long_ids is None:
+            long_ids = False
+
         if since_date:
             since_date = string_to_time(since_date)
         else:
@@ -224,11 +230,16 @@ def get_latest_blocks(payload: bytearray) -> bytes:
             amount, since_date, topics
         )
         # print("AppCom: Got latest blocks")
-        block_ids_encoded = []
-        for block_id in block_ids:
-            block_ids_encoded.append(
+        if long_ids:
+            block_ids_encoded = [
+                bytes_to_string(block_id) for block_id in block_ids
+            ]
+        else:
+            block_ids_encoded = [
                 bytes_to_string(short_from_long_id(block_id))
-            )
+                for block_id in block_ids
+            ]
+
         return json.dumps(
             {
                 "success": True,
@@ -482,7 +493,7 @@ def request_router(request: bytearray) -> bytes:
                 {"success": False, "error": "not understood"}
             ).encode()
     except Exception as e:
-        log.error(f"Unhandled Exception in api_terminal.request_router:\n{e}")
+        log.error(f"Unhandled Exception in api_terminal.request_router: \n{e}")
         return json.dumps(
             {"success": False, "error": WALYTIS_BETA_ERROR_MESSAGE}
         ).encode()
