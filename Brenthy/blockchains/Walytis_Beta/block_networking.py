@@ -29,8 +29,8 @@ class Block(block_model.Block):
     ) -> None:
         """Publish this block, generating its long ID."""
         # make sure all the necessary components of the short_id have been set
-        if len(self.creator_id) != 0 and len(self.content_hash) != 0:
-            self.ipfs_cid = self.publish_file_data()
+        if len(self.creator_id) != 0 and len(self._content_hash) != 0:
+            self._ipfs_cid = self.publish_file_data()
             self.generate_id()
             if not skip_pubsub:
                 self.announce_block(blockchain_id)

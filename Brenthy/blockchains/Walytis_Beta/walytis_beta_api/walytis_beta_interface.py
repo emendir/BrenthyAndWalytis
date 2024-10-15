@@ -931,25 +931,22 @@ def read_block(block_data: bytearray, ipfs_cid: str) -> Block:
     parents_hash = metadata[9]
 
     # creating a new block object from the decoded block data
-    block = Block()
-    block.blockchain_version = blockchain_version
-    block.creator_id = creator_id
-    block.creation_time = creation_time
-    block.topics = topics
-
-    block.content_length = content_length
-    block.content_hash_algorithm = content_hash_algorithm
-    block.content_hash = content_hash
-    block.content = content
-
-    block.n_parents = n_parents
-    block.parents_hash_algorithm = parents_hash_algorithm
-    block.parents_hash = parents_hash
-    block.parents = parents
-
-    block.file_data = block_data
-    block.ipfs_cid = ipfs_cid
-    block.file_data = bytearray(block_data)
+    block = Block.from_metadata(
+        blockchain_version=blockchain_version,
+        creator_id=creator_id,
+        creation_time=creation_time,
+        topics=topics,
+        content_hash_algorithm=content_hash_algorithm,
+        content_hash=content_hash,
+        content=content,
+        n_parents=n_parents,
+        parents_hash_algorithm=parents_hash_algorithm,
+        parents_hash=parents_hash,
+        parents=parents,
+        ipfs_cid=ipfs_cid,
+        content_length=content_length,
+        file_data=bytearray(block_data),
+    )
 
     block.generate_id()
 

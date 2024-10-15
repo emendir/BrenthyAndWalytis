@@ -36,24 +36,68 @@ class Block(GenericBlock):
 
     def __init__(self):
         """Initialise an empty block object, not yet valid on a blockchain."""
-        self.ipfs_cid = ""
-        self.short_id = bytearray()
-        self.long_id = bytearray()
-        self.creator_id = bytearray()
-        self.creation_time = datetime.utcnow()
-        self.topics = []
-        self.content_length = 0
-        self.content_hash_algorithm = ""
-        self.content_hash = bytearray()
-        self.content = bytearray()
-        self.n_parents = 0
-        self.parents_hash_algorithm = ""
-        self.parents_hash = bytearray()
-        self.parents = []
+        self._ipfs_cid = ""
+        self._short_id = bytearray()
+        self._long_id = bytearray()
+        self._creator_id = bytearray()
+        self._creation_time = datetime.utcnow()
+        self._topics = []
+        self._content = bytearray()
+        self._parents = []
+        self._file_data = bytearray()
+
+        self._content_length = 0
+        self._content_hash_algorithm = ""
+        self._content_hash = bytearray()
+        self._n_parents = 0
+        self._parents_hash_algorithm = ""
+        self._parents_hash = bytearray()
         # the file data which gets published on the blockchain
-        self.file_data = bytearray()
-        self.genesis = False
-        self.blockchain_version = []
+        self._blockchain_version = []
+
+        self._genesis = False
+
+        self.__integrity_checked = False
+
+    @classmethod
+    def from_metadata(
+        cls,
+        ipfs_cid: str,
+        creator_id: bytearray,
+        creation_time: datetime,
+        topics: list[str],
+        content_length: int,
+        content_hash_algorithm: str,
+        content_hash: bytearray,
+        content: bytearray,
+        n_parents: int,
+        parents_hash_algorithm: str,
+        parents_hash: bytearray,
+        parents: list[bytearray],
+        file_data: bytearray,
+        blockchain_version: tuple,
+
+    ) -> 'Block':
+        """Create a block object with the given fields.
+
+        CAREFUL: No checks or generations are performed.
+        """
+        block = cls()
+        block._ipfs_cid = ipfs_cid
+        block._creator_id = creator_id
+        block._creation_time = creation_time
+        block._topics = topics
+        block._content_length = content_length
+        block._content_hash_algorithm = content_hash_algorithm
+        block._content_hash = content_hash
+        block._content = content
+        block._n_parents = n_parents
+        block._parents_hash_algorithm = parents_hash_algorithm
+        block._parents_hash = parents_hash
+        block._parents = parents
+        block._file_data = file_data
+        block._blockchain_version = blockchain_version
+        return block
 
     def generate_content_hash(self) -> bytearray | None:
         """Generate the cryptographic hash of this block's content.
@@ -61,7 +105,7 @@ class Block(GenericBlock):
         Returns:
             bytearray: this block's content hash
         """
-        self.content_hash_algorithm = PREFERRED_HASH_ALGORITHM
+        self._content_hash_algorithm = PREFERRED_HASH_ALGORITHM
         if not self.content:
             log.error("Block Hash Generation: empty content")
             return None
@@ -70,8 +114,8 @@ class Block(GenericBlock):
         content_hash = bytearray.fromhex(hashGen.hexdigest())
 
         # removing 0s:
-        self.content_hash = bytes_to_b255_no_0s(content_hash)
-        return self.content_hash
+        self._content_hash = bytes_to_b255_no_0s(content_hash)
+        return self._content_hash
 
     def generate_parents_hash(self) -> bytearray:
         """Generate the hash of this block's parents' parents-hashes.
@@ -79,9 +123,9 @@ class Block(GenericBlock):
         Returns:
             bytearray: this block's parents-hash
         """
-        self.parents_hash_algorithm = PREFERRED_HASH_ALGORITHM
+        self._parents_hash_algorithm = PREFERRED_HASH_ALGORITHM
 
-        if self.n_parents == 0:  # genesis block
+        if self._n_parents == 0:  # genesis block
             hashGen = hashlib.sha512()
             hashGen.update(
                 self.creator_id
@@ -104,16 +148,20 @@ class Block(GenericBlock):
             parents_hash = bytearray.fromhex(hashGen.hexdigest())
 
         # removing 0s:
-        self.parents_hash = bytes_to_b255_no_0s(parents_hash)
-        return self.parents_hash
+        self._parents_hash = bytes_to_b255_no_0s(parents_hash)
+        return self._parents_hash
 
-    def check_integrity(self) -> bool:
+    def check_integrity(self, ignore_filedata: bool = False) -> bool:
         """Make sure this block's data is complete, self-consistent and valid.
+
+        Args:
+            ignore_filedata: if True, checking filedata is skipped, though
+                                only if the `file_data` attribute is `None`
 
         Returns:
             bool: whether this block's data is self-consistent and valid.
         """
-        if not self.blockchain_version:
+        if not self._blockchain_version:
             log.warning("Block Integrity Check: blockchain_version not set.")
             return False
         if not self.ipfs_cid:
@@ -128,26 +176,26 @@ class Block(GenericBlock):
         if not self.topics:
             log.warning("Block Integrity Check: topics not set.")
             return False
-        if not self.content_length:
+        if not self._content_length:
             log.warning("Block Integrity Check: Content length not set.")
             return False
-        if not self.content_hash_algorithm:
+        if not self._content_hash_algorithm:
             log.warning(
                 "Block Integrity Check: content_hash_algorithm not set."
             )
             return False
-        if not self.content_hash:
+        if not self._content_hash:
             log.warning("Block Integrity Check: Hash not set.")
             return False
-        # if not self.n_parents:
+        # if not self._n_parents:
         #     log.warning("Block Integrity Check: n_parents not set.")
         #     return None
-        if not self.parents_hash_algorithm:
+        if not self._parents_hash_algorithm:
             log.warning(
                 "Block Integrity Check: parents_hash_algorithm not set."
             )
             return False
-        if not self.parents_hash:
+        if not self._parents_hash:
             log.warning("Block Integrity Check: parents_hash not set.")
             return False
         if not self.short_id:
@@ -157,16 +205,20 @@ class Block(GenericBlock):
             log.warning("Block Integrity Check: long_id not set.")
             return False
 
-        if not self.file_data:
+        # only skip checking file data if it is not set
+        if ignore_filedata and self.file_data is not None:
+            ignore_filedata = False
+
+        if not self.file_data and not ignore_filedata:
             log.warning("Block Integrity Check: filedata not set.")
             return False
 
         # check if encoded content length matches actual block content length
-        if not len(self.content) == self.content_length:
+        if not len(self.content) == self._content_length:
             log.warning("Block INtegrity Check: content length incorrect")
             return False
         # checking if encoded parents count matches actual parent's count
-        if not len(self.parents) == self.n_parents:
+        if not len(self.parents) == self._n_parents:
             log.warning("Block Integrity Check: number of parents incorrect")
             return False
 
@@ -182,29 +234,30 @@ class Block(GenericBlock):
         # keeping a copy of old generated parts
         old_short_id = deepcopy(self.short_id)
         old_long_id = deepcopy(self.long_id)
-        old_content_hash = deepcopy(self.content_hash)
-        old_parents_hash = deepcopy(self.parents_hash)
-        old_file_data = deepcopy(self.file_data)
+        old_content_hash = deepcopy(self._content_hash)
+        old_parents_hash = deepcopy(self._parents_hash)
+        if not ignore_filedata:
+            old_file_data = deepcopy(self.file_data)
 
         # checking content hash
         self.generate_content_hash()
         # compare the encoded content-hash with the generated content-hash
-        if self.content_hash != old_content_hash:
+        if self._content_hash != old_content_hash:
             log.warning("Block Integrity Check: hash does not match.")
             # restoring old non-matching content_hash
-            self.content_hash = old_content_hash
+            self._content_hash = old_content_hash
             return False
 
-        if self.n_parents > 0:  # genesis blocks' parents can't be checked
+        if self._n_parents > 0:  # genesis blocks' parents can't be checked
             # checking parents hash
             self.generate_parents_hash()
             # comparing the encoded parents-hash with the generated hash
-            if self.parents_hash != old_parents_hash:
+            if self._parents_hash != old_parents_hash:
                 log.warning(
                     "Block Integrity Check: parents_hash does not match."
                 )
                 # restoring old non-matching content_hash
-                self.parents_hash = old_parents_hash
+                self._parents_hash = old_parents_hash
                 return False
 
             # ensure all parent blocks have older timestamps than this block
@@ -232,8 +285,8 @@ class Block(GenericBlock):
         # if the block's file-data and all other properties were set,
         # and the set file-data didn't match all the other propertie,
         # reset the initially set inconsistent file-data property
-        if old_file_data != self.file_data:
-            self.file_data = old_file_data
+        if not ignore_filedata and old_file_data != self.file_data:
+            self._file_data = old_file_data
             log.warning(
                 "Block Integrity Check: File-data doesn't match block fields."
             )
@@ -242,19 +295,21 @@ class Block(GenericBlock):
         # check if short_id matches block properties
         self.generate_id()
         if old_short_id != self.short_id:
-            self.short_id = old_short_id
+            self._short_id = old_short_id
             log.warning(
                 "Block Integrity Check: short ID doesn't match block fields."
             )
             return False
         if old_long_id != self.long_id:
-            self.long_id = old_long_id
+            self._long_id = old_long_id
             log.warning(
                 "Block Integrity Check: long ID doesn't match block fields."
             )
             return False
 
         # at this point all integrity tests have been passed
+        if not ignore_filedata:
+            self.__integrity_checked = True
         return True
 
     def generate_id(self) -> bytearray | None:
@@ -264,7 +319,7 @@ class Block(GenericBlock):
             bytearray: this block's long ID
         """
         # make sure all the necessary components of the short_id have been set
-        if not self.blockchain_version:
+        if not self._blockchain_version:
             log.warning("Block.generate_id(): blockchain_version not set.")
             return None
         if not self.ipfs_cid:
@@ -279,27 +334,27 @@ class Block(GenericBlock):
         if not self.topics:
             log.warning("Block.generate_id(): topics not set.")
             return None
-        if not self.content_length:
+        if not self._content_length:
             log.warning("Block.generate_id(): Content length not set.")
             return None
-        if not self.content_hash_algorithm:
+        if not self._content_hash_algorithm:
             log.warning("Block.generate_id(): content_hash_algorithm not set.")
             return None
-        if not self.content_hash:
+        if not self._content_hash:
             log.warning("Block.generate_id(): Hash not set.")
             return None
-        # if not self.n_parents:
+        # if not self._n_parents:
         #     log.warning("Block.generate_id(): n_parents not set.")
         #     return None
-        if not self.parents_hash_algorithm:
+        if not self._parents_hash_algorithm:
             log.warning("Block.generate_id(): parents_hash_algorithm not set.")
             return None
-        if not self.parents_hash:
+        if not self._parents_hash:
             log.warning("Block.generate_id(): parents_hash not set.")
             return None
 
-        self.short_id = bytearray(
-            encode_version(self.blockchain_version)
+        self._short_id = bytearray(
+            encode_version(self._blockchain_version)
             + bytearray([0, 0])
             + self.ipfs_cid.encode()
             + bytearray([0, 0])
@@ -309,28 +364,28 @@ class Block(GenericBlock):
             + bytearray([0, 0])
             + bytearray([0]).join([topic.encode() for topic in self.topics])
             + bytearray([0, 0])
-            + to_b255_no_0s(self.content_length)
+            + to_b255_no_0s(self._content_length)
             + bytearray([0, 0])
-            + self.content_hash_algorithm.encode()
+            + self._content_hash_algorithm.encode()
             + bytearray([0, 0])
-            + self.content_hash
+            + self._content_hash
             + bytearray([0, 0])
-            + to_b255_no_0s(self.n_parents)
+            + to_b255_no_0s(self._n_parents)
             + bytearray([0, 0])
-            + self.parents_hash_algorithm.encode()
+            + self._parents_hash_algorithm.encode()
             + bytearray([0, 0])
-            + self.parents_hash
+            + self._parents_hash
         )
 
         # Generate long ID:
 
         # add separator between short ID and parents
-        long_id = self.short_id + bytearray([0, 0, 0, 0])
+        long_id = self._short_id + bytearray([0, 0, 0, 0])
 
         # add parents, separated by [0,0,0]
         long_id += bytearray([0, 0, 0]).join(self.parents)
 
-        self.long_id = long_id
+        self._long_id = long_id
 
         decode_long_id(long_id)
         return long_id
@@ -350,7 +405,7 @@ class Block(GenericBlock):
         """
         try:
             data = bytearray(
-                encode_version(self.blockchain_version)
+                encode_version(self._blockchain_version)
                 + bytearray([0, 0])
                 + self.creator_id
                 + bytearray([0, 0])
@@ -360,17 +415,17 @@ class Block(GenericBlock):
                     [topic.encode() for topic in self.topics]
                 )
                 + bytearray([0, 0])
-                + to_b255_no_0s(self.content_length)
+                + to_b255_no_0s(self._content_length)
                 + bytearray([0, 0])
-                + self.content_hash_algorithm.encode()
+                + self._content_hash_algorithm.encode()
                 + bytearray([0, 0])
-                + self.content_hash
+                + self._content_hash
                 + bytearray([0, 0])
-                + to_b255_no_0s(self.n_parents)
+                + to_b255_no_0s(self._n_parents)
                 + bytearray([0, 0])
-                + self.parents_hash_algorithm.encode()
+                + self._parents_hash_algorithm.encode()
                 + bytearray([0, 0])
-                + self.parents_hash
+                + self._parents_hash
             )
             if self.parents:
                 data += bytearray([0, 0, 0, 0]) + bytearray([0, 0, 0]).join(
@@ -378,10 +433,10 @@ class Block(GenericBlock):
                 )
             data += bytearray([0, 0, 0, 0, 0]) + self.content
 
-            self.file_data = data
+            self._file_data = data
 
             if check_integrity and not self.check_integrity():
-                self.file_data = None
+                self._file_data = None
                 raise BlockIntegrityError("Integrity check failed")
             return self.file_data
         except Exception as e:

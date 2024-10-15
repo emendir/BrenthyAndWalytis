@@ -53,87 +53,51 @@ class _GenericBlockImpl(GenericBlock):
 
     def __init__(self):
         """Initialise an empty block object, not yet valid on a blockchain."""
-        self.ipfs_cid = ""
-        self.short_id = bytearray()
-        self.long_id = bytearray()
-        self.creator_id = bytearray()
-        self.creation_time = datetime.utcnow()
-        self.topics = []
-        self.content = bytearray()
-        self.parents = []
-        self.file_data = bytearray()
+        self._ipfs_cid = ""
+        self._short_id = bytearray()
+        self._long_id = bytearray()
+        self._creator_id = bytearray()
+        self._creation_time = datetime.utcnow()
+        self._topics = []
+        self._content = bytearray()
+        self._parents = []
+        self._file_data = bytearray()
 
     @property
     def ipfs_cid(self) -> str:
         return self._ipfs_cid
 
-    @ipfs_cid.setter
-    def ipfs_cid(self, ipfs_cid: str) -> None:
-        self._ipfs_cid = ipfs_cid
-
     @property
     def short_id(self) -> bytearray:
         return self._short_id
-
-    @short_id.setter
-    def short_id(self, short_id: bytearray) -> None:
-        self._short_id = short_id
 
     @property
     def long_id(self) -> bytearray:
         return self._long_id
 
-    @long_id.setter
-    def long_id(self, long_id: bytearray) -> None:
-        self._long_id = long_id
-
     @property
     def creator_id(self) -> bytearray:
         return self._creator_id
-
-    @creator_id.setter
-    def creator_id(self, creator_id: bytearray) -> None:
-        self._creator_id = creator_id
 
     @property
     def creation_time(self) -> datetime:
         return self._creation_time
 
-    @creation_time.setter
-    def creation_time(self, creation_time: datetime) -> None:
-        self._creation_time = creation_time
-
     @property
     def topics(self) -> list[str]:
         return self._topics
-
-    @topics.setter
-    def topics(self, topics: list[str]) -> None:
-        self._topics = topics
 
     @property
     def content(self) -> bytearray:
         return self._content
 
-    @content.setter
-    def content(self, content: bytearray) -> None:
-        self._content = content
-
     @property
     def parents(self) -> list[bytearray]:
         return self._parents
 
-    @parents.setter
-    def parents(self, parents: list[bytearray]) -> None:
-        self._parents = parents
-
     @property
     def file_data(self) -> bytearray:
         return self._file_data
-
-    @file_data.setter
-    def file_data(self, file_data: bytearray) -> None:
-        self._file_data = file_data
 
 
 class GenericBlockchain(ABC):

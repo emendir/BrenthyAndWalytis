@@ -40,6 +40,7 @@ from .walytis_beta_api.block_model import (
     decode_long_id,
     decode_short_id,
     short_from_long_id,
+    PREFERRED_HASH_ALGORITHM,
 )
 from .walytis_beta_api.exceptions import NotSupposedToHappenError
 from .walytis_beta_appdata import BlockchainAppdata, walytis_beta_appdata_dir
@@ -91,7 +92,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         # lock for accessing unconfirmed_blocks and blocks_to_find
         self.blocks_to_confirm_lock = Lock()
         self._terminate = False  # flag when we're shutting down
-        self.genesis = False
+        self._genesis = False
         self.ipfs_peer_id = ipfs_api.my_id()
 
         if not id:
@@ -135,7 +136,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         self._blocks_finder_thread.start()
 
         self.conv_lis = ipfs_datatransmission.listen_for_conversations(
-            f"{self.blockchain_id}:JoinRequest", self.on_join_request_received
+            f"{self.blockchain_id}: JoinRequest", self.on_join_request_received
         )
 
         # run the loop that asks othe rnodes for their latest blocks
@@ -149,7 +150,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
     def __birth(self) -> None:
         """Perform the blockchain creation procedure."""
-        self.genesis = True
+        self._genesis = True
         self.check_alive()  # ensure this Blockchain object isn't shutting down
 
         # initialise the part of the uninitialised BlockRecords which we need
@@ -175,7 +176,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             self.download_and_process_block(block.short_id)
 
         # self.number_of_known_ids = len(genesis_blocks)
-        self.genesis = False
+        self._genesis = False
         log.info("Walytis_Beta: Finished processing Genesis blocks!")
         self.listen_for_blocks()
 
@@ -226,7 +227,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         if isinstance(topics, str):
             topics = [topics]
         # if we're creating a genesis block
-        if self.genesis:
+        if self._genesis:
             topics = ["genesis"]
         elif "genesis" in topics:
             error_message = (
@@ -237,7 +238,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
         if not self.blockchain_id:
             # safety check
-            if not self.genesis:
+            if not self._genesis:
                 error_message = (
                     "Walytis_Beta: CreateBlock: Blockchain id is not yet "
                     "defined and this block is not marked as a genesis block"
@@ -250,51 +251,69 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         log.info(f"{self.name}:  Creating block for {topics}...")
 
         self.create_block_lock.acquire()
-        block = Block()
-        block.blockchain_version = WALYTIS_BETA_CORE_VERSION
-        block.content = content
+        block_blockchain_version = WALYTIS_BETA_CORE_VERSION
+        block_content = content
+        block_creation_time = datetime.utcnow()
 
+        block_parents = []
         # Adding parent blocks
         with self.endblocks_lock:
-            block.parents = self.remove_ancestors(self.current_endblocks)
+            block_parents = self.remove_ancestors(self.current_endblocks)
             self.current_endblocks = []  # clear current_endblocks
 
         # if parents is only one block, add genesis block
-        if len(block.parents) == 1:
-            block.parents.append(short_from_long_id(self.get_genesis_block()))
+        if len(block_parents) == 1:
+            block_parents.append(short_from_long_id(self.get_genesis_block()))
         # sort parent blocks
-        block.parents.sort()
-
+        block_parents.sort()
         # ensure that all parent blocks have older timestamps than this block
         if [
             prnt_id
-            for prnt_id in block.parents
-            if decode_short_id(prnt_id)["creation_time"] > block.creation_time
+            for prnt_id in block_parents
+            if decode_short_id(prnt_id)["creation_time"] > block_creation_time
         ]:
             self.create_block_lock.release()
 
             error_message = (
                 "walytis_beta.Blockchain.create_block: Parent block's creation"
                 " time is greater than this block's creation time "
-                f"{block.creation_time}. This is a bug because it should have "
+                f"{block_creation_time}. This is a bug because it should have "
                 "been checked before."
             )
             log.error(error_message)
             raise NotSupposedToHappenError(error_message)
 
-        block.creator_id = self.ipfs_peer_id.encode("utf-8")
-        block.topics = topics
-        block.content_length = len(block.content)
-        block.n_parents = len(block.parents)
+        block_creator_id = self.ipfs_peer_id.encode("utf-8")
+        block_topics = topics
+        block_content_length = len(block_content)
+        block_n_parents = len(block_parents)
+
+        block = Block.from_metadata(
+            creator_id=block_creator_id,
+            creation_time=block_creation_time,
+            topics=block_topics,
+            content_length=block_content_length,
+            content=bytearray(content),
+            n_parents=block_n_parents,
+            parents=block_parents,
+            blockchain_version=block_blockchain_version,
+
+            ipfs_cid="",
+            content_hash_algorithm="",
+            content_hash=bytearray(),
+            parents_hash_algorithm="",
+            parents_hash=bytearray(),
+            file_data=bytearray(),
+        )
 
         def finish_and_publish_block() -> None:
-            block.creation_time = datetime.utcnow()
+            block._creation_time = datetime.utcnow()
             block.generate_content_hash()
             block.generate_parents_hash()
             block.generate_file_data()
 
             block.publish_and_generate_id(
-                self.blockchain_id, skip_pubsub=self.genesis
+                self.blockchain_id, skip_pubsub=self._genesis
             )
 
         # Try building and publishing the block.
@@ -312,7 +331,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 )
 
         log.info(f"{self.name}:  Finished building block.")
-        if self.genesis:
+        if self._genesis:
             log.info(f"{self.name}:  Genesis block!")
             # manually cache block because BlockRecords isn't initialised
             self.cache_block(block.long_id)
@@ -358,39 +377,39 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 + " != "
                 + str(long_id["topics"])
             )
-        if block.content_length != long_id["content_length"]:
+        if block._content_length != long_id["content_length"]:
             log.warning(
                 f"{self.name}:  MISMATCH content_length "
-                + str(block.content_length)
+                + str(block._content_length)
                 + " != "
                 + str(long_id["content_length"])
             )
-        if block.n_parents != long_id["n_parents"]:
+        if block._n_parents != long_id["n_parents"]:
             log.warning(
                 f"{self.name}:  MISMATCH n_parents "
-                + str(block.n_parents)
+                + str(block._n_parents)
                 + " != "
                 + str(long_id["n_parents"])
             )
-        if block.content_hash_algorithm != long_id["content_hash_algorithm"]:
+        if block._content_hash_algorithm != long_id["content_hash_algorithm"]:
             log.warning(
                 f"{self.name}:  MISMATCH content_hash_algorithm "
-                + str(block.content_hash_algorithm)
+                + str(block._content_hash_algorithm)
                 + " != "
                 + str(long_id["content_hash_algorithm"])
             )
 
-        if block.content_hash != long_id["content_hash"]:
+        if block._content_hash != long_id["content_hash"]:
             log.warning(
                 f"{self.name}:  MISMATCH hash "
-                + str(block.content_hash)
+                + str(block._content_hash)
                 + " != "
                 + str(long_id["content_hash"])
             )
-        if block.parents_hash != long_id["parents_hash"]:
+        if block._parents_hash != long_id["parents_hash"]:
             log.warning(
                 f"{self.name}:  MISMATCH hash "
-                + str(block.parents_hash)
+                + str(block._parents_hash)
                 + " != "
                 + str(long_id["parents_hash"])
             )
@@ -441,7 +460,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
             log.error(
                 f"{self.name}: Received data but failed to "
-                + f"find block.\n{self.name}\nBlock ID:\n{short_id}"
+                + f"find block.\n{self.name}\nBlock ID: \n{short_id}"
             )
             return None
         block = None
@@ -467,7 +486,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 f"{self.name}: The decoded block's ID is not the "
                 + "same as the one we are looking for.\n"
             )
-            message += f"Looking for:{bytearray(short_id)}\n"
+            message += f"Looking for: {bytearray(short_id)}\n"
             message += f"Generated from BlockData: {block.short_id}\n"
             log.warning(message)
 
@@ -541,7 +560,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         ):
             log.error(
                 "Walytis_Beta.read_block: can't process block with newer "
-                f"Walytis_Beta version. Block: {blockchain_version}; "
+                f"Walytis_Beta version. Block: {blockchain_version}"
                 f"Us: {WALYTIS_BETA_CORE_VERSION}"
             )
             return None
@@ -620,25 +639,23 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 return None
 
         # creating a new block object from the decoded block data
-        block = Block()
-        block.blockchain_version = blockchain_version
-        block.creator_id = creator_id
-        block.creation_time = creation_time
-        block.topics = topics
+        block = Block.from_metadata(
 
-        block.content_length = content_length
-        block.content_hash_algorithm = content_hash_algorithm
-        block.content_hash = content_hash
-        block.content = content
-
-        block.n_parents = n_parents
-        block.parents_hash_algorithm = parents_hash_algorithm
-        block.parents_hash = parents_hash
-        block.parents = parents
-
-        block.file_data = block_data
-        block.ipfs_cid = ipfs_cid
-        block.file_data = bytearray(block_data)
+            blockchain_version=blockchain_version,
+            creator_id=creator_id,
+            creation_time=creation_time,
+            topics=topics,
+            content_length=content_length,
+            content_hash_algorithm=content_hash_algorithm,
+            content_hash=content_hash,
+            content=content,
+            n_parents=n_parents,
+            parents_hash_algorithm=parents_hash_algorithm,
+            parents_hash=parents_hash,
+            parents=parents,
+            ipfs_cid=ipfs_cid,
+            file_data=bytearray(block_data),
+        )
 
         block.generate_id()
 
@@ -698,7 +715,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         # Check special case first two genesis blocks:
 
         # if the blockchain is being born
-        if self.genesis:
+        if self._genesis:
             # if this is the first genesis block:
             if len(parents) == self.number_of_known_ids == 0:
                 # if the new block has as many parents
@@ -998,9 +1015,9 @@ def join_blockchain(
         try:
             log.debug("WJ: starting conversation")
             conv = ipfs_datatransmission.start_conversation(
-                f"{blockchain_id}:JoinRequest:{ipfs_api.my_id()}",
+                f"{blockchain_id}: JoinRequest: {ipfs_api.my_id()}",
                 peer,
-                f"{blockchain_id}:JoinRequest",
+                f"{blockchain_id}: JoinRequest",
                 dir=tempdir,
                 timeout_sec=JOIN_COMMS_TIMEOUT_S
             )
@@ -1308,7 +1325,7 @@ def run_blockchains() -> None:
     log.important("Walytis_Beta: Running blockchains:")
     for blockchain_id in blockchain_ids:
         blockchain = Blockchain(id=blockchain_id, name="")
-        log.important(f"  - {blockchain.name}")
+        log.important(f" - {blockchain.name}")
         blockchains.append(blockchain)
 
 

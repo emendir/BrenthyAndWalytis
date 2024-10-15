@@ -1,9 +1,6 @@
 """Utilities for processing blockchain version codes."""
 
-if __name__ == "brenthy_tools_beta.blockchain_version":  # pylint:disable=magic-value-comparison
-    from .utils import from_b254_no_0s1s, to_b254_no_0s1s
-else:
-    from brenthy_tools_beta.utils import from_b254_no_0s1s, to_b254_no_0s1s
+from .utils import from_b254_no_0s1s, to_b254_no_0s1s
 
 # pylint:disable=unused-variable
 

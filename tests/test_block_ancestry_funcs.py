@@ -35,18 +35,26 @@ class BlockchainModel:
         """Add a model block, given its parents, to this blockchain model."""
         if not parents:
             parents = []
-        block = Block()
-        block.creator_id = "TESTING".encode("utf-8")
-        block.creation_time = datetime.utcnow()
-        block.topics = ["TESTING"]
-        block.content = "TESTING".encode()
-        block.content_length = len(block.content)
-        block.parents = [short_from_long_id(parent) for parent in parents]
-        block.n_parents = len(block.parents)
+        content = "TESTING".encode()
+        block = Block.from_metadata(
+            creator_id="TESTING".encode("utf-8"),
+            creation_time=datetime.utcnow(),
+            topics=["TESTING"],
+            content=content,
+            content_length=len(content),
+            parents=[short_from_long_id(parent) for parent in parents],
+            n_parents=len(parents),
+            blockchain_version=WALYTIS_BETA_CORE_VERSION,
+
+            ipfs_cid="FALSE_BLOCK",
+            content_hash_algorithm="",
+            content_hash=bytearray(),
+            parents_hash_algorithm="",
+            parents_hash=bytearray(),
+            file_data=bytearray(),
+        )
         block.generate_content_hash()
         block.generate_parents_hash()
-        block.ipfs_cid = "FALSE_BLOCK"
-        block.blockchain_version = WALYTIS_BETA_CORE_VERSION
         block.generate_id()
         self.blocks.append(block)
         return block
@@ -58,7 +66,7 @@ class BlockchainModel:
             if block.short_id == short_id:
                 return block.long_id
         raise Exception(
-            f"BlockchainModel.find_block: block not found:\n{block_id}"
+            f"BlockchainModel.find_block: block not found: \n{block_id}"
         )
 
 
