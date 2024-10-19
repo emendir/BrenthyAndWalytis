@@ -145,8 +145,10 @@ class _GenericBlockchainImpl(GenericBlockchain):
 
     def __init__(self):
         self.blockchain_id = ""
-        self.block_received_handler = None
         self.block_ids = []
+
+        self._block_received_handler = None
+        self._block_ids = []
 
     @property
     def blockchain_id(self) -> str:
@@ -160,16 +162,6 @@ class _GenericBlockchainImpl(GenericBlockchain):
     def block_received_handler(self) -> Callable[[GenericBlock], None] | None:
         return self._block_received_handler
 
-    @block_received_handler.setter
-    def block_received_handler(
-        self, block_received_handler: Callable[[GenericBlock], None] | None
-    ) -> None:
-        self._block_received_handler = block_received_handler
-
     @property
     def block_ids(self) -> list[bytearray]:
         return self._block_ids
-
-    @block_ids.setter
-    def block_ids(self, block_ids: list[bytearray]) -> None:
-        self._block_ids = block_ids

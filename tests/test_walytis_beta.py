@@ -178,10 +178,12 @@ def test_create_blockchain() -> None:
 
 def test_add_block() -> None:
     """Test that we can add a block to the blockchain."""
-    blockchain.add_block("Hello there!".encode())
-    time.sleep(2)
+    block = blockchain.add_block("Hello there!".encode())
     success = (
-        blockchain.get_block(blockchain.block_ids[-1]).content.decode()
+        block.short_id in blockchain.blocks.get_short_ids() and
+        block.long_id in blockchain.blocks.get_long_ids() and
+        blockchain.get_block(blockchain.blocks.get_short_ids()[-1]).content.decode()
+        == blockchain.get_block(blockchain.blocks.get_long_ids()[-1]).content.decode()
         == "Hello there!"
     )
     print(mark(success), "Blockchain.add_block")
@@ -207,10 +209,11 @@ def test_joining() -> None:
         "import walytis_beta_api;"
         f"walytis_beta_api.join_blockchain('{invitation}')"
     )
-    test_python_code = (
-        f"import walytis_beta_api;"
+    test_python_code = ";".join([
+        "import walytis_beta_api",
         f"print('{blockchain.blockchain_id}' in "
         "walytis_beta_api.list_blockchain_ids())"
+    ]
     )
 
     result = "-"

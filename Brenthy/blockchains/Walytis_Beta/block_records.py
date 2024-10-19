@@ -141,7 +141,7 @@ class BlockRecords(ABC):
 
     def index_file_reader(
         self, task: str, args: str | bytearray
-    ) -> int | bytearray | list[bytes] | None:
+    ) -> int | bytearray | list[bytearray] | None:
         """Read index files.
 
         This function can be used to perform a range of different tasks
@@ -261,7 +261,7 @@ class BlockRecords(ABC):
             next_id_length = from_b255_no_0s(next_id_length_255)
 
             # reading the next ID
-            index_entry = file_reader.read(next_id_length)
+            index_entry = bytearray(file_reader.read(next_id_length))
 
             # making sure the end code is in place
             if file_reader.read(6) != bytearray([0, 0, 0, 0, 0, 0]):

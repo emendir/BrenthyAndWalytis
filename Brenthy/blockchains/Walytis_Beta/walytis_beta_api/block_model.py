@@ -527,7 +527,7 @@ def decode_long_id(long_id: bytearray) -> dict:
         `parents_hash` (str): the cryptographic hash of the block's parents
         `parents` (list): list this block's parent blocks
     """
-    if not (isinstance(long_id, (bytearray, bytes))):
+    if not isinstance(long_id, bytearray):
         raise TypeError(
             f"long_id must be of type bytearray, not {type(long_id)}"
         )
@@ -540,7 +540,12 @@ def decode_long_id(long_id: bytearray) -> dict:
             parents = []
         result.update({"parents": parents})
     except:
-        raise InvalidBlockIdError()
+        try:
+            _ = decode_short_id(long_id)
+            error_message = "\nYou passed a short ID instead of a long ID."
+        except:
+            error_message = ""
+        raise InvalidBlockIdError(error_message)
     return result
 
 

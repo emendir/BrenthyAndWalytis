@@ -400,7 +400,7 @@ def delete_blockchain(blockchain_id: str) -> None:
 
 def create_block(
     blockchain_id: str,
-    content: bytearray,
+    content: bytearray | bytes,
     topics: list[str] | str | None = None
 ) -> Block:
     """Create a block with the given content on the specified blockchain.
@@ -579,6 +579,15 @@ def get_latest_blocks(
         block_ids = []
         for block_id in block_ids_encoded:
             block_ids.append(string_to_bytes(block_id))
+
+        # BACKWARDS COMPATIBILITY foor versions of WalytisCore that don't
+        # support the `long_ids` parameter:
+        if bytearray([0, 0, 0, 0]) not in block_ids[0]:
+            block_ids = [
+                _get_block_long_from_short_id(blockchain_id, short_id)
+                for short_id in block_ids
+            ]
+
         return block_ids
     except Exception:
         _error = _read_appcomterm_error_message(response)
@@ -1025,3 +1034,9 @@ def _send_request(function_name: str, payload: bytearray | bytes) -> bytearray:
     walytis_api_version = decode_version(reply[: reply.index(bytearray([0]))])
     reply = reply[reply.index(bytearray([0])) + 1:]
     return reply
+
+
+def _get_block_long_from_short_id(blockchain_id: str, short_id: bytearray):
+    """This function is needed for BACKWARDS COMPATIBILITY with older versions
+    of Walytis_Beta Core."""
+    return get_block(blockchain_id, short_id).long_id

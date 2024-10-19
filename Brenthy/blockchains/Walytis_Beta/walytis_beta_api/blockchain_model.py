@@ -21,7 +21,8 @@ from brenthy_tools_beta.utils import (
     string_to_bytes,
 )
 
-from .block_model import Block
+from .block_lazy_loading import BlocksList
+from .block_model import Block, short_from_long_id
 from .exceptions import (  # pylint: disable=unused-import
     BlockCreationError,
     BlockNotFoundError,
@@ -109,18 +110,18 @@ class Blockchain(GenericBlockchain):
                 multiple calls of the handler to be running in parallel
                 for different blocks.
             update_blockids_before_handling (bool): whether or not the
-                `block_ids` attribute should be updater before running
+                `blocks` attribute should be updated before running
                 `block_received_handler` when a new block is received
         """
         # declare attribute already to avoid error in destructor
         # if error occurs in constructor
         self._blocks_listener = None
+        self.blocks = BlocksList()
 
         self.blockchain_id = get_blockchain_id(blockchain_id)
         self.name = get_blockchain_name(self.blockchain_id)
         self.app_name = app_name
-        self.block_received_handler = block_received_handler
-        self.block_ids: list[bytearray] = []
+        self._block_received_handler = block_received_handler
 
         if not isinstance(blockchain_id, str):
             error = TypeError(
@@ -215,7 +216,7 @@ class Blockchain(GenericBlockchain):
             self._blocklist_lock.release()
             raise error
 
-        self.block_ids.append(block.short_id)
+        self.blocks.add_block_id(block.long_id)
         self._save_blocks_list(True)
 
         self._blocklist_lock.release()
@@ -236,7 +237,7 @@ class Blockchain(GenericBlockchain):
         # if index is passed instead of block_id, get block_id from index
         if isinstance(id, int):
             try:
-                id = self.block_ids[id]
+                id = self.blocks.get_long_ids()[id]
             except IndexError:
                 self._blocklist_lock.release()
                 message = (
@@ -245,29 +246,33 @@ class Blockchain(GenericBlockchain):
                 )
                 log.error(message)
                 raise IndexError(message)
+        else:
+            id_bytearray = bytearray(id)
+            len_id = len(id_bytearray)
+            if bytearray([0, 0, 0, 0]) not in id_bytearray:  # if a short ID was passed
+                short_id = None
+                for long_id in self.blocks.get_long_ids():
+                    if bytearray(long_id)[:len_id] == id_bytearray:
+                        short_id = long_id
+                        break
+                if not short_id:
+                    raise BlockNotFoundError()
+                id = bytes(short_id)
+        if isinstance(id, bytearray):
+            id = bytes(id)
+        try:
+            block = self.blocks[id]
+            self._blocklist_lock.release()
+            return block
+        except KeyError:
+            self._blocklist_lock.release()
 
-        for block_id in self.block_ids:
-            if id == block_id:
-                self._blocklist_lock.release()
-
-                return get_block(self.blockchain_id, id)
-                # metadata = decode_short_id(id)
-
-                # block = DeserialiseBlock(ipfs_api.read(metadata["IPFS CID"]))
-                # block = DeserialiseBlock(ipfs_api.read(metadata["IPFS CID"]))
-
-                # self._blocklist_lock.release()
-
-                # return block
-
-        self._blocklist_lock.release()
-
-        error = BlockNotFoundError(
-            "This block isn't recorded (by brenthy_api.Blockchain) as being "
-            "part of this blockchain."
-        )
-        log.error(f"WAPI: {function_name()}: {str(error)}")
-        raise error
+            error = BlockNotFoundError(
+                "This block isn't recorded (by brenthy_api.Blockchain) as being "
+                "part of this blockchain."
+            )
+            log.error(f"WAPI: {function_name()}: {str(error)}")
+            raise error
 
     def create_invitation(
         self, one_time: bool = True, shared: bool = False
@@ -348,9 +353,10 @@ class Blockchain(GenericBlockchain):
         """
         # if not already_locked:
         #     self._blocklist_lock.acquire()
-        if block.short_id not in self.block_ids:
+        short_ids = self.blocks.get_short_ids()
+        if bytes(block.long_id) not in self.blocks:
             for parent in block.parents:
-                if parent not in self.block_ids:
+                if bytes(parent) not in short_ids:
                     self._on_new_block_received(
                         get_block(self.blockchain_id, parent),
                         save_blocks_list=save_blocks_list,
@@ -388,7 +394,7 @@ class Blockchain(GenericBlockchain):
     ) -> None:
         if not already_locked:
             self._blocklist_lock.acquire()
-        self.block_ids.append(block.short_id)
+        self.blocks.add_block_id(block.long_id)
         if save_blocks_list:
             self._save_blocks_list(already_locked=True)
 
@@ -409,7 +415,7 @@ class Blockchain(GenericBlockchain):
             filewriter.writelines(
                 [
                     bytes_to_string(block_id) + "\n"
-                    for block_id in self.block_ids
+                    for block_id in self.blocks.get_long_ids()
                 ]
             )
         if not already_locked:
@@ -427,7 +433,7 @@ class Blockchain(GenericBlockchain):
         """
         # self._blocklist_lock.acquire()
         log.info(amount)
-        latest_blocks = get_latest_blocks(self.blockchain_id, amount=amount)
+        latest_blocks = get_latest_blocks(self.blockchain_id, amount=amount, long_ids=True)
         if not latest_blocks:
             # self._blocklist_lock.release()
             error = NotSupposedToHappenError(
@@ -442,7 +448,7 @@ class Blockchain(GenericBlockchain):
                 # self._blocklist_lock.release()
                 return
 
-            if block_id not in self.block_ids:
+            if bytes(block_id) not in self.blocks.get_long_ids():
                 try:
                     block = get_block(self.blockchain_id, block_id)
                     self._on_new_block_received(
@@ -470,14 +476,34 @@ class Blockchain(GenericBlockchain):
         self._blocklist_lock.acquire()
 
         if os.path.exists(os.path.join(self.appdata_dir, "blocks_list")):
-            self.block_ids = []
+            block_ids = []
             with open(
                 os.path.join(self.appdata_dir, "blocks_list"), "r"
             ) as filereader:
                 for line in filereader.readlines():
-                    self.block_ids.append(string_to_bytes(line[:-1]))
+                    block_ids.append(string_to_bytes(line[:-1]))
 
+            # AppData migration from storing short IDs to long_ids
+            # for BACKWARDS COMPATIBILITY
+            if bytearray([0, 0, 0, 0]) not in bytearray(block_ids[0]) or bytearray([0, 0, 0, 0]) not in bytearray(block_ids[-1]):
+                print("Migrating...")
+                block_long_ids = dict([
+                    (bytes(short_from_long_id(long_id)), long_id)
+                    for long_id in get_latest_blocks(self.blockchain_id, long_ids=True)
+                ])
+                breakpoint()
+                block_ids = [block_long_ids[bytes(short_id)] for short_id in block_ids]
+
+            self.blocks = BlocksList.from_block_ids(block_ids)
         self._blocklist_lock.release()
+
+    @property
+    def block_ids(self) -> list[bytearray]:
+        """Get a list of this blockchain's blocks' short IDs.
+
+        Retained for backwards-compatibilty.
+        """
+        return self.blocks.get_short_ids()
 
     def terminate(self) -> None:
         """Clean up all resources this object uses."""
@@ -550,7 +576,7 @@ class Blockchain(GenericBlockchain):
                 multiple calls of the handler to be running in parallel
                 for different blocks.
             update_blockids_before_handling (bool): whether or not the
-                `block_ids` attribute should be updater before running
+                `blocks` attribute should be updated before running
                 `block_received_handler` when a new block is received
 
         Returns:
@@ -623,7 +649,7 @@ class Blockchain(GenericBlockchain):
                 multiple calls of the handler to be running in parallel
                 for different blocks.
             update_blockids_before_handling (bool): whether or not the
-                `block_ids` attribute should be updater before running
+                `blocks` attribute should be updated before running
                 `block_received_handler` when a new block is received
 
         Returns:
@@ -689,7 +715,7 @@ class Blockchain(GenericBlockchain):
                 multiple calls of the handler to be running in parallel
                 for different blocks.
             update_blockids_before_handling (bool): whether or not the
-                `block_ids` attribute should be updater before running
+                `blocks` attribute should be updated before running
                 `block_received_handler` when a new block is received
         """
         return Blockchain(
