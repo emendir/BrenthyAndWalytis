@@ -63,8 +63,8 @@ def test_add_block(blockchain: GenericBlockchain, n_topics: int) -> GenericBlock
     block_1 = blockchain.add_block(content, topics)
 
     mark(
-        blockchain.block_ids[-1] == block_1.short_id,
-        f"NT: {n_topics} - Blockchain.block_ids"
+        blockchain.get_block_ids()[-1] == block_1.long_id,
+        f"NT: {n_topics} - Blockchain.get_block_ids"
     )
     mark(
         blockchain.get_block(-1).short_id == block_1.short_id,
@@ -93,22 +93,46 @@ def test_generic_blockchain(blockchain_type, **kwargs) -> GenericBlockchain:
         test_add_block(blockchain, i) for i in range(N_BLOCK_TOPICS_TO_TEST)
     ]
 
-    # check that the last few block_ids are the created blocks
+    # check that the last few block IDs are the created blocks
     success = True
     for i, block in enumerate(blocks):
         expected_index = i - len(blocks)
-        if blockchain.block_ids[expected_index] != block.short_id:
+        if blockchain.get_block_ids()[expected_index] != block.long_id:
             success = False
 
     mark(success, "No hidden blocks exposed")
+
+    long_block_ids = blockchain.get_block_ids()
+    blockchain.terminate()
+    blockchain: GenericBlockchain = blockchain_type(**kwargs)
+    mark(
+        long_block_ids == blockchain.get_block_ids(),
+        "block_ids correctly reloaded"
+    )
+
     return blockchain
+
+
+def test_preparations():
+    global blockchain
+    blockchain = Blockchain.create()
+
+
+def test_cleanup():
+
+    blockchain.delete()
+
+
+def run_tests():
+    print("Running tests for GenericBlockchain features...")
+
+    test_preparations()
+
+    test_generic_blockchain(Blockchain, blockchain_id=blockchain.blockchain_id)
+    test_cleanup()
 
 
 if __name__ == "__main__":
     PYTEST = False
     BREAKPOINTS = False
-
-    blockchain = Blockchain.create()
-
-    test_generic_blockchain(Blockchain, blockchain_id=blockchain.blockchain_id)
-    blockchain.delete()
+    run_tests()

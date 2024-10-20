@@ -55,7 +55,7 @@ from .exceptions import (
     BlockCreationError,
     BlockIntegrityError,
 )
-
+from .block_lazy_loading import BlocksList
 from .versions import (
     WALYTIS_BETA_PROTOCOL_VERSION,
     WALYTIS_BETA_API_PROTOCOL_VERSION,

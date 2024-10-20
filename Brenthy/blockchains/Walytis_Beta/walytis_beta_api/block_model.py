@@ -20,7 +20,7 @@ from brenthy_tools_beta.utils import (  # pylint: disable=unused-import
 from brenthy_tools_beta.version_utils import decode_version, encode_version
 
 from .exceptions import BlockIntegrityError, InvalidBlockIdError
-from .generic_blockchain import _GenericBlockImpl as GenericBlock
+from .generic_block import _GenericBlockImpl as GenericBlock
 
 PREFERRED_HASH_ALGORITHM = "sha512"
 
@@ -58,6 +58,14 @@ class Block(GenericBlock):
         self._genesis = False
 
         self.__integrity_checked = False
+
+    @classmethod
+    def from_id(
+        cls, long_id: bytearray
+    ):
+        block = cls()
+        block._long_id = long_id
+        return block
 
     @classmethod
     def from_metadata(
@@ -541,7 +549,7 @@ def decode_long_id(long_id: bytearray) -> dict:
         result.update({"parents": parents})
     except:
         try:
-            _ = decode_short_id(long_id)
+            _ = decode_short_id(long_id)  # noqa
             error_message = "\nYou passed a short ID instead of a long ID."
         except:
             error_message = ""

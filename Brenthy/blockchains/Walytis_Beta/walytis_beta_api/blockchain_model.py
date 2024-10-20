@@ -21,7 +21,7 @@ from brenthy_tools_beta.utils import (
     string_to_bytes,
 )
 
-from .block_lazy_loading import BlocksList
+from .block_lazy_loading import BlocksList, BlockLazilyLoaded
 from .block_model import Block, short_from_long_id
 from .exceptions import (  # pylint: disable=unused-import
     BlockCreationError,
@@ -46,7 +46,8 @@ from .walytis_beta_interface import (
     get_peers,
     join_blockchain,
 )
-
+from collections.abc import Generator
+from .generic_block import GenericBlock
 brenthy_appdata_dir = os.path.join(appdirs.user_data_dir(), "Brenthy")
 walytis_beta_appdata_dir = os.path.join(
     brenthy_appdata_dir, "Blockchains", WALYTIS_BETA
@@ -116,7 +117,7 @@ class Blockchain(GenericBlockchain):
         # declare attribute already to avoid error in destructor
         # if error occurs in constructor
         self._blocks_listener = None
-        self.blocks = BlocksList()
+        self._blocks = BlocksList(BlockLazilyLoaded)
 
         self.blockchain_id = get_blockchain_id(blockchain_id)
         self.name = get_blockchain_name(self.blockchain_id)
@@ -216,12 +217,26 @@ class Blockchain(GenericBlockchain):
             self._blocklist_lock.release()
             raise error
 
-        self.blocks.add_block_id(block.long_id)
+        self._blocks.add_block_id(block.long_id)
         self._save_blocks_list(True)
 
         self._blocklist_lock.release()
 
         return block
+
+    def get_blocks(self) -> Generator[BlockLazilyLoaded]:
+        return self._blocks.get_blocks()
+
+    def get_block_ids(self) -> list[bytes]:
+        return self._blocks.get_long_ids()
+
+    def has_block_id(self, block_id: bytes | bytearray) -> bool:
+        if isinstance(block_id, bytearray):
+            block_id = bytes(block_id)
+        return block_id in self._blocks
+
+    def has_block(self, block: GenericBlock) -> bool:
+        return self.has_block_id(block.long_id)
 
     def get_block(self, id: bytearray | bytes) -> Block:
         """Get a block object from this blockchain given its block ID.
@@ -237,7 +252,7 @@ class Blockchain(GenericBlockchain):
         # if index is passed instead of block_id, get block_id from index
         if isinstance(id, int):
             try:
-                id = self.blocks.get_long_ids()[id]
+                id = self.get_block_ids()[id]
             except IndexError:
                 self._blocklist_lock.release()
                 message = (
@@ -251,7 +266,7 @@ class Blockchain(GenericBlockchain):
             len_id = len(id_bytearray)
             if bytearray([0, 0, 0, 0]) not in id_bytearray:  # if a short ID was passed
                 short_id = None
-                for long_id in self.blocks.get_long_ids():
+                for long_id in self.get_block_ids():
                     if bytearray(long_id)[:len_id] == id_bytearray:
                         short_id = long_id
                         break
@@ -261,7 +276,7 @@ class Blockchain(GenericBlockchain):
         if isinstance(id, bytearray):
             id = bytes(id)
         try:
-            block = self.blocks[id]
+            block = self._blocks[id]
             self._blocklist_lock.release()
             return block
         except KeyError:
@@ -353,8 +368,8 @@ class Blockchain(GenericBlockchain):
         """
         # if not already_locked:
         #     self._blocklist_lock.acquire()
-        short_ids = self.blocks.get_short_ids()
-        if bytes(block.long_id) not in self.blocks:
+        short_ids = self._blocks.get_short_ids()
+        if bytes(block.long_id) not in self._blocks:
             for parent in block.parents:
                 if bytes(parent) not in short_ids:
                     self._on_new_block_received(
@@ -394,7 +409,7 @@ class Blockchain(GenericBlockchain):
     ) -> None:
         if not already_locked:
             self._blocklist_lock.acquire()
-        self.blocks.add_block_id(block.long_id)
+        self._blocks.add_block_id(block.long_id)
         if save_blocks_list:
             self._save_blocks_list(already_locked=True)
 
@@ -415,7 +430,7 @@ class Blockchain(GenericBlockchain):
             filewriter.writelines(
                 [
                     bytes_to_string(block_id) + "\n"
-                    for block_id in self.blocks.get_long_ids()
+                    for block_id in self.get_block_ids()
                 ]
             )
         if not already_locked:
@@ -448,7 +463,7 @@ class Blockchain(GenericBlockchain):
                 # self._blocklist_lock.release()
                 return
 
-            if bytes(block_id) not in self.blocks.get_long_ids():
+            if bytes(block_id) not in self.get_block_ids():
                 try:
                     block = get_block(self.blockchain_id, block_id)
                     self._on_new_block_received(
@@ -491,10 +506,9 @@ class Blockchain(GenericBlockchain):
                     (bytes(short_from_long_id(long_id)), long_id)
                     for long_id in get_latest_blocks(self.blockchain_id, long_ids=True)
                 ])
-                breakpoint()
                 block_ids = [block_long_ids[bytes(short_id)] for short_id in block_ids]
 
-            self.blocks = BlocksList.from_block_ids(block_ids)
+            self._blocks = BlocksList.from_block_ids(block_ids, BlockLazilyLoaded)
         self._blocklist_lock.release()
 
     @property
@@ -503,7 +517,12 @@ class Blockchain(GenericBlockchain):
 
         Retained for backwards-compatibilty.
         """
-        return self.blocks.get_short_ids()
+        print(
+            "`Blockchain.block_ids` has been deprecated because it returns "
+            "block's short IDs. Use `Blockchain.get_block_ids()` instead, "
+            "which returns their long IDs."
+        )
+        return self._blocks.get_short_ids()
 
     def terminate(self) -> None:
         """Clean up all resources this object uses."""
