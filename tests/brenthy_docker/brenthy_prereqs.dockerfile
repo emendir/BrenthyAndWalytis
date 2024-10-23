@@ -9,8 +9,8 @@ RUN apt install -y virtualenv git
 RUN python3 -m pip install --break-system-packages --upgrade setuptools build 
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/Brenthy/requirements.txt
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/requirements-devops.txt
-RUN python3 -m pip install --break-system-packages --root-user-action ignore /opt/brenthy_installer/Brenthy
-RUN python3 -m pip install --break-system-packages --root-user-action ignore /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta
+RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy
+RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta
 
 
 ## Install Brenthy:

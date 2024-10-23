@@ -20,7 +20,7 @@ from brenthy_tools_beta.utils import (  # pylint: disable=unused-import
 from brenthy_tools_beta.version_utils import decode_version, encode_version
 
 from .exceptions import BlockIntegrityError, InvalidBlockIdError
-from .generic_block import _GenericBlockImpl as GenericBlock
+from ._experimental.generic_block import _GenericBlockImpl as GenericBlock
 
 PREFERRED_HASH_ALGORITHM = "sha512"
 

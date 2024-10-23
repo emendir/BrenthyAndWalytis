@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Callable, Iterable
 
-from .block_lazy_loading import BlocksList
 from .generic_block import GenericBlock
 
 
@@ -23,11 +22,15 @@ class GenericBlockchain(ABC):
         pass
 
     @abstractmethod
-    def get_blocks(self) -> Iterable[GenericBlock]:
+    def get_blocks(self, reverse: bool = False) -> Iterable[GenericBlock]:
         pass
 
     @abstractmethod
     def get_block_ids(self) -> Iterable[bytes]:
+        pass
+
+    @abstractmethod
+    def get_num_blocks(self) -> int:
         pass
 
     @abstractmethod

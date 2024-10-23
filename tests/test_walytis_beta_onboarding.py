@@ -132,11 +132,12 @@ def get_docker_latest_block_content(
     docker_container: BrenthyDocker,
 ) -> str:
     """Get the content of the latest block on the specified container."""
-    return docker_container.run_python_code(
-        "import walytis_beta_api;"
-        f'bc = walytis_beta_api.Blockchain("{blockchain.blockchain_id}");'
-        "print(bc.get_block(bc.block_ids[-1]).content.decode());bc.terminate()",
-        print_output=False
+    return docker_container.run_python_code(";".join([
+        "import walytis_beta_api",
+        f"bc = walytis_beta_api.Blockchain('{blockchain.blockchain_id}')",
+        "print(bc.get_block(-1).content.decode())",
+        "bc.terminate()"
+    ]), print_output=False
     ).strip("\n")
 
 

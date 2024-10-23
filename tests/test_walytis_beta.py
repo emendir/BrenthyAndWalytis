@@ -180,10 +180,10 @@ def test_add_block() -> None:
     """Test that we can add a block to the blockchain."""
     block = blockchain.add_block("Hello there!".encode())
     success = (
-        block.short_id in blockchain.blocks.get_short_ids() and
-        block.long_id in blockchain.blocks.get_long_ids() and
-        blockchain.get_block(blockchain.blocks.get_short_ids()[-1]).content.decode()
-        == blockchain.get_block(blockchain.blocks.get_long_ids()[-1]).content.decode()
+        block.short_id in blockchain._blocks.get_short_ids() and
+        block.long_id in blockchain._blocks.get_long_ids() and
+        blockchain.get_block(blockchain._blocks.get_short_ids()[-1]).content.decode()
+        == blockchain.get_block(blockchain._blocks.get_long_ids()[-1]).content.decode()
         == "Hello there!"
     )
     print(mark(success), "Blockchain.add_block")

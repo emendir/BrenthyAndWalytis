@@ -2,7 +2,7 @@
 import string
 import random
 from random import randint
-from walytis_beta_api.generic_blockchain import GenericBlockchain, GenericBlock
+from walytis_beta_api._experimental.generic_blockchain import GenericBlockchain, GenericBlock
 from walytis_beta_api import Blockchain
 from termcolor import colored as coloured
 BREAKPOINTS = False
@@ -85,7 +85,7 @@ def test_generic_blockchain(blockchain_type, **kwargs) -> GenericBlockchain:
     if not issubclass(blockchain_type, GenericBlockchain):
         raise ValueError(
             "The parameter `blockchain_type` must be a class that inherits "
-            "`walytis_beta_api.generic_blockchain.GenericBlockchain`"
+            "`walytis_beta_api._experimental.generic_blockchain.GenericBlockchain`"
         )
     blockchain: GenericBlockchain = blockchain_type(**kwargs)
 

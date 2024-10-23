@@ -21,14 +21,14 @@ from brenthy_tools_beta.utils import (
     string_to_bytes,
 )
 
-from .block_lazy_loading import BlocksList, BlockLazilyLoaded
+from ._experimental.block_lazy_loading import BlocksList, BlockLazilyLoaded
 from .block_model import Block, short_from_long_id
 from .exceptions import (  # pylint: disable=unused-import
     BlockCreationError,
     BlockNotFoundError,
     NotSupposedToHappenError,
 )
-from .generic_blockchain import _GenericBlockchainImpl as GenericBlockchain
+from ._experimental.generic_blockchain import _GenericBlockchainImpl as GenericBlockchain
 from .walytis_beta_interface import (
     WALYTIS_BETA,
     BlocksListener,
@@ -47,7 +47,7 @@ from .walytis_beta_interface import (
     join_blockchain,
 )
 from collections.abc import Generator
-from .generic_block import GenericBlock
+from ._experimental.generic_block import GenericBlock
 brenthy_appdata_dir = os.path.join(appdirs.user_data_dir(), "Brenthy")
 walytis_beta_appdata_dir = os.path.join(
     brenthy_appdata_dir, "Blockchains", WALYTIS_BETA
@@ -224,11 +224,14 @@ class Blockchain(GenericBlockchain):
 
         return block
 
-    def get_blocks(self) -> Generator[BlockLazilyLoaded]:
-        return self._blocks.get_blocks()
+    def get_blocks(self, reverse: bool = False) -> Generator[BlockLazilyLoaded]:
+        return self._blocks.get_blocks(reverse=reverse)
 
     def get_block_ids(self) -> list[bytes]:
         return self._blocks.get_long_ids()
+
+    def get_num_blocks(self) -> int:
+        return len(self._blocks)
 
     def has_block_id(self, block_id: bytes | bytearray) -> bool:
         if isinstance(block_id, bytearray):

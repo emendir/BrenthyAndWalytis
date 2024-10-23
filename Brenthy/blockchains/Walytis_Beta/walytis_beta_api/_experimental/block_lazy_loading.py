@@ -8,8 +8,8 @@ from typing import Generic, Type, TypeVar
 
 import ipfs_api
 
-from .block_model import Block, decode_long_id, short_from_long_id
-from .walytis_beta_interface import (
+from ..block_model import Block, decode_long_id, short_from_long_id
+from ..walytis_beta_interface import (
     BlockIntegrityError,
     BlockNotFoundError,
 )
@@ -179,7 +179,7 @@ class BlocksList(dict, Generic[BlockType]):
                 raise ValueError(
                     "It looks like you passed an short ID or invalid ID as a parameter.")
             else:
-                BlockNotFoundError()
+                raise BlockNotFoundError()
         if not block:
             block = self.block_class.from_id(bytearray(block_id))
             dict.__setitem__(self, block_id, block)
@@ -188,8 +188,16 @@ class BlocksList(dict, Generic[BlockType]):
     def get_block(self, block_id: bytes) -> BlockType:
         return self.__getitem__(block_id)
 
-    def get_blocks(self) -> Generator:  # TODO: complete type-annotation
-        for block_id in self.get_long_ids():
+    def get_blocks(
+        self, reverse: bool = False
+    ) -> Generator[BlockType, None, None]:
+        block_ids = self.get_long_ids()
+
+        # reverse order if desired
+        if reverse:
+            block_ids = reversed(block_ids)
+
+        for block_id in block_ids:
             yield self.__getitem__(block_id)
 
     def get_long_ids(self):
@@ -197,3 +205,6 @@ class BlocksList(dict, Generic[BlockType]):
 
     def get_short_ids(self):
         return [short_from_long_id(long_id) for long_id in list(self.keys())]
+
+    def get_num_blocks(self) -> int:
+        return len(self)
