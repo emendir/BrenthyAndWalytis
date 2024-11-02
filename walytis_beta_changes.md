@@ -16,6 +16,7 @@
 - more efficient block lookup, perhaps tell walytis_beta_api to read the blocks' folder?
 - Walytis: get rid of DBMS?
 
+- migrate from `datetime.utcnow()` to datetime.now(UTC)
 
 
 ## General

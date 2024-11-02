@@ -34,8 +34,8 @@ What results is an ecosystem of interdependent components.
 When a user wants to install a simple application from this ecosystem, such as a decentralised messenger, they will have to install Walytis, Brenthy & IPFS first (all automated, one day!).
 
 My first experience with such compartmentalised systems was when my mentor told me to learn to set up a Joomla website.
-I had to install PHP, Apache, a database management system, and the latter two had to be manually configured before I could even start a demo joomla site.
-I was apalled at this complexity required of the user for the simple goal of hosting a website.
+I had to install PHP, Apache, a database management system, and the latter two had to be manually configured before I could even start a demo Joomla site.
+I was appalled at this complexity required of the user for the simple goal of hosting a website.
 Worst of all, I was supposed to run an old website that had been built using an older version of Joomla, and I had to through trial and error figure out which version of Apache, PHP, and the DBMS I had to install so that all components were intercompatible.
 Some people would say, _'Oh well, websites should only be hosted by expert IT technicians, who need to understand how all those components work anyway.'_
 Well, that was Web 2 and what we've got here with IPFS and Walytis are Web 3 technologies.
@@ -46,7 +46,7 @@ It was such a waste of time for the users because the developers hadn't taken th
 And that is what made me want make a statement by deciding that on from version 0.1.0, the first releasable version, every new version of `walytis_api` will be compatible with every old version of Walytis, and every new version of Walytis will be compatible with every old version of `walytis_api`.
 The same goes for BrenthyAPI.
 In short, full backward and forward compatibility.
-That means users will have no deincentivisation to update Brenthy & Walytis anymore, because it cannot produce any problems, only enables more new features for the user.
+That means users will have no disincentivisation to update Brenthy & Walytis anymore, because it cannot produce any problems, only enables more new features for the user.
 Faster implementation of updates also means a tighter feedback cycle for developers.
 
 In summary, I find that guaranteed full backward and forward compatibility belong to good quality software development.

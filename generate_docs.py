@@ -10,7 +10,10 @@ module_path = os.path.join(
 docs_path = os.path.join("Documentation", "Walytis", "API-Reference")
 if os.path.exists(docs_path):
     shutil.rmtree(docs_path)
-os.system(
+command= (
     f"pdoc3 {module_path} "
     f"--html --force -o {docs_path} --template-dir {templates}"
 )
+print(command)
+os.system(command)
+

@@ -52,6 +52,16 @@ I'm working on a few blockchain overlays that provide the following features:
 These modules can be compounded to combine their features.
 Underneath, the blockchains are still Walytis blockchains of course, but these blockchain overlays abstract away from applications the mechanics of creating mutable content or authenticating blocks.
 
+### Querying
+
+With its focus on simply being a database, the Walytis blockchain comes with a unique querying system.
+Since a block's content can be any binary data, it is very inefficient to read in database queries.
+However, since all block metadata is stored in its ID, it is efficient to query block metadata from a list of block IDs.
+For this reason, Walytis allows users to specify multiple fields of user-defined metadata which they can use in queries to efficiently find specific categories of blocks or individual blocks.
+While the `walytis_beta_api` library doesn't yet support the SQL Query Language, it does provide a good querying interface using pure python.
+
+Read more about querying Walytis blocks [here](/Documentation/Walytis/Tutorials/5-QueryingBlocks.md).
+
 ## Applications: Examples of Use Cases
 
 Here is a list of some applications that are currently under development to explain by example how Walytis database-blockchains might be used:

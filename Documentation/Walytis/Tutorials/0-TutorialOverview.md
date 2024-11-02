@@ -1,9 +1,10 @@
-\\
 ## Tutorial Sections
+
 1. [Getting Started](./1-GettingStarted.md)
 2. [Joining Blockchains](./2-JoiningBlockchains.md)
 3. [Building Applications](./3-BuildingApplications.md)
 4. [Playing Around](./4-PlayingAround.md)
+4. [Querying Blocks](./5-QueryingBlocks.md)
 
 ## Audience
 
@@ -11,13 +12,15 @@ This tutorial is written to help people interested in developing applications th
 It assumes that the reader already knows what blockchain technology is, what Walytis is like, and has basic programming and computer networking skills. We'll be using the Python programming language, so the user should be comfortable enough using it.
 
 Here are some resources you can use to make sure you learn what you need about blockchain technology in general and Walytis:
+
 - [**Understanding Blockchain**](/Documentation/Walytis/Meaning/UnderstandingBlockchain.md)
 - [**Understanding Walytis**](/Documentation/Walytis/Meaning/UnderstandingNonlinearBlockchain.md)
 
 You should also have these basics:
+
 - **CLI**: ability to use your computer's command-line interface (shell)
 - **understanding of basic computer networking:** Know what the Internet and a LAN is?
-- **understanding of IPFS basics:** Networking tech for Web3. Check out https://ipfs.tech 
+- **understanding of IPFS basics:** Networking tech for Web3. Check out https://ipfs.tech
 - **Python programming**: In these tutorials we assume that you have basic programming skills, and can understand and code Python. If you don't know what we're talking about, visit its homepage at https://python.org to get started.
 
 ## Notes
