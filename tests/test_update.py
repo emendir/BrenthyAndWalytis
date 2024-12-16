@@ -5,7 +5,7 @@
 # you can set this to true to automatically remove unpurged docker containers
 # after failed tests
 DELETE_ALL_BRENTHY_DOCKERS = True
-DOCKER_CONTAINER_NAME = "brenthy_test"
+DOCKER_CONTAINER_NAME = "brenthy_tests_update"
 REBUILD_DOCKER = True
 # enable/disable breakpoints when checking intermediate test results
 BREAKPOINTS = True

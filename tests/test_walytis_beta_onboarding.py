@@ -28,7 +28,7 @@ from testing_utils import mark, polite_wait, test_threads_cleanup
 REBUILD_DOCKER = True
 NUMBER_OF_FIND_ATTEMPTS = 10
 NUMBER_OF_JOIN_ATTEMPTS = 10
-DOCKER_CONTAINER_NAME = "brenthy_onboarding_test"
+DOCKER_CONTAINER_NAME = "brenthy_tests_onboarding"
 NUMBER_OF_CONTAINERS = 5
 
 # enable/disable breakpoints when checking intermediate test results

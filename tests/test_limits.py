@@ -12,7 +12,7 @@ from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
 from testing_utils import mark, test_threads_cleanup
 
 NUMBER_OF_JOIN_ATTEMPTS = 10
-DOCKER_CONTAINER_NAME = "brenthy_test"
+DOCKER_CONTAINER_NAME = "brenthy_tests_limits"
 REBUILD_DOCKER = False
 # enable/disable breakpoints when checking intermediate test results
 testing_utils.BREAKPOINTS = True

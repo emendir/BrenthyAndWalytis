@@ -28,7 +28,7 @@ from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
 from testing_utils import mark, test_threads_cleanup
 
 NUMBER_OF_JOIN_ATTEMPTS = 10
-DOCKER_CONTAINER_NAME = "brenthy_test"
+DOCKER_CONTAINER_NAME = "brenthy_tests_walytis"
 REBUILD_DOCKER = True
 # enable/disable breakpoints when checking intermediate test results
 testing_utils.BREAKPOINTS = True
@@ -80,7 +80,7 @@ def prepare() -> None:
     """Get everything needed to run the tests ready."""
     global brenthy_docker
     if DELETE_ALL_BRENTHY_DOCKERS:
-        delete_containers(image="local/brenthy_testing", container_name_substr="brenthy")
+        delete_containers(image="local/brenthy_testing", container_name_substr="brenthy_tests_")
 
     if REBUILD_DOCKER:
         build_docker_image(verbose=False)
