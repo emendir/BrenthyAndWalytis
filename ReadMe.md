@@ -55,8 +55,9 @@ cd BrenthyAndWalytis
 # set up python environment (you can skip this if you only want to install)
 virtualenv .venv && source .venv/bin/activate
 pip install -r Brenthy/requirements.txt
+pip install walytis_beta_api    # install API library
 
-# run Brenthy
+# run Brenthy, it will offer to install itself
 python3 .
 ```
 

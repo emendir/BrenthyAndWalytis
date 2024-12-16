@@ -121,12 +121,12 @@ else
 
   # install pip, the package manager
   Python/bin/python -m ensurepip
-  Python/bin/python -m pip -qq install --upgrade pip
+  Python/bin/python -m pip -qq install  --root-user-action ignore --upgrade pip
 
   # install a specific version of ecies, as the default's doesn't currently work
-  Python/bin/python -m pip -qq install eciespy@git+https://github.com/ecies/py
+  Python/bin/python -m pip -qq install --root-user-action ignore eciespy@git+https://github.com/ecies/py
   if ! [ "$?" = "0" ];then exit 1;fi
-  Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
+  Python/bin/python -m pip -qq install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
   if ! [ "$?" = "0" ];then exit 1;fi
 fi
 # register Brenthy as a service/background process, and running it

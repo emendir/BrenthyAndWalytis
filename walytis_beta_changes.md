@@ -5,6 +5,8 @@
   - rename `get_block_ids()` to `block_ids`
   - rename `get_blocks()` to `blocks`
   - don't provide block info after object is terminated
+  - better name for `load_missed_blocks`, such as `start_receiving_blocks`
+    - if `False`, don't process any incoming blocks
 
 ### class Block:
   - use bytes instead of bytearray?
@@ -17,7 +19,10 @@
 - Walytis: get rid of DBMS?
 
 - migrate from `datetime.utcnow()` to datetime.now(UTC)
+- `join_blockchain_from_zip`: is `blockchain_id` parameter redundant?
 
 
 ## General
 - remove all code marked with comments of BACKWARDS COMPATIBILITY
+
+- Blockchain ID: Make it more verifiable - the IPFS CID of the last geneis Block?

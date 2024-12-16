@@ -32,6 +32,30 @@ class BlockLazilyLoaded(Block):
     ):
         return cls(long_id=long_id)
 
+    @classmethod
+    def from_block(cls, block: Block):
+        """Turn a trusted Block object into a BlockLazilyLoaded"""
+        if not isinstance(block, Block):
+            raise TypeError()
+
+        block.__class__ = cls
+        if (
+            block._blockchain_version and
+            block._ipfs_cid and
+            block._creator_id and
+            block._creation_time and
+            block._topics and
+            block._content_length and
+            block._content_hash_algorithm and
+            block._content_hash and
+            block._n_parents and    # won't work for genesis, but it's only one
+            block._parents_hash_algorithm and
+            block._parents_hash and
+            block._parents
+        ):
+            block._decoded_id = True
+        return block
+
     def _decode_id(self) -> None:
         metadata = decode_long_id(self.long_id)
         self._blockchain_version = metadata["blockchain_version"]
@@ -131,6 +155,33 @@ class BlocksList(dict, Generic[BlockType]):
         self.block_class = block_class
 
     @classmethod
+    def from_blocks(
+        cls: Type['BlocksList[BlockType]'],
+        blocks: list[BlockType],
+        block_class: Type[BlockType]
+    ) -> 'BlocksList[BlockType]':
+        if blocks and not isinstance(blocks[0], block_class):
+            raise TypeError(
+                f"Blocks are of type {type(blocks[0])}, not {block_class}"
+            )
+        # Use dict.fromkeys() to create the dictionary efficiently
+        blocks_dict = dict([
+            (bytes(block.long_id), block) for block in blocks
+        ])
+
+        # Cast the dictionary to an instance of BlocksList
+        # Create an uninitialized instance of the class
+        blocks_list = cls.__new__(cls)
+
+        # Manually initialize the dictionary part with the data
+        blocks_list.update(blocks_dict)
+
+        # Manually set the block_class
+        blocks_list.block_class = block_class
+
+        return blocks_list
+
+    @classmethod
     def from_block_ids(
         cls: Type['BlocksList[BlockType]'],
         block_ids: list[bytes],
@@ -148,7 +199,8 @@ class BlocksList(dict, Generic[BlockType]):
         blocks_dict = dict.fromkeys(block_ids, None)
 
         # Cast the dictionary to an instance of BlocksList
-        blocks_list = cls.__new__(cls)  # Create an uninitialized instance of the class
+        # Create an uninitialized instance of the class
+        blocks_list = cls.__new__(cls)
 
         # Manually initialize the dictionary part with the data
         blocks_list.update(blocks_dict)
@@ -168,7 +220,9 @@ class BlocksList(dict, Generic[BlockType]):
 
     def add_block(self, block: BlockType):
         if not isinstance(block, self.block_class):
-            raise ValueError(f"block must be of type {self.block_class}, not {type(block)}")
+            raise ValueError(
+                f"block must be of type {self.block_class}, not {type(block)}"
+            )
         dict.__setitem__(self, bytes(block.long_id), block)
 
     def __getitem__(self,  block_id: bytes) -> BlockType:

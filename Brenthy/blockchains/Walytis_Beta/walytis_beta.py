@@ -332,7 +332,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
         log.info(f"{self.name}:  Finished building block.")
         if self._genesis:
-            log.info(f"{self.name}:  Genesis block!")
+            # log.info(f"{self.name}:  Genesis block!")
             # manually cache block because BlockRecords isn't initialised
             self.cache_block(block.long_id)
         else:
@@ -579,7 +579,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             parents = blockfile_header[1].split(bytearray([0, 0, 0]))
         else:
             parents = []
-            log.important("Genesis block")
+            # log.important("Genesis block")
         # content sits between metadata and block_hash
         content = data[content_separator + 5:]
 

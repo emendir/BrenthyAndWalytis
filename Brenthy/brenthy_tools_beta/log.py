@@ -110,13 +110,16 @@ def record(message: str, record_timestamp: bool = True) -> None:
         archive_dir = os.path.join(LOG_DIR, LOG_ARCHIVE_DIRNAME)
         if not os.path.exists(archive_dir):
             os.makedirs(archive_dir)
-        shutil.move(
+        shutil.copy(
             log_file_path,
             os.path.join(
                 archive_dir,
                 datetime.now().strftime("%Y-%m-%d-%H_%M_%S") + ".log",
             ),
         )
+        # empty log file
+        with open(log_file_path, "w", encoding="utf-8") as f:
+            f.write("")
 
         # delete oldest log file if archive is too full
         archive_log_files = os.listdir(archive_dir)
@@ -247,10 +250,11 @@ def time_stamp() -> str:
 def add_empty_line() -> None:
     """Add an empty line to the log file."""
     log_file_path = os.path.join(LOG_DIR, LOG_FILENAME)
-    if (
-        not os.path.exists(log_file_path)
-        or os.stat(log_file_path).st_size == 0
-    ):
+    if not os.path.exists(log_file_path):
+        with open(log_file_path, "w+", encoding="utf-8") as f:
+            f.write("")
+        return
+    elif os.stat(log_file_path).st_size == 0:
         return
     with log_file_lock:
         with open(log_file_path, "a+", encoding="utf-8") as f:

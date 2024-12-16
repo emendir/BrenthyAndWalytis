@@ -35,6 +35,9 @@
 - [ ] remove pip github installation of eciespy when ready
 - [ ] don't hardcode version of PyPy
 
+### Debugging
+- `join_blockchain` seems to fail rather often
+
 ## Tests:
 
 - [ ] add docstrings to Brenthy/blockchains/Walytis_Beta/walytis_beta_api/generic_blockchain_testing.py

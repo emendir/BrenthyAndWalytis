@@ -95,7 +95,7 @@ else
     rm -r $install_dir/Python
   fi
   virtualenv $install_dir/Python
-  $install_dir/Python/bin/python -m pip -qq install -r $install_dir/Brenthy/requirements.txt
+  $install_dir/Python/bin/python -m pip -qq install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
 fi
 
 # register Brenthy as a service/background process, and running it

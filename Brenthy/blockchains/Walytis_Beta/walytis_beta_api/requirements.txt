@@ -1,4 +1,4 @@
 appdirs==1.4.3
-ipfs-toolkit>=0.5.19
+ipfs-toolkit>=0.5.27
 pyzmq==25.1.1
 brenthy_tools_beta
