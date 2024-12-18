@@ -11,6 +11,7 @@ import ipfs_api
 import pyperclip
 from termcolor import colored as coloured
 from termcolor._types import Color as Colour
+import sys
 
 
 class BrenthyDocker:
@@ -159,27 +160,40 @@ class BrenthyDocker:
         Not suitable for code that contains double quotes.
         """
         command = f"docker exec -it {self.container.id} {command}"
-        child = pexpect.spawn(command, encoding='utf-8')
         result = ""
-        # Capture the output line by line
-        while True:
-            try:
-                line = child.readline()
-                if not line:
+
+        try:
+            child = pexpect.spawn(command, encoding='utf-8',
+                                  timeout=5, logfile=sys.stdout)
+
+            while True:
+                try:
+                    line = child.readline()
+                    if not line:
+                        break
+                    if print_output:
+                        if colour:
+                            print(coloured(line.strip(), colour))
+                        else:
+                            print(line.strip())
+                    result += line
+                except pexpect.exceptions.TIMEOUT:
+                    print(coloured(
+                        "WARNING (BrenthyDocker): "
+                        "Docker shell command timeout reached for command\n"
+                        f"{command}",
+                        "red"
+                    ))
                     break
-                if print_output:
-                    if colour:
-                        print(coloured(line.strip(), colour))
-                    else:
-                        print(line.strip())
-                result += line
+                except pexpect.EOF:
+                    break
 
-            except pexpect.EOF:
-                break
+            # Ensure the process has finished
+            if child.isalive():
+                child.close()
 
-        # Ensure the process has finished
-        child.wait()
-
+        except Exception as e:
+            print(coloured(f"ERROR (BrenthyDocker): {str(e)}", "red"))
         # result = subprocess.run(
         #     command, shell=True, capture_output=True, text=True, check=check
         # )
@@ -342,9 +356,9 @@ class ContainerNotRunningError(Exception):
 # Example usage:
 if __name__ == "__main__":
     # Create an instance of DockerContainer with the desired image
-    delete_containers(container_name_substr="Demo")
+    delete_containers(container_name_substr="DemoBrenthy")
     docker_container = BrenthyDocker(
-        container_name="Demo",
+        container_name="DemoBrenthy",
         auto_run=False
     )
 
