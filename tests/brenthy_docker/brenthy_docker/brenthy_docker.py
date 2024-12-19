@@ -1,17 +1,33 @@
 import io
 import os
 import shutil
+import sys
 import tarfile
 import tempfile
 from time import sleep
-import pexpect
 
 import docker
 import ipfs_api
+import pexpect
 import pyperclip
 from termcolor import colored as coloured
 from termcolor._types import Color as Colour
-import sys
+
+
+class DockerShellException(Exception):
+    """When a shell command run in the docker container produces an Exception."""
+
+    def __init__(self, exit_status: int, shell_output: str):
+        self.exit_status = exit_status
+        self.shell_output = shell_output
+
+    def __str__(self):
+        return "\n".join([
+            "The shell command run in the docker container errored.",
+            f"Exit Status: {self.exit_status}",
+            "Output:",
+            f"{self.shell_output}"
+        ])
 
 
 class BrenthyDocker:
@@ -33,6 +49,7 @@ class BrenthyDocker:
             self.container = self._docker.containers.create(
                 image, privileged=True, name=container_name
             )
+        self.docker_id = self.container.id
         if auto_run:
             self.start(
                 await_brenthy=await_brenthy,
@@ -121,11 +138,21 @@ class BrenthyDocker:
         user: str | None = None,
         print_output: bool = True,
         colour: Colour = "light_yellow",
-        background: bool = False
+        background: bool = False,
+        timeout: int = 10,
+        ignore_errors = False
     ) -> str:
         """Run shell code from within the container's operating system.
 
         Not suitable for code that contains double quotes.
+
+        Args:
+            command:
+            user:
+            print_output:
+            colour:
+            background:
+            timeout: currently only implemented for print_output==True
         """
         if print_output and background:
             print(
@@ -138,33 +165,49 @@ class BrenthyDocker:
 
         if print_output:
             return self.run_shell_command_printed(
-                command, print_output=True, colour=colour
+                command, print_output=True, colour=colour, timeout=timeout
             )
 
         if background:
             command = f"nohup {command} > /dev/null 2>&1 &"
         ex_id = self._docker.api.exec_create(self.container.id, command)['Id']
         output = self._docker.api.exec_start(
-            ex_id, tty=True, detach=background
+            ex_id, tty=False, detach=background
         )
-        return output.strip().decode() if not background else ""
+        if background:
+            return ""
+        output_str = output.strip().decode()
+
+        exec_info = self._docker.api.exec_inspect(ex_id)
+        exit_status = exec_info['ExitCode']
+        if not ignore_errors and exit_status != 0:
+            raise DockerShellException(exit_status, output_str)
+
+        return output_str
 
     def run_shell_command_printed(
         self,
         command: str,
         print_output: bool = True,
-        colour: Colour = "light_yellow"
+        colour: Colour = "light_yellow",
+        timeout: int = 10
     ) -> str:
         """Run shell code from within the container's operating system.
 
         Not suitable for code that contains double quotes.
+
+        Args:
+            command
+            print_output
+            colour
+            timeout: currently only implemented for print_output==True
         """
         command = f"docker exec -it {self.container.id} {command}"
         result = ""
 
         try:
             child = pexpect.spawn(command, encoding='utf-8',
-                                  timeout=5, logfile=sys.stdout)
+                                  timeout=timeout, logfile=sys.stdout)
 
             while True:
                 try:
@@ -204,12 +247,22 @@ class BrenthyDocker:
         code: str | list[str],
         print_output: bool = True,
         colour: Colour = "light_yellow",
-        background: bool = False
+        background: bool = False,
+        timeout: int = 10,
+        ignore_errors:bool=False
+
 
     ) -> str:
         """Run any bash code in the docker container, returning its output.
 
         Suitable for code that contains any quotes and escape characters.
+
+        Args:
+            code
+            print_output
+            colour
+            background
+            timeout: currently only implemented for print_output==True
         """
         if isinstance(code, list):
             # concatenate list elements into single string
@@ -217,7 +270,8 @@ class BrenthyDocker:
         remote_tempfile = self.write_to_tempfile(code)
         return self.run_shell_command(
             f"/bin/bash {remote_tempfile}",
-            print_output=print_output, colour=colour, background=background
+            print_output=print_output, colour=colour, background=background,
+            timeout=timeout, ignore_errors=ignore_errors
         )
 
     def run_python_command(
@@ -225,17 +279,27 @@ class BrenthyDocker:
         command: str,
         print_output: bool = True,
         colour: Colour = "light_yellow",
-        background: bool = False
+        background: bool = False,
+        timeout: int = 10,
+        ignore_errors:bool=False
 
     ) -> str:
         """Run single-line python code, returning its output.
 
         Not suitable for code that contains double quotes.
+
+        Args:
+            command
+            print_output
+            colour
+            background
+            timeout: currently only implemented for print_output==True
         """
         python_command = "python -c \"" + command + "\""
         return self.run_shell_command(
             python_command,
-            print_output=print_output, colour=colour, background=background
+            print_output=print_output, colour=colour, background=background,
+            timeout=timeout, ignore_errors=ignore_errors
         )
 
     def run_python_code(
@@ -243,11 +307,21 @@ class BrenthyDocker:
         code: str | list[str],
         print_output: bool = True,
         colour: Colour = "light_yellow",
-        background: bool = False
+        background: bool = False,
+        timeout: int = 10,
+        ignore_errors:bool=False,
+
     ) -> str:
         """Run any python code in the docker container, returning its output.
 
         Suitable for code that contains any quotes and escape characters.
+
+        Args:
+            code
+            print_output
+            colour
+            background
+            timeout
         """
         if isinstance(code, list):
             # concatenate list elements into single string
@@ -255,7 +329,8 @@ class BrenthyDocker:
         remote_tempfile = self.write_to_tempfile(code)
         return self.run_shell_command(
             f"/bin/python {remote_tempfile}",
-            print_output=print_output, colour=colour, background=background
+            print_output=print_output, colour=colour, background=background,
+            timeout=timeout, ignore_errors=ignore_errors
         )
 
     def _docker_swarm_connect(self) -> None:
@@ -341,11 +416,15 @@ def delete_containers(
             "docker stop $(docker ps  "
             f"--filter 'name=*{container_name_substr}*' "
             f"--filter 'name= ^ {container_name_substr}' "
-            f"--filter 'name={container_name_substr}$' -aq) >/dev/null 2>&1; "
+            f"--filter 'name={container_name_substr}$' "
+            f"--filter 'name={container_name_substr}*' "
+            "-aq) >/dev/null 2>&1; "
             "docker rm $(docker ps "
             f"--filter 'name=*{container_name_substr}*' "
             f"--filter 'name= ^ {container_name_substr}' "
-            f"--filter 'name={container_name_substr}$' -aq) >/dev/null 2>&1"
+            f"--filter 'name={container_name_substr}$' "
+            f"--filter 'name={container_name_substr}*' "
+            "-aq) >/dev/null 2>&1"
         )
 
 

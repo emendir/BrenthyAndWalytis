@@ -136,14 +136,14 @@ def test_walytis_beta_update() -> None:
     print("Reinstalling walytis_beta_api")
     brenthy_docker.run_shell_command(
         "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/build;",
-        print_output=False
+        print_output=False, ignore_errors=True
     )
     brenthy_docker.run_shell_command(
         "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/*.egg-info;",
-        print_output=False
+        print_output=False, ignore_errors=True
     )
     brenthy_docker.run_shell_command(
-        "python3 -m pip install /opt/Brenthy/Brenthy/blockchains/Walytis_Beta",
+        "python3 -m pip install --break-system-packages /opt/Brenthy/Brenthy/blockchains/Walytis_Beta",
         print_output=False
     )
     walytis_beta_version_2 = get_docker_walytis_beta_version()
