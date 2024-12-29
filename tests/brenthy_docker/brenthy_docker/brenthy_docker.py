@@ -92,6 +92,7 @@ class BrenthyDocker:
         self.container.restart()
 
     def delete(self) -> None:
+        self.run_bash_code("poweroff")
         self.container.stop()
         self.container.remove()
 

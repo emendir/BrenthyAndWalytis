@@ -16,6 +16,7 @@
 
 ### API
 
+- [ ] GenericBlockchain: add abstract method `set_block_received_handler`?
 - [ ] Blockchain: pass directory #phase4
   - [x] implement
   - [ ] tests
