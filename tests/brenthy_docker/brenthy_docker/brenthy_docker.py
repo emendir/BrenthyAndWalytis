@@ -14,7 +14,7 @@ from termcolor import colored as coloured
 from termcolor._types import Color as Colour
 
 
-class DockerShellException(Exception):
+class DockerShellError(Exception):
     """When a shell command run in the docker container produces an Exception."""
 
     def __init__(self, exit_status: int, shell_output: str):
@@ -55,6 +55,14 @@ class BrenthyDocker:
                 await_brenthy=await_brenthy,
                 await_ipfs=await_ipfs,
             )
+
+    @property
+    def name(self):
+        return self.container.name
+
+    @property
+    def container_id(self):
+        return self.container.id
 
     def start(
         self, await_brenthy: bool = True, await_ipfs: bool = True
@@ -141,7 +149,7 @@ class BrenthyDocker:
         colour: Colour = "light_yellow",
         background: bool = False,
         timeout: int = 10,
-        ignore_errors = False
+        ignore_errors=False
     ) -> str:
         """Run shell code from within the container's operating system.
 
@@ -160,6 +168,7 @@ class BrenthyDocker:
                 "Parameters `print_output` and `background` "
                 "can't both be `True`. Deactivating `print_output`."
             )
+            print_output = False
 
         if user:
             command = f"su {user} -c \"{command}\""
@@ -182,7 +191,7 @@ class BrenthyDocker:
         exec_info = self._docker.api.exec_inspect(ex_id)
         exit_status = exec_info['ExitCode']
         if not ignore_errors and exit_status != 0:
-            raise DockerShellException(exit_status, output_str)
+            raise DockerShellError(exit_status, output_str)
 
         return output_str
 
@@ -250,7 +259,7 @@ class BrenthyDocker:
         colour: Colour = "light_yellow",
         background: bool = False,
         timeout: int = 10,
-        ignore_errors:bool=False
+        ignore_errors: bool = False
 
 
     ) -> str:
@@ -282,7 +291,7 @@ class BrenthyDocker:
         colour: Colour = "light_yellow",
         background: bool = False,
         timeout: int = 10,
-        ignore_errors:bool=False
+        ignore_errors: bool = False
 
     ) -> str:
         """Run single-line python code, returning its output.
@@ -310,7 +319,7 @@ class BrenthyDocker:
         colour: Colour = "light_yellow",
         background: bool = False,
         timeout: int = 10,
-        ignore_errors:bool=False,
+        ignore_errors: bool = False,
 
     ) -> str:
         """Run any python code in the docker container, returning its output.
