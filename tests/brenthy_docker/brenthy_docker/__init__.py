@@ -1,1 +1,1 @@
-from .brenthy_docker import BrenthyDocker, delete_containers
+from .brenthy_docker import BrenthyDocker, delete_containers, DockerShellError
