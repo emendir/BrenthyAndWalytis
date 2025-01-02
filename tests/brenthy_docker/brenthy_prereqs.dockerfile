@@ -11,7 +11,7 @@ RUN python3 -m pip install --break-system-packages --root-user-action ignore -r 
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/requirements-devops.txt
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta
-RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy/tests/brenthy_docker
+RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/Brenthy/tests/brenthy_docker
 
 
 ## Install Brenthy:
