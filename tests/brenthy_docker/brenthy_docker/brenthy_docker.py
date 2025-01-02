@@ -56,6 +56,14 @@ class BrenthyDocker:
                 await_ipfs=await_ipfs,
             )
 
+    @property
+    def name(self):
+        return self.container.name
+
+    @property
+    def container_id(self):
+        return self.container.id
+
     def start(
         self, await_brenthy: bool = True, await_ipfs: bool = True
     ) -> None:
@@ -141,7 +149,7 @@ class BrenthyDocker:
         colour: Colour = "light_yellow",
         background: bool = False,
         timeout: int = 10,
-        ignore_errors = False
+        ignore_errors=False
     ) -> str:
         """Run shell code from within the container's operating system.
 
@@ -160,7 +168,7 @@ class BrenthyDocker:
                 "Parameters `print_output` and `background` "
                 "can't both be `True`. Deactivating `print_output`."
             )
-            print_output=False
+            print_output = False
 
         if user:
             command = f"su {user} -c \"{command}\""
@@ -251,7 +259,7 @@ class BrenthyDocker:
         colour: Colour = "light_yellow",
         background: bool = False,
         timeout: int = 10,
-        ignore_errors:bool=False
+        ignore_errors: bool = False
 
 
     ) -> str:
@@ -283,7 +291,7 @@ class BrenthyDocker:
         colour: Colour = "light_yellow",
         background: bool = False,
         timeout: int = 10,
-        ignore_errors:bool=False
+        ignore_errors: bool = False
 
     ) -> str:
         """Run single-line python code, returning its output.
@@ -311,7 +319,7 @@ class BrenthyDocker:
         colour: Colour = "light_yellow",
         background: bool = False,
         timeout: int = 10,
-        ignore_errors:bool=False,
+        ignore_errors: bool = False,
 
     ) -> str:
         """Run any python code in the docker container, returning its output.
