@@ -1,21 +1,31 @@
 ## [Docs](Documentation/DocsRoadmap.md)
 
+## Urgent
+- fix pip installation
+- fix OSError Too many open files
+
+## Repo-Organisation
+- move /Brenthy/Docker and /Brenthy/InstallScripts to /deployement/
+- rename /Brenthy to /src, /Documentation to /docs etc.
+- For brenthy_testing, implement Multi-Stage Docker File instead of two files https://docs.docker.com/build/building/multi-stage/
+
+## Docs
 - contributions
 - docs wiki?
 
 ## Technical
 
 ### Core
-
+- [ ] reduce unnecessary logging
 - [ ] Make `walytis_beta_api` capable of fully verifying a blockchain from block data files, so that the role of Walytis Core is only creating and sharing blocks.
 - [ ] Join Blockchain timeout when no data has been received during file transmission
 - [ ] Remove `block_records` block index? Make more efficient?
 - [ ] clean up threads from failed join requests
 - [ ] Walytis.get_blockchain_data: tests & documentation
 - [ ] Brenthy and Brenthy-Tools: assert that maximum Brenthy API module protocol version is not greater than BAP version
-
+- [ ] survive IPFS daemon restarts
 ### API
-
+- [ ] fix _load_brenthy_api_protocols_from_registry
 - [ ] GenericBlockchain: add abstract method `set_block_received_handler`?
 - [ ] Blockchain: pass directory #phase4
   - [x] implement
@@ -85,7 +95,7 @@ _Plan roadmap for following new features._
 - [ ] walytis_api: print message when user uses blockchain name
 
 ## Security
-
+- [ ] blacklist/whitelisting options in API
 - [ ] spam filters: disconnect from and blacklist nodes spamming on:
   - [ ] PubSub listener
   - [ ] join request listener

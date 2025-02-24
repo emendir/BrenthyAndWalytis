@@ -88,7 +88,10 @@ def test_generic_blockchain(blockchain_type, **kwargs) -> GenericBlockchain:
             "`walytis_beta_api._experimental.generic_blockchain.GenericBlockchain`"
         )
     blockchain: GenericBlockchain = blockchain_type(**kwargs)
-
+    mark(
+        blockchain.get_num_blocks() == 0,
+        "Provided blockchain shouldn't expose blocks yet"
+    )
     blocks = [
         test_add_block(blockchain, i) for i in range(N_BLOCK_TOPICS_TO_TEST)
     ]

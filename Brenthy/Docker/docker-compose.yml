@@ -1,0 +1,26 @@
+services:
+  ipfs:
+    image: ipfs/kubo
+    container_name: ipfs
+    expose:
+      - "5001"
+      - "8080"
+    networks:
+      - internal_net
+
+  brenthy:
+    image: local/brenthy
+    container_name: brenthy
+    expose:
+      - "29200"
+      - "29201"
+      - "29202"
+    networks:
+      - internal_net
+    environment:
+      - PY_IPFS_HTTP_CLIENT_DEFAULT_ADDR=/dns/ipfs/tcp/5001/http
+      - BRENTHY_API_IP_ADDRESS=127.0.0.1 # use normal localhost instead of the default
+
+networks:
+  internal_net:
+    driver: bridge
