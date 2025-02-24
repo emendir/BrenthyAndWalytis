@@ -1,5 +1,7 @@
 """Library for interacting with Brenthy Core and its blockchain types."""
 
+from .brenthy_api_protocols import BAP_MODULES_REGISTRY
+import importlib
 import json
 import os
 from inspect import signature
@@ -29,7 +31,7 @@ log.LOG_FILENAME = ".brenthy_api.log"
 log.LOG_ARCHIVE_DIRNAME = ".brenthy_api_log_archive"
 
 
-def _load_brenthy_api_protocols() -> None:
+def _load_brenthy_api_protocols_from_files() -> None:
     # files in the current directory which don't define bap_protocol_modules
     global bap_protocol_modules  # pylint: disable=global-statement
     bap_protocol_modules = []
@@ -52,6 +54,18 @@ def _load_brenthy_api_protocols() -> None:
             # raise ImportError(error_message)
     # sort bap modules in order of BAP version, newest to oldest
     bap_protocol_modules.sort(key=lambda x: x.BAP_VERSION, reverse=True)
+
+def _load_brenthy_api_protocols_from_registry() -> None:
+    
+    bap_protocol_modules = []
+    for module_name in BAP_MODULES_REGISTRY:
+        if module_name in BAP_EXCLUDED_MODULES:
+            continue
+        module = importlib.import_module(f"..brenthy_api_protocols.{module_name}", package=__name__)
+        bap_protocol_modules.append(module)
+    bap_protocol_modules.sort(key=lambda x: x.BAP_VERSION, reverse=True)
+def _load_brenthy_api_protocols() -> None:
+    _load_brenthy_api_protocols_from_files()
 
 
 def send_request(
@@ -309,7 +323,10 @@ def get_brenthy_tools_beta_version_string() -> str:
 class BrenthyNotRunningError(Exception):
     """When no communication can be established with Brenthy."""
 
-    def_message = "Can't connect to Brenthy. Is it running?"
+    def_message = ("Can't connect to Brenthy. Is it running?\n"
+    "If running Brenthy using a docker container, you probably need to set:\n"
+    "brenthy_tools_beta.brenthy_api_addresses.BRENTHY_API_IP_ADDRESS=127.0.0.1"
+)
 
     def __init__(self, message: str = def_message):
         """Raise a BrenthyNotRunningError exception.

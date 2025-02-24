@@ -3,8 +3,8 @@
 ## Most Important
 ### Front Pages
 - [ ] [ReadMe](/ReadMe.md)
-- [ ] [IntroductionToWalytis](Walytis/Meaning/IntroductionToWalytis.md): 
-- [ ] [IntroductionToBrenthy](Brenthy/Meaning/IntroductionToBrenthy.md): 
+- [ ] [IntroductionToWalytis](./Walytis/Meaning/IntroductionToWalytis.md): 
+- [ ] [IntroductionToBrenthy](./Brenthy/Meaning/IntroductionToBrenthy.md): 
 
 ### Secondary
 - [ ] [UnderstandingBlockchain](Walytis/Meaning/UnderstandingBlockchain.md): 
