@@ -1,6 +1,9 @@
+# Run this example with:
+# docker compose run DEMO_BRENTHY_APP
+
 services:
   ipfs:
-    image: ipfs/kubo
+    image: local/ipfs
     container_name: ipfs
     expose:
       - "5001"
@@ -11,6 +14,8 @@ services:
   brenthy:
     image: local/brenthy
     container_name: brenthy
+    depends_on:
+      - ipfs
     expose:
       - "29200"
       - "29201"
@@ -20,6 +25,23 @@ services:
     environment:
       - PY_IPFS_HTTP_CLIENT_DEFAULT_ADDR=/dns/ipfs/tcp/5001/http
       - BRENTHY_API_IP_LISTEN_ADDRESS=0.0.0.0  # listen on all IP interfaces
+
+    volumes:
+      - ./docker_brenthy_data:/root/.local/share/Brenthy/  # mount host directory to container directory
+
+  DEMO_BRENTHY_APP:
+    image: python
+    container_name: DEMO_BRENTHY_APP
+    depends_on:
+      - brenthy
+    entrypoint: sh -c "pip install walytis_beta_api && exec python"
+    stdin_open: true  # Keep stdin open for interactive use
+    tty: true         # Allocate a pseudo-TTY for the shell
+    networks:
+      - internal_net
+    environment:
+      - PY_IPFS_HTTP_CLIENT_DEFAULT_ADDR=/dns/ipfs/tcp/5001/http
+      - BRENTHY_IP_ADDRESS=brenthy # specify Brenthy's address
 
 networks:
   internal_net:
