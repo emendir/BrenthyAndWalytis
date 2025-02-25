@@ -15,8 +15,7 @@ from types import FunctionType
 import zmq
 from brenthy_tools_beta import bt_endpoints, log
 from brenthy_tools_beta.brenthy_api_addresses import (
-    BAP_4_PUB_ADDRESS,
-    BAP_4_RPC_ADDRESS,
+    BRENTHY_IP_ADDRESS, BAP_4_RPC_PORT, BAP_4_PUB_PORT
 )
 from brenthy_tools_beta.bt_endpoints import (
     CantConnectToSocketError,
@@ -39,7 +38,7 @@ def send_request(request: bytearray | bytes) -> bytes:  # pylint: disable=unused
         bytearray: the response received from Brenthy-Core
     """
     # try send_request_zmq, as it is faster
-    return send_request_zmq(request, BAP_4_RPC_ADDRESS)
+    return send_request_zmq(request, (BRENTHY_IP_ADDRESS, BAP_4_RPC_PORT))
 
 
 class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-variable
@@ -114,10 +113,9 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
         """Listen for messages and call user's eventhandler when received."""
         self.socket = self.zmq_context.socket(zmq.SUB)
         self.socket.setsockopt(zmq.LINGER, 1)
-
         # Connects to a bound self.socket
         self.socket.connect(
-            f"tcp://{BAP_4_PUB_ADDRESS[0]}:{BAP_4_PUB_ADDRESS[1]}"
+            f"tcp://{BRENTHY_IP_ADDRESS}:{BAP_4_PUB_PORT}"
         )
         for topic in self.topics:
             self.socket.subscribe(json.dumps({"topic": topic})[:-1] + ",")

@@ -10,8 +10,7 @@ import api_terminal
 from api_terminal.bat_endpoints import ZmqMultiRequestsReceiver, ZmqPublisher
 from brenthy_tools_beta import log
 from brenthy_tools_beta.brenthy_api_addresses import (
-    BAP_4_PUB_ADDRESS,
-    BAP_4_RPC_ADDRESS,
+    BRENTHY_API_IP_LISTEN_ADDRESS, BAP_4_RPC_PORT, BAP_4_PUB_PORT,
 )
 
 BAP_VERSION = 4  # pylint: disable=unused-variable
@@ -31,10 +30,12 @@ def initialise() -> None:  # pylint: disable=unused-variable
     # blockced waiting for the RPC to complete.
     log.info("BAP-4 ZMQ creating listener...")
     zmq_listener = ZmqMultiRequestsReceiver(
-        BAP_4_RPC_ADDRESS,
+        (BRENTHY_API_IP_LISTEN_ADDRESS, BAP_4_RPC_PORT),
         api_terminal.handle_request,
     )
-    pub_socket = ZmqPublisher(BAP_4_PUB_ADDRESS)
+    pub_socket = ZmqPublisher((BRENTHY_API_IP_LISTEN_ADDRESS, BAP_4_PUB_PORT))
+    log.important(f"API listening on {zmq_listener.socket_address}")
+    log.important(f"API publishing on {pub_socket.address}")
 
 
 def terminate() -> None:  # pylint: disable=unused-variable
