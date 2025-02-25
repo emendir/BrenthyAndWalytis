@@ -9,8 +9,9 @@ This module's counterpart, which contain's brenthy tool's machinery, is at
 import api_terminal
 from api_terminal.bat_endpoints import TcpMultiRequestsReceiver
 from brenthy_tools_beta.brenthy_api_addresses import (
-    BAP_3_RPC_ADDRESS,
+    BRENTHY_API_IP_LISTEN_ADDRESS, BAP_3_RPC_PORT,
 )
+from brenthy_tools_beta import log
 
 BAP_VERSION = 3  # pylint: disable=unused-variable
 
@@ -23,9 +24,10 @@ def initialise() -> None:  # pylint: disable=unused-variable
     global tcp_listener  # pylint: disable=global-statement
 
     tcp_listener = TcpMultiRequestsReceiver(
-        BAP_3_RPC_ADDRESS,
+        (BRENTHY_API_IP_LISTEN_ADDRESS, BAP_3_RPC_PORT),
         api_terminal.handle_request,
     )
+    log.important(f"API listening on {tcp_listener.socket_address}")
 
 
 def terminate() -> None:  # pylint: disable=unused-variable

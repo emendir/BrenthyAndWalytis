@@ -8,7 +8,9 @@ This module's counterpart, which contain's Brenthy Core's machinery, is at
 """
 
 from brenthy_tools_beta import bt_endpoints
-from brenthy_tools_beta.brenthy_api_addresses import BAP_3_RPC_ADDRESS
+from brenthy_tools_beta.brenthy_api_addresses import (
+    BRENTHY_IP_ADDRESS, BAP_3_RPC_PORT
+)
 from brenthy_tools_beta.bt_endpoints import send_request_tcp
 
 BAP_VERSION = 3  # pylint: disable=unused-variable
@@ -24,7 +26,7 @@ def send_request(request: bytearray | bytes) -> bytes:  # pylint: disable=unused
     """
     return send_request_tcp(
         request,
-        BAP_3_RPC_ADDRESS,
+        (BRENTHY_IP_ADDRESS, BAP_3_RPC_PORT),
     )
 
 

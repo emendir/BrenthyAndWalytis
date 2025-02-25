@@ -16,7 +16,7 @@ from brenthy_tools_beta.version_utils import (
     version_to_string,
 )
 from brenthy_tools_beta.versions import BRENTHY_TOOLS_VERSION
-
+from . import brenthy_api_addresses
 BLOCKCHAIN_RETURNED_NO_RESPONSE = "blockchain returned no response"
 UNKNOWN_BLOCKCHAIN_TYPE = "unknown blockchain type"
 
@@ -55,15 +55,19 @@ def _load_brenthy_api_protocols_from_files() -> None:
     # sort bap modules in order of BAP version, newest to oldest
     bap_protocol_modules.sort(key=lambda x: x.BAP_VERSION, reverse=True)
 
+
 def _load_brenthy_api_protocols_from_registry() -> None:
-    
+
     bap_protocol_modules = []
     for module_name in BAP_MODULES_REGISTRY:
         if module_name in BAP_EXCLUDED_MODULES:
             continue
-        module = importlib.import_module(f"..brenthy_api_protocols.{module_name}", package=__name__)
+        module = importlib.import_module(f"..brenthy_api_protocols.{
+                                         module_name}", package=__name__)
         bap_protocol_modules.append(module)
     bap_protocol_modules.sort(key=lambda x: x.BAP_VERSION, reverse=True)
+
+
 def _load_brenthy_api_protocols() -> None:
     _load_brenthy_api_protocols_from_files()
 
@@ -323,10 +327,14 @@ def get_brenthy_tools_beta_version_string() -> str:
 class BrenthyNotRunningError(Exception):
     """When no communication can be established with Brenthy."""
 
-    def_message = ("Can't connect to Brenthy. Is it running?\n"
-    "If running Brenthy using a docker container, you probably need to set:\n"
-    "brenthy_tools_beta.brenthy_api_addresses.BRENTHY_API_IP_ADDRESS=127.0.0.1"
-)
+    def_message = f"""
+Can't connect to Brenthy at {brenthy_api_addresses.BRENTHY_IP_ADDRESS}.
+Is it running?
+If running Brenthy using a docker container, you probably need to set:
+```py
+brenthy_tools_beta.brenthy_api_addresses.BRENTHY_IP_ADDRESS=DOCKER_CONTAINER_IP
+```
+"""
 
     def __init__(self, message: str = def_message):
         """Raise a BrenthyNotRunningError exception.

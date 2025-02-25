@@ -19,7 +19,7 @@ services:
       - internal_net
     environment:
       - PY_IPFS_HTTP_CLIENT_DEFAULT_ADDR=/dns/ipfs/tcp/5001/http
-      - BRENTHY_API_IP_ADDRESS=127.0.0.1 # use normal localhost instead of the default
+      - BRENTHY_API_IP_LISTEN_ADDRESS=0.0.0.0  # listen on all IP interfaces
 
 networks:
   internal_net:
