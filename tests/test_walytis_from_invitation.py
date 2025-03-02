@@ -278,7 +278,7 @@ def test_cleanup() -> None:
 def run_tests() -> None:
     """Run all tests."""
     prepare()
-    print("\nRunning tests for Walytis_Beta onboarding...")
+    print("\nRunning tests for Walytis joining & block sync...")
     test_sync_block_creation()
     test_sync_on_join()
     test_sync_on_awake()

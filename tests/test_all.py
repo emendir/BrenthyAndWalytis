@@ -5,8 +5,9 @@ if True:
     import test_brenthy_api
     import test_brenthy_logs
     import test_walytis_beta
-    import test_walytis_beta_onboarding
+    import test_walytis_from_invitation
     import test_walytis_beta_quick
+    import test_walytis_join_from_zip
     import testing_utils
     from brenthy_docker import build_docker_image
 
@@ -15,14 +16,16 @@ if __name__ == "__main__":
 
     test_update.REBUILD_DOCKER = False
     test_walytis_beta.REBUILD_DOCKER = False
-    test_walytis_beta_onboarding.REBUILD_DOCKER = False
+    test_walytis_from_invitation.REBUILD_DOCKER = False
+    test_walytis_join_from_zip.REBUILD_DOCKER = False
 
     testing_utils.BREAKPOINTS = False
 
     test_brenthy_api.run_tests()
     test_walytis_beta_quick.run_tests()
     test_walytis_beta.run_tests()
-    test_walytis_beta_onboarding.run_tests()
+    test_walytis_from_invitation.run_tests()
+    test_walytis_join_from_zip.run_tests()
     test_block_ancestry_funcs.run_tests()
     test_brenthy_logs.run_tests()
     test_update.run_tests()
