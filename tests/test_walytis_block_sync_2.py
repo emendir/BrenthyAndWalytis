@@ -63,7 +63,7 @@ REBUILD_DOCKER = True
 DELETE_ALL_BRENTHY_DOCKERS = True
 BLOCKCHAIN_NAME = "TestingBrenthyAppdata"
 SYNC_DUR = 30
-USE_SYSTEM_BRENTHY = True
+USE_SYSTEM_BRENTHY = False
 
 
 MESSAGE_1 = "Hello there!"
@@ -153,21 +153,22 @@ DOCKER_CODE_PRELUDE = """
 import os, sys
 sys.path.append('/opt/Brenthy/tests/')
 import pytest
-import test_walytis_appdata
+import test_walytis_block_sync_2
 """
 DOCKER_1_PART_1 = DOCKER_CODE_PRELUDE + """
-test_walytis_appdata.docker_1_part_1("BC_ID", "APPDATA_CID")
+test_walytis_block_sync_2.docker_1_part_1("BC_ID", "APPDATA_CID")
 """
 DOCKER_2_PART_1 = DOCKER_CODE_PRELUDE + """
-test_walytis_appdata.docker_2_part_1("BC_ID", "APPDATA_CID")
+test_walytis_block_sync_2.docker_2_part_1("BC_ID", "APPDATA_CID")
 """
 DOCKER_1_PART_2 = DOCKER_CODE_PRELUDE + """
-test_walytis_appdata.docker_1_part_2()
+test_walytis_block_sync_2.docker_1_part_2()
 """
 DOCKER_2_PART_2 = DOCKER_1_PART_2
 
 
 def test_block_sync():
+    print("Testing blockchain sync")
     pytest.brenthy_docker_1.run_python_code(
         DOCKER_1_PART_1.replace("APPDATA_CID", pytest.appdata_cid).replace(
             "BC_ID", pytest.blockchain_id),
@@ -215,7 +216,7 @@ def cleanup():
 
 def run_tests() -> None:
     """Run all tests."""
-    print("\nRunning tests for Walytis joining & block sync...")
+    print("\nRunning tests for Walytis joining & block sync 2...")
     prepare()
     if not USE_SYSTEM_BRENTHY:
         test_run_brenthy()
@@ -223,9 +224,9 @@ def run_tests() -> None:
     test_create_blockchain()
 
     test_block_sync()
-    test_threads_cleanup()
     if not USE_SYSTEM_BRENTHY:
         stop_brenthy()
+    test_threads_cleanup()
     cleanup()
 
 
