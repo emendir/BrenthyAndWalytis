@@ -113,8 +113,7 @@ class BlockNotFoundError(Exception):
     """The block mentioned by the request doesn't exists/isn't known yet."""
 
     def_message = (
-        "Could not find the requested block locally or on IPFS. "
-        "Trying again may work."
+        "Block not found!"
     )
 
     def __init__(self, message: str = def_message):
