@@ -233,7 +233,7 @@ class BlocksList(dict, Generic[BlockType]):
                 raise ValueError(
                     "It looks like you passed an short ID or invalid ID as a parameter.")
             else:
-                raise BlockNotFoundError()
+                raise BlockNotFoundError("Block ID not found in BlocksList")
         if not block:
             block = self.block_class.from_id(bytearray(block_id))
             dict.__setitem__(self, block_id, block)

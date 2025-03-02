@@ -495,6 +495,11 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         # Doing all the necessary management
         # when a new block has been decoded and confirmed:
 
+        self.on_block_confirmed(block)
+
+        log.info(f"{self.name}:  Finished processing new block.")
+        return block
+    def on_block_confirmed(self, block:Block):
         # if the block is not already known to us
         if not self.check_new_block(block):
             with self.endblocks_lock:
@@ -514,10 +519,6 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 message={"block_id": bytes_to_string(block.short_id)},
                 topics="NewBlocks",
             )
-
-        log.info(f"{self.name}:  Finished processing new block.")
-        return block
-
     def read_block(
         self, block_data: bytearray | bytes, ipfs_cid: str, live: bool = True
     ) -> Block | None:
@@ -544,7 +545,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         """
         self.check_alive()  # ensure this Blockchain object isn't shutting down
 
-        log.info(f"{self.name}:  read_block: Decoding block...")
+        log.info(f"{self.name}:  read_block: Decoding block {'(live)' if live else '(not live)'}")
 
         # making a copy of the data to work with
         data = bytearray(block_data)
@@ -603,12 +604,13 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         # of a running blockchain:
         if live:
             # Check block's parents
-            log.info(f"{self.name}:  read_block: Checking parents...")
+            # log.info(f"{self.name}:  read_block: Checking parents...")
             result = self.check_blocks_parents(parents)
+            log.info(f"{self.name}:  read_block: Checked parents: {result}")
             if result == "invalid":
                 log.warning(
                     f"{self.name}: blockchain_manager.Readblock: "
-                    "self.check_blocks_parents() returned 'invalid'.  "
+                    "self.check_blocks_parents returned 'invalid'.  "
                     f"Topics: {topics}"
                 )
                 return None
@@ -619,7 +621,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             else:
                 log.warning(
                     "BUG - Blockchain.read_block: There is a bug in "
-                    "blockchain_manager.self.check_blocks_parents(), it "
+                    "blockchain_manager.self.check_blocks_parents, it "
                     "didn't return a return code"
                 )
                 return None
@@ -676,10 +678,6 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             return block
 
         if not parents_confirmed:
-            log.important(
-                f"{self.name}:  Block's parents not all confirmed, added to "
-                f"blocks_to_confirm. {len(block.parents)}"
-            )
             self.blocks_to_confirm_lock.acquire()
             # add block to unconfirmed_blocks if it isn't already there
             if not [
@@ -689,14 +687,28 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             ]:
                 self.unconfirmed_blocks.append(block)
             self.blocks_to_confirm_lock.release()
+            log.important(
+                f"{self.name}:  Block's parents not all confirmed, added to "
+                f"blocks_to_confirm."
+            )
+            # log.important((
+            #     f"Unconfirmed blocks: {len(self.unconfirmed_blocks)}\n\n"+
+            #     "\n\n".join([
+            #         f"{block.long_id}"
+            #          for block in self.unconfirmed_blocks
+            #      ])
+            #      +"\n\n"
+            # ))
             return None
         else:  # parents_confirmed == True
             log.info(f"{self.name}:  All in order with the new block.")
             self.blocks_to_confirm_lock.acquire()
-            if block.short_id in self.blocks_to_find:
+            _update_btf=block.short_id in self.blocks_to_find
+            if _update_btf:
                 self.blocks_to_find.remove(block.short_id)
-                self.check_on_unconfirmed_blocks()
             self.blocks_to_confirm_lock.release()
+            if _update_btf:
+                self.check_on_unconfirmed_blocks()
 
             return block
 
@@ -753,11 +765,13 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             else:  # parent is not known
                 # append parent to blocks_to_find (if it isn't already)
                 if not got_unconf_blocks_lock:
+                    log.info("Acquiring lock...")
                     self.blocks_to_confirm_lock.acquire()
                 if parent not in self.blocks_to_find:
                     self.blocks_to_find.append(parent)
                 if not got_unconf_blocks_lock:
                     self.blocks_to_confirm_lock.release()
+                    log.info("Released lock.")
         if known_parents_count < len(parents):
             return "unconfirmed"
 
@@ -809,16 +823,17 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 self.unconfirmed_blocks.remove(block)
                 if block.short_id in self.blocks_to_find:
                     self.blocks_to_find.remove(block.short_id)
-                # self.check_on_unconfirmed_blocks()
+                log.info("Confirmed a previously unconfirmed block!")
+                self.on_block_confirmed(block)
                 num_confirmed += 1
                 break
         self.blocks_to_confirm_lock.release()
         if num_confirmed > 0:
             self.check_on_unconfirmed_blocks()
-        log.info(
-            f"{self.name} Unconfirmed Blocks: {len(self.unconfirmed_blocks)}"
-        )
-        log.info(f"{self.name} Blocks to Find: {len(self.blocks_to_find)}")
+        # log.info(
+        #     f"{self.name} Unconfirmed Blocks: {len(self.unconfirmed_blocks)}"
+        # )
+        # log.info(f"{self.name} Blocks to Find: {len(self.blocks_to_find)}")
 
     def look_for_blocks_to_find(self) -> None:
         """Try to get blocks we have heard about but don't have."""
@@ -833,6 +848,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
         while not self._terminate:
             self.look_for_blocks_to_find()
+            self.check_on_unconfirmed_blocks()
             time.sleep(self.blocks_finder_thread_cycle_duration_s)
 
     def create_invitation(
@@ -1313,6 +1329,9 @@ def get_blockchain(blockchain_id: str) -> Blockchain | None:
 def run_blockchains() -> None:
     """Start running our blockchains."""
     blockchain_ids = []
+    log.important(
+        f"Loading blockchains from {os.path.abspath(walytis_beta_appdata_dir)}"
+    )
     for blockchain_id in os.listdir(walytis_beta_appdata_dir):
         blockchain_data_dir = os.path.join(
             walytis_beta_appdata_dir, blockchain_id

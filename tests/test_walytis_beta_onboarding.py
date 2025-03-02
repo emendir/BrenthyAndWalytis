@@ -191,6 +191,7 @@ def test_sync_block_creation() -> None:
     print(mark(ipfs_connect_to_container(0)), "ipfs_api.find_peer")
     print(mark(docker_join_blockchain(0)), "join_blockchain")
 
+    blockchain.add_block("DUMMY".encode())
     blockchain.add_block("Test1".encode())
     for _ in range(8):
         time.sleep(5)
@@ -224,6 +225,7 @@ def test_sync_on_awake() -> None:
     """Test that blocks are synchronised to other nodes when coming online."""
     # test getting latest blocks on awaking
     brenthy_dockers[1].stop()
+    blockchain.add_block("DUMMY".encode())
     blockchain.add_block("Test2".encode())
     polite_wait(10)
     brenthy_dockers[1].restart()

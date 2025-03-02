@@ -74,6 +74,10 @@ def run_brenthy() -> None:
     log.LOG_ARCHIVE_DIRNAME = ".log_archive"
     log.add_empty_line()
     log.important("Starting up Brenthy...")
+    log.important(
+        "Logging to " +
+        os.path.abspath(os.path.join(log.LOG_DIR, log.LOG_FILENAME))
+    )
     try:
         if "--dont-install" in sys.argv:
             TRY_INSTALL = False

@@ -10,3 +10,6 @@ To run this example, run this shell command from this directory:
 docker compose run DEMO_BRENTHY_APP
 ```
 This will run an IPFS container, a Brenthy container, and a demo-Brenthy-app container that, after installing the `walytis_beta_api` python package, opens a python shell in which you can interact with Brenthy and Walytis.
+
+### Limitations
+- Join given invitation doesn't work, but join from ZIP or CID does

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brenthy_docker"
-version = "0.3.6"
+version = "0.3.7"
 description="Interact with docker containers running IPFS and Brenthy."
 dependencies = [
   "docker",

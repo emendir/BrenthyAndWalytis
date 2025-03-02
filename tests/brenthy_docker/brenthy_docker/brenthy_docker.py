@@ -91,17 +91,23 @@ class BrenthyDocker:
                     'ipfs id -f="<id>"', print_output=False)
                 sleep(1)
 
-    def stop(self) -> None:
+    def stop(self, force=False) -> None:
         """Stop this container."""
-        self.container.stop()
+        if force:
+            self.container.stop(timeout=0)
+        else:
+            self.container.stop()
 
     def restart(self) -> None:
         """Restart this container."""
         self.container.restart()
 
-    def delete(self) -> None:
-        self.run_bash_code("poweroff")
-        self.container.stop()
+    def delete(self, force=False) -> None:
+        if force:
+            self.container.stop(timeout=0)
+        else:
+            self.run_bash_code("poweroff")
+            self.container.stop()
         self.container.remove()
 
     def transfer_file(self, local_filepath: str, remote_filepath: str) -> None:
