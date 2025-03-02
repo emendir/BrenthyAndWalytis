@@ -82,13 +82,15 @@ class BrenthyDocker:
             sleep(0.2)
         if await_ipfs:
             self.ipfs_id = ""
-            self.ipfs_id = self.run_shell_command(
-                'ipfs id -f="<id>"', print_output=False)
 
-            while not self.ipfs_id and not ipfs_api.find_peer(self.ipfs_id):
-                self._docker_swarm_connect()
-                self.ipfs_id = self.run_shell_command(
-                    'ipfs id -f="<id>"', print_output=False)
+            while not (self.ipfs_id and ipfs_api.find_peer(self.ipfs_id)):
+                try:
+                    self.ipfs_id = self.run_shell_command(
+                        'ipfs id -f="<id>"', print_output=False)
+                except:
+                    pass
+                if self.ipfs_id:
+                    self._docker_swarm_connect()
                 sleep(1)
 
     def stop(self, force=False) -> None:
@@ -395,8 +397,10 @@ class BrenthyDocker:
 
         if ip4_udp_maddr:  # if any such addresses were found, try to connect
             commands.append(f"ipfs swarm connect {ip4_udp_maddr[0]}")
-
-        self.run_bash_code(" & ".join(commands), print_output=False)
+        try:
+            self.run_bash_code(" & ".join(commands), print_output=False)
+        except:
+            pass
 
         # print(f"ipfs swarm connect {ip6_tcp_maddr}")
         # print(f"ipfs swarm connect {ip6_udp_maddr}")
