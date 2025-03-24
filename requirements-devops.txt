@@ -3,3 +3,5 @@ termcolor
 pyperclip
 pandas
 decorate_all
+docker
+pexpect

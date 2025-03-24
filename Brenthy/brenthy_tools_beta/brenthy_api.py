@@ -62,8 +62,9 @@ def _load_brenthy_api_protocols_from_registry() -> None:
     for module_name in BAP_MODULES_REGISTRY:
         if module_name in BAP_EXCLUDED_MODULES:
             continue
-        module = importlib.import_module(f"..brenthy_api_protocols.{
-                                         module_name}", package=__name__)
+        module = importlib.import_module(
+            f"..brenthy_api_protocols.{module_name}", package=__name__
+        )
         bap_protocol_modules.append(module)
     bap_protocol_modules.sort(key=lambda x: x.BAP_VERSION, reverse=True)
 

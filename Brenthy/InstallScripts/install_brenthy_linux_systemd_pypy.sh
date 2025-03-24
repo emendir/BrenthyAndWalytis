@@ -32,9 +32,9 @@ ARCH=$(uname -m)
 
 # Check the architecture and set the variable accordingly
 if [ "$ARCH" == "x86_64" ]; then
-    PYPY_URL=https://downloads.python.org/pypy/pypy3.10-v7.3.17-linux64.tar.bz2
+    PYPY_URL=https://downloads.python.org/pypy/pypy3.11-v7.3.19-linux64.tar.bz2
 elif [ "$ARCH" == "aarch64" ]; then
-    PYPY_URL=https://downloads.python.org/pypy/pypy3.10-v7.3.17-aarch64.tar.bz2
+    PYPY_URL=https://downloads.python.org/pypy/pypy3.11-v7.3.19-aarch64.tar.bz2
 else
     echo "Unsupported architecture: $ARCH"
     exit 1
@@ -122,9 +122,7 @@ else
   # install pip, the package manager
   Python/bin/python -m ensurepip
   Python/bin/python -m pip -qq install  --root-user-action ignore --upgrade pip
-
-  # install a specific version of ecies, as the default's doesn't currently work
-  Python/bin/python -m pip -qq install --root-user-action ignore eciespy@git+https://github.com/ecies/py
+  
   if ! [ "$?" = "0" ];then exit 1;fi
   Python/bin/python -m pip -qq install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
   if ! [ "$?" = "0" ];then exit 1;fi

@@ -84,9 +84,8 @@ def assert_is_loaded_from_source(source_dir: str, module: ModuleType) -> None:
     assert (
         source_path in module_path
     ), (
-        f"The module `{
-            module.__name__}` has been loaded from an installion, not this "
-        " source code!\n"
+        f"The module `{module.__name__}` has been loaded from an installion, "
+        "not this source code!\n"
         f"Desired source dir: {source_path}\n"
         f"Loaded module path: {module_path}\n"
     )
