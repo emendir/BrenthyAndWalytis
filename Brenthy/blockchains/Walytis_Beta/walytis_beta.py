@@ -1025,6 +1025,8 @@ def join_blockchain(
     peers = invitation_d["peers"]
     log.info("Walytis_Beta: Joining blockchain...")
     for peer in peers:
+        if peer == ipfs_api.my_id():
+            continue
         log.debug(f"WJ: trying peer {peer}")
         tempdir = tempfile.mkdtemp()
         conv = None

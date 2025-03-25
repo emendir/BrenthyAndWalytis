@@ -121,7 +121,7 @@ else
 
   # install pip, the package manager
   Python/bin/python -m ensurepip
-  Python/bin/python -m pip -qq install  --root-user-action ignore --upgrade pip
+  Python/bin/python -m pip -qq install --root-user-action ignore --upgrade pip
   
   if ! [ "$?" = "0" ];then exit 1;fi
   Python/bin/python -m pip -qq install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt

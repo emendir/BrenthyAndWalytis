@@ -10,7 +10,7 @@ BRENTHY_API_PROTOCOL_VERSION = 4
 BRENTHY_CORE_VERSION = (
     BRENTHY_API_PROTOCOL_VERSION,  # major: the BrenthyAPI Protocol version
     1,  # minor: significant changes to Brenthy since the last major update
-    9,  # patch: minor changes to Brenthy since the last minor update
+    10,  # patch: minor changes to Brenthy since the last minor update
 )
 
 

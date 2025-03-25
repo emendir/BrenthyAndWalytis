@@ -16,6 +16,7 @@ BLOCKCHAIN_REQUIRED_MODULES = [
     ("BLOCKCHAIN_TYPE_api", "BLOCKCHAIN_TYPE_api.py"),
 ]
 IGNORED_FOLDERS = {"__pycache__"}
+MODULES_PATH="blockchains"
 
 
 def run_blockchains() -> None:  # pylint: disable=unused-variable
@@ -29,8 +30,8 @@ def load_blockchain_modules() -> list:
     """Load the installed blockchain types, ensuring they are valid."""
     global blockchain_modules
     blockchain_modules = []
-    for blockchain_type in os.listdir("blockchains"):
-        blockchain_path = os.path.join("blockchains", blockchain_type)
+    for blockchain_type in os.listdir(MODULES_PATH):
+        blockchain_path = os.path.join(MODULES_PATH, blockchain_type)
         # check if all the modules specified in BLOCKCHAIN_REQUIRED_MODULES
         # exist in the folder, if not skip this folder
         missing_modules = []
