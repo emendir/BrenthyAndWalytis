@@ -59,6 +59,7 @@ Description=InterPlanetary FileSystem - the infrastructure of a P2P internet
 User=$USER
 Environment=LIBP2P_TCP_REUSEPORT=false
 ExecStart=ipfs daemon --enable-pubsub-experiment
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

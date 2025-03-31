@@ -137,6 +137,7 @@ Wants=ipfs.service
 User=brenthy
 WorkingDirectory=${install_dir}/Brenthy
 ExecStart=${install_dir}/Python/bin/python ${install_dir}/Brenthy
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
