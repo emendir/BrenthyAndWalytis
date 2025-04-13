@@ -82,10 +82,11 @@ class Networking(ABC):
         if self._terminate:
             return
 
-        if isinstance(pubsub_packet, dict):
+        try:
             data = json.loads(pubsub_packet["data"].decode())
             sender_id = pubsub_packet["senderID"]
-        else:
+        except Exception as e:
+            log.error(e)
             raise TypeError(
                 f"Pubsub message handler received unexpected type "
                 f"{type(pubsub_packet)}"

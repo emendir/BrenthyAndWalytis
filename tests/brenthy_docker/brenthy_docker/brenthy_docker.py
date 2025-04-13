@@ -356,7 +356,7 @@ class BrenthyDocker:
         # Out of all our IPFS multi-addresses, choose the first non-localhost
         # IP address for both IPv4 & IPv6, and get the our multi_addresses for
         # those IP-addresses for both UDP & TCP
-        multi_addresses = dict(ipfs_api.http_client.id())["Addresses"]
+        multi_addresses = ipfs_api.my_multiaddrs()
         ip6_tcp_maddr = [
             address
             for address in multi_addresses
