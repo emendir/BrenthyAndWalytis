@@ -6,7 +6,7 @@
 
 _`4D61646520776974682073696E63657265206C6F766520666F72206D616E6B696E642E`_
 
-Walytis is a database-blockchain, meaning a type of blockchain that is nothing more than a fully distributed database-management system, with a focus on accessibility, flexibility and lightweightedness, when compared to other blockchains.
+Walytis is a database-blockchain, a type of blockchain that is nothing more than a fully distributed database-management system, with a focus on accessibility, flexibility and lightweightedness, when compared to other blockchains.
 Applications can create a new Walytis database-blockchain whenever they need one.
 While they can always add new data to it, existing data can never be deleted or modified.
 
@@ -41,13 +41,13 @@ _A list of the most significant features that set this blockchain apart from cla
 
 ### Blockchain Overlays
 
-The features of Walytis blockchains can be expanded by building modules on top of it that provide applications with interfaces to database-blockchains that have unique features and functionality not built into Walytis.
+The features of Walytis blockchains can be expanded by building modules on top of them that provide applications with interfaces to database-blockchains that have unique features and functionality not built into Walytis.
 Let's call these libraries _blockchain overlays_.
 
 I'm working on a few blockchain overlays that provide the following features:
 
 - Mutability: a distributed database in which blocks can be edited and their edit-history read
-- Privacy: a distributed database in which the application's content is encrypted and stored off-chain, and blocks are authenticated by having their creators sign them
+- Privacy: an access-controlled distributed database in which the application's content is encrypted and stored off-chain, and blocks are authenticated by having their creators sign them using Walytis-based identity management
 
 These modules can be compounded to combine their features.
 Underneath, the blockchains are still Walytis blockchains of course, but these blockchain overlays abstract away from applications the mechanics of creating mutable content or authenticating blocks.
@@ -66,9 +66,10 @@ Read more about querying Walytis blocks [here](/Documentation/Walytis/Tutorials/
 
 Here is a list of some applications that are currently under development to explain by example how Walytis database-blockchains might be used:
 
-- Messenger: - A database-blockchain can be used to record the existence of messages in a chatroom. Actual message content is stored off-chain for privacy. In this case the database-blockchain is used not for storage but to help the various devices of the member's chatroom coordinate their data synchronisation.
-- File Synchronisation: - File changes are recorded in blocks, creating a complete unified history of file edits across users. Actual files are stored off-chain for storage-efficiency.
-- Serverless Git Collaboration: - Ever notice that git already looks like a blockchain? Map git commits onto Walytis blocks and git repositories onto Walytis blockchains and you've got a shared git repo!
+- Messenger: A database-blockchain can be used to record the existence of messages in a chatroom. Actual message content is stored off-chain for privacy. In this case the database-blockchain is used not for storage but to help the various devices of the member's chatroom coordinate their data synchronisation.
+- File Synchronisation: File changes are recorded in blocks, creating a complete unified history of file edits across users. Actual files are stored off-chain for storage-efficiency.
+- Serverless Git Collaboration: Ever notice that git already looks like a blockchain? Map git commits onto Walytis blocks and git repositories onto Walytis blockchains and you've got a shared git repo!
+- Identity Management: One data-base blockchain is used for every identity, publishing [DID-documents](https://www.w3.org/TR/did-1.0/) as blocks, cryptographically authenticated 
 
 ## Security
 
