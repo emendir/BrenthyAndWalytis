@@ -2,6 +2,7 @@
 
 # exposing the Walytis_Beta  in the way that Brenthy can find it
 # pylint: disable=unused-variable
+from .networking import ipfs
 from .walytis_beta import Blockchain
 from .walytis_beta import run_blockchains, terminate
 from .walytis_beta_api import log

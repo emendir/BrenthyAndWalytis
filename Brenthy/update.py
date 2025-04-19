@@ -9,7 +9,7 @@ import sys
 import tempfile
 
 import brenthy_tools_beta.versions
-import ipfs_api
+from blockchains.Walytis_Beta.networking import ipfs
 import run
 from app_data import blockchaintypes_dir
 from blockchain_manager import load_blockchain_modules
@@ -222,7 +222,7 @@ def process_update_block(block: Block) -> bool:
     if not os.path.exists(verified_updates_path):
         os.makedirs(verified_updates_path)
     download_path = tempfile.mkdtemp(dir=".updates")
-    ipfs_api.download(ipfs_cid, download_path)
+    ipfs.files.download(ipfs_cid, download_path)
     release_path = os.path.join(download_path, ipfs_cid)
     if not verify_downloaded_release(release_path, ipfs_cid):
         shutil.rmtree(download_path)
@@ -245,7 +245,7 @@ def process_update_block(block: Block) -> bool:
 
 def verify_downloaded_release(release_path: str, cid: str) -> bool:
     """Check the integrity and authenticity of a downloaded Brenthy release."""
-    real_cid = ipfs_api.publish(release_path)
+    real_cid = ipfs.files.publish(release_path)
     if not real_cid == cid:
         log.warning("update integrity check failed.")
         return False

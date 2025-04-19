@@ -30,7 +30,7 @@ if True:
     import shutil
     import time
 
-    import ipfs_api
+    from _testing_utils import ipfs
     import pytest
     import run
 
@@ -119,11 +119,11 @@ def test_find_peer() -> None:
     """Test that we are connected to the Brenthy docker container via IPFS."""
     success = False
     for _ in range(5):
-        success = ipfs_api.find_peer(brenthy_docker.ipfs_id)
+        success = ipfs.peers.find(brenthy_docker.ipfs_id)
         if success:
             break
 
-    print(mark(success), "ipfs_api.find_peer")
+    print(mark(success), "ipfs.peers.find")
 
 
 def test_walytis_beta_update() -> None:

@@ -1,5 +1,7 @@
 """Networking machinery for the Walytis Blockchain (except joining)."""
 
+from ipfs_tk_generics import IpfsClient
+from app_data import blockchaintypes_dir
 import json
 import os
 import time
@@ -7,17 +9,49 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from random import randint
 from threading import Lock
-
-import ipfs_api
-from ipfs_peers import PeerMonitor
+from ipfs_node import IpfsNode
+from ipfs_tk_generics import IpfsClient
+from ipfs_tk_peer_monitor import PeerMonitor
 
 from .exceptions import BlockchainTerminatedError
-from .walytis_beta_api.block_model import decode_short_id
 
 if True:
     # pylint: disable=import-error
     from brenthy_tools_beta import log
     from brenthy_tools_beta.utils import bytes_to_string, string_to_bytes
+    
+    # initialise IPFS
+    USE_IPFS_NODE = os.environ.get("USE_IPFS_NODE", "").lower() in ["true", "1"]
+    IPFS_REPO_DIR = os.environ.get("IPFS_REPO_DIR", "")
+    ipfs_node:IpfsClient
+    if USE_IPFS_NODE:
+        if IPFS_REPO_DIR:
+            if not os.path.exists(IPFS_REPO_DIR):
+                raise Exception(
+                    "The path specified in the environment variable IPFS_REPO_DIR "
+                    f"doesn't exist: {IPFS_REPO_DIR}"
+                )
+        else:
+            IPFS_REPO_DIR = os.path.join(blockchaintypes_dir, "IpfsRepo")
+            if not os.path.exists(IPFS_REPO_DIR):
+                os.makedirs(IPFS_REPO_DIR)
+            os.environ["IPFS_REPO_DIR"]=IPFS_REPO_DIR # set environment variable for walytis_beta_api
+        from ipfs_node import IpfsNode
+
+        ipfs = IpfsNode(IPFS_REPO_DIR)
+    else:
+        from ipfs_remote import IpfsRemote
+        ipfs = IpfsRemote("localhost:5001")
+        try:
+            ipfs.wait_till_ipfs_is_running(timeout_sec=5)
+        except TimeoutError:
+            log.warning("IPFS isn't running. Waiting for IPFS to start...")
+            ipfs.wait_till_ipfs_is_running()
+            log.warning("IPFS running now, starting Brenthy now...")
+
+
+    # walytis_beta_api must be loaded only after IPFS is initialised
+    from .walytis_beta_api.block_model import decode_short_id
 
 STARTUP_BLOCKLISTENER_PATIENCE = 10  # seconds
 RUNTIME_BLOCKLISTENER_PATIENCE = 20  # seconds
@@ -25,7 +59,6 @@ PM_FILE_WRITE_INTERVALL_SEC = 20
 # estimation of the latency in block-message composition, pubsub-transmission
 # and reception-processing  (prefer overestimate, NON-ZERO)
 estimated_pubsub_latency_sec = 10  # TODO: measure pubsub latency
-IPFS_PEER_ID = ipfs_api.my_id()
 
 # at what intervall should we check the number of pubsub-connected peers
 PUBSUB_PEERS_CHECK_INTERVALL_S = 100
@@ -50,27 +83,29 @@ class Networking(ABC):
 
     # defined in walytis_beta_appdata
     ipfs_peers_path = ""
+    ipfs: IpfsClient
 
     def __init__(self):
         """Initialise core networking machinery."""
+
         try:
-            self.peer_monitor = PeerMonitor(self.ipfs_peers_path)
+            self.peer_monitor = PeerMonitor(ipfs, self.ipfs_peers_path)
         except json.decoder.JSONDecodeError:
             os.remove(self.ipfs_peers_path)
-            self.peer_monitor = PeerMonitor(self.ipfs_peers_path)
+            self.peer_monitor = PeerMonitor(ipfs, self.ipfs_peers_path)
         self.peer_monitor.file_write_interval_sec = PM_FILE_WRITE_INTERVALL_SEC
         # initialise pubsub peer count tracking
         self._pubsub_peers = 0
         self._last_pubsub_peers_check = datetime.utcnow() - timedelta(
-            seconds=PUBSUB_PEERS_CHECK_INTERVALL_S+1
+            seconds=PUBSUB_PEERS_CHECK_INTERVALL_S + 1
         )
-        self.ipfs_peer_id = ipfs_api.my_id()
+        self.ipfs_peer_id = ipfs.peer_id
 
     def listen_for_blocks(self) -> None:
         """Start listening for new blocks on this blockchain."""
         self.check_alive()  # ensure this Blockchain object isn't shutting down
 
-        self.pubsub_listener = ipfs_api.pubsub_subscribe(
+        self.pubsub_listener = ipfs.pubsub.subscribe(
             self.blockchain_id, self.pubsub_message_handler
         )
         log.info(f"Created PubSub listener for {self.name}")
@@ -176,8 +211,8 @@ class Networking(ABC):
                 {"message": "Leaf blocks:", "leaf_blocks": leaf_blocks}
             ).encode()
             try:
-                ipfs_api.pubsub_publish(self.blockchain_id, data)
-            except ipfs_api.ipfshttpclient.exceptions.ConnectionError as e:
+                ipfs.pubsub.publish(self.blockchain_id, data)
+            except Exception as e:
                 log.error(e)
         self.update_shared_leaf_blocks(leaf_blocks, already_locked=True)
         self.__lslb_lock.release()
@@ -204,7 +239,7 @@ class Networking(ABC):
                 # data = json.dumps({
                 #     "message": "What's the latest block?"
                 # }).encode()
-                # ipfs_api.pubsub_publish(self.blockchain_id, data)
+                # ipfs.pubsub.publish(self.blockchain_id, data)
                 self.check_and_publish_leaf_blocks()
 
             waiting_duration = (
@@ -217,7 +252,7 @@ class Networking(ABC):
             (datetime.utcnow() - self._last_pubsub_peers_check).total_seconds()
             > PUBSUB_PEERS_CHECK_INTERVALL_S
         ):
-            self._pubsub_peers = ipfs_api.pubsub_peers(self.blockchain_id)
+            self._pubsub_peers = ipfs.pubsub.list_peers(self.blockchain_id)
             self._last_pubsub_peers_check = datetime.utcnow()
         return self._pubsub_peers
 

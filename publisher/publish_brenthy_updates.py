@@ -7,7 +7,6 @@ import sys
 import tempfile
 from getpass import getpass
 
-import ipfs_api
 from cryptem import Crypt
 
 publisher_public_key = "0459f93b7e8c77ec5daad9e2625ef5421028a8bcc3f158ce5e5085e1fde012e4a943a97446574d92f4330ce74c059dd4f66e78313021b8a3cdb0af141d58a70d0c"
@@ -35,6 +34,7 @@ if True:
         os.path.dirname(os.path.dirname(__file__)), "Brenthy"
     )
     sys.path.insert(0, brenthy_dir)
+    from blockchains.Walytis_Beta.networking import ipfs
     from blockchain_manager import load_blockchain_modules
     from brenthy_tools_beta import log
     from brenthy_tools_beta.utils import (
@@ -165,7 +165,7 @@ def publish_project_on_ipfs() -> str:
     if os.path.exists(os.path.join(tempdir, "Brenthy", ".log_archive")):
         shutil.rmtree(os.path.join(tempdir, "Brenthy", ".log_archive"))
 
-    ipfs_cid = ipfs_api.publish(tempdir)
+    ipfs_cid = ipfs.files.publish(tempdir)
 
     shutil.rmtree(tempdir)
 

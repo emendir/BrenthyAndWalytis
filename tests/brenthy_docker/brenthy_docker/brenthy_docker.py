@@ -7,7 +7,7 @@ import tempfile
 from time import sleep
 
 import docker
-import ipfs_api
+from _testing_utils import ipfs
 import pexpect
 import pyperclip
 from termcolor import colored as coloured
@@ -83,7 +83,7 @@ class BrenthyDocker:
         if await_ipfs:
             self.ipfs_id = ""
 
-            while not (self.ipfs_id and ipfs_api.find_peer(self.ipfs_id)):
+            while not (self.ipfs_id and ipfs.peers.find(self.ipfs_id)):
                 try:
                     self.ipfs_id = self.run_shell_command(
                         'ipfs id -f="<id>"', print_output=False)
@@ -356,7 +356,7 @@ class BrenthyDocker:
         # Out of all our IPFS multi-addresses, choose the first non-localhost
         # IP address for both IPv4 & IPv6, and get the our multi_addresses for
         # those IP-addresses for both UDP & TCP
-        multi_addresses = ipfs_api.my_multiaddrs()
+        multi_addresses = ipfs.get_addrs()
         ip6_tcp_maddr = [
             address
             for address in multi_addresses

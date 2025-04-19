@@ -12,7 +12,10 @@ brenthy_dir = os.path.join(
 walytis_dir = os.path.join(brenthy_dir, "blockchains", "Walytis_Beta")
 sys.path.insert(0, brenthy_dir)
 sys.path.insert(0, walytis_dir)
-
+if True:
+    # ensure IPFS is initialised via Walytis_Beta.networking, not walytis_beta_api
+    from blockchains.Walytis_Beta.networking import ipfs
+    print("IPFS Peer ID:", ipfs.peer_id)
 
 BREAKPOINTS = False
 PYTEST = True  # whether or not this script is being run by pytest

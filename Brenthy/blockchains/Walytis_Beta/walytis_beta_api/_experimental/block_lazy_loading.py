@@ -6,7 +6,7 @@ from collections.abc import Generator
 from datetime import datetime
 from typing import Generic, Type, TypeVar
 
-import ipfs_api
+from .config import ipfs
 
 from ..block_model import Block, decode_long_id, short_from_long_id
 from ..walytis_beta_interface import (
@@ -78,7 +78,7 @@ class BlockLazilyLoaded(Block):
         self.file_data
 
     def _load_content(self) -> None:
-        block_data = ipfs_api.read(self.ipfs_cid)
+        block_data = ipfs.files.read(self.ipfs_cid)
         content_separator = block_data.index(bytearray([0, 0, 0, 0, 0]))
         content = block_data[content_separator + 5:]
 

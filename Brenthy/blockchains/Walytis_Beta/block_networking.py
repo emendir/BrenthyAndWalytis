@@ -6,14 +6,13 @@ import json
 import os
 from tempfile import NamedTemporaryFile
 
-import ipfs_api
 from brenthy_tools_beta import log
 from brenthy_tools_beta.utils import (  # pylint: disable=unused-import
     bytes_to_string,
 )
 
 from .walytis_beta_api import block_model
-
+from .networking import ipfs
 PREFERRED_HASH_ALGORITHM = "sha512"
 
 
@@ -47,16 +46,16 @@ class Block(block_model.Block):
         with NamedTemporaryFile(delete=False) as tempf:
             tempf.write(self.file_data)
             tempf.close()
-            cid = ipfs_api.predict_cid(tempf.name)
-            if cid in ipfs_api.pins(cache_age_s=1000):
+            cid = ipfs.files.predict_cid(tempf.name)
+            if cid in ipfs.files.list_pins(cache_age_s=1000):
                 log.error(
                     "Block.publish_file_data: "
                     "IPFS content with this CID already exists!"
                 )
                 raise IpfsCidExistsError()
-            cid = ipfs_api.publish(tempf.name)
+            cid = ipfs.files.publish(tempf.name)
             os.remove(tempf.name)
-            ipfs_api.pin(cid)
+            ipfs.files.pin(cid)
             return cid
 
     def announce_block(self, blockchain_id: str) -> None:
@@ -68,7 +67,7 @@ class Block(block_model.Block):
             }
         ).encode()
 
-        ipfs_api.pubsub_publish(blockchain_id, data)
+        ipfs.pubsub.publish(blockchain_id, data)
 
 
 class IpfsCidExistsError(Exception):

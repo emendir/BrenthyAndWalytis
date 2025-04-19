@@ -16,11 +16,12 @@ from install import (
     install,
     try_install_python_modules,
 )
-
+from ipfs_tk_generics import IpfsClient
 if True:  # pylint: disable=using-constant-test
     os.chdir(os.path.dirname(__file__))
     from brenthy_tools_beta import log
     from brenthy_tools_beta.versions import BRENTHY_CORE_VERSION
+    print(f"Brenthy {BRENTHY_CORE_VERSION}")
     # log.set_print_level("Info")
 # install required python modules if they don't yet exist
 try_install_python_modules()
@@ -33,7 +34,6 @@ if str(sys.version)[0] != "3":  # pylint: disable=magic-value-comparison
 print(__file__)
 
 
-print(f"Brenthy {BRENTHY_CORE_VERSION}")
 
 TRY_INSTALL = True
 DATA_DIR = ""
@@ -46,7 +46,7 @@ INSTALL_PYPY = None
 api_terminal = None
 blockchain_manager = None
 update = None
-
+ipfs:IpfsClient|None=None
 
 def run_brenthy() -> None:
     """Run Brenthy."""
@@ -55,6 +55,7 @@ def run_brenthy() -> None:
     global update
     global bt_endpoints
     global walytis_beta_api
+    global ipfs
     global TRY_INSTALL
     global CHECK_UPDATES
     global DATA_DIR
@@ -148,14 +149,9 @@ def run_brenthy() -> None:
 
     try:
         # Wait till IPFS comes online
-        import ipfs_api  # pylint: disable=import-outside-toplevel
+        from blockchains.Walytis_Beta.networking import ipfs  # pylint: disable=import-outside-toplevel
 
-        try:
-            ipfs_api.wait_till_ipfs_is_running(timeout_sec=5)
-        except TimeoutError:
-            log.warning("IPFS isn't running. Waiting for IPFS to start...")
-            ipfs_api.wait_till_ipfs_is_running()
-            log.warning("IPFS running now, starting Brenthy now...")
+        log.info(f"Our IPFS Peer ID: {ipfs.peer_id}")
 
     except:  # pylint: disable=bare-except
         log.fatal(traceback.format_exc())
@@ -214,6 +210,9 @@ def run_brenthy() -> None:
 def stop_brenthy() -> None:
     """Stop Brenthy-Core."""
     log.important("Stopping Brenthy...")
+    # if ipfs:
+    #     ipfs.terminate()
+
     try:
         api_terminal.terminate()
     except:  # pylint: disable=bare-except
@@ -251,3 +250,4 @@ if __name__ == "__main__":
     run_brenthy()
     print("Press Ctrl+C to stop Brenthy.")
     atexit.register(stop_brenthy)
+    

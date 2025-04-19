@@ -4,7 +4,7 @@ import shutil
 import sys
 import time
 
-import ipfs_api
+from _testing_utils import ipfs
 import pytest
 import testing_utils
 from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image

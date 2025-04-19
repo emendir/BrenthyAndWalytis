@@ -14,7 +14,7 @@ import shutil
 from datetime import datetime
 from typing import Callable
 
-import ipfs_api
+from ._experimental.config import ipfs
 from brenthy_tools_beta import brenthy_api, log
 from brenthy_tools_beta.utils import (
     bytes_to_string,
@@ -302,12 +302,12 @@ def join_blockchain_from_zip(
 
     # if the appdata is in the zip file's root directory
     if os.path.exists(os.path.join(tempdir, "KnownBlocksIndex")):
-        cid = ipfs_api.publish(tempdir)
+        cid = ipfs.files.publish(tempdir)
     # if the appdata folder is a folder inside the zip file's
     elif os.path.exists(
         os.path.join(tempdir, blockchain_id, "KnownBlocksIndex")
     ):
-        cid = ipfs_api.publish(os.path.join(tempdir, blockchain_id))
+        cid = ipfs.files.publish(os.path.join(tempdir, blockchain_id))
     else:
         error_message = (
             "The provided appdata zip file doesn't contain readable "
@@ -874,7 +874,7 @@ def get_and_read_block(short_id: bytearray) -> Block:
     """
     try:
         ipfs_cid = decode_short_id(short_id)["ipfs_cid"]
-        block_data = ipfs_api.read(ipfs_cid)
+        block_data = ipfs.files.read(ipfs_cid)
     except Exception:
         error = BlockNotFoundError()
         log.error(f"WAPI: {function_name()}: {str(error)}")

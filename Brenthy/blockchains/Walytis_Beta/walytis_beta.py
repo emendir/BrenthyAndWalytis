@@ -14,8 +14,7 @@ from random import randint, seed
 from threading import Lock, Thread
 
 # import api_terminal as AppCom
-import ipfs_api
-import ipfs_datatransmission
+
 from brenthy_tools_beta import log
 from brenthy_tools_beta.utils import (
     are_elements_unique,
@@ -34,7 +33,7 @@ from .block_networking import (
 )
 from .block_records import BlockRecords
 from .exceptions import BlockchainNotInitialised, BlockchainTerminatedError
-from .networking import Networking
+from .networking import Networking, ipfs
 from .walytis_beta_api import WALYTIS_BETA_CORE_VERSION
 from .walytis_beta_api.block_model import (
     decode_long_id,
@@ -93,7 +92,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         self.blocks_to_confirm_lock = Lock()
         self._terminate = False  # flag when we're shutting down
         self._genesis = False
-        self.ipfs_peer_id = ipfs_api.my_id()
+        self.ipfs_peer_id = ipfs.peer_id
 
         if not id:
             # Create new blockchain:
@@ -135,7 +134,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         )
         self._blocks_finder_thread.start()
 
-        self.conv_lis = ipfs_datatransmission.listen_for_conversations(
+        self.conv_lis = ipfs.listen_for_conversations(
             f"{self.blockchain_id}: JoinRequest", self.on_join_request_received
         )
 
@@ -454,7 +453,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         try:
             ipfs_cid = decode_short_id(short_id)["ipfs_cid"]
             # get block datafile from IPFS
-            block_data = ipfs_api.read(ipfs_cid)
+            block_data = ipfs.files.read(ipfs_cid)
         except Exception as error:
             log.error(error)
 
@@ -473,7 +472,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 "from IPFS storage"
             )
             # remove block-file from IPFS storage
-            ipfs_api.remove(ipfs_cid)
+            ipfs.files.remove(ipfs_cid)
         if not block:
             log.important(f"{self.name}:  Failed to load and add block.")
 
@@ -668,7 +667,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 "block-file from IPFS storage"
             )
             # remove block-file from IPFS storage
-            ipfs_api.remove(ipfs_cid)
+            ipfs.files.remove(ipfs_cid)
             return None
 
         if self:
@@ -924,9 +923,9 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             f"{self.name}:  on_join_request_received: received join Request"
         )
         self.peer_monitor.register_contact_event(peer_id)
-        conv = ipfs_datatransmission.Conversation()
         try:
-            conv.join(conversation_name, peer_id, conversation_name)
+            # conv.join(conversation_name, peer_id, conversation_name)
+            conv = ipfs.join_conversation(conversation_name, peer_id,conversation_name, )
             log.debug("WJR: joined conversation")
             invitation = conv.listen(timeout=2 * JOIN_COMMS_TIMEOUT_S).decode()
             if self.get_invitation(invitation):
@@ -1025,15 +1024,15 @@ def join_blockchain(
     peers = invitation_d["peers"]
     log.info("Walytis_Beta: Joining blockchain...")
     for peer in peers:
-        if peer == ipfs_api.my_id():
+        if peer == ipfs.peer_id:
             continue
         log.debug(f"WJ: trying peer {peer}")
         tempdir = tempfile.mkdtemp()
         conv = None
         try:
             log.debug("WJ: starting conversation")
-            conv = ipfs_datatransmission.start_conversation(
-                f"{blockchain_id}: JoinRequest: {ipfs_api.my_id()}",
+            conv = ipfs.start_conversation(
+                f"{blockchain_id}: JoinRequest: {ipfs.peer_id}",
                 peer,
                 f"{blockchain_id}: JoinRequest",
                 dir=tempdir,
@@ -1140,7 +1139,7 @@ def join_blockchain_from_cid(
         )
         return None
     log.debug("WJ: getting join data from IPFS...")
-    ipfs_api.download(blockchain_data_cid, path=bc_appdata_path)
+    ipfs.files.download(blockchain_data_cid, dest_path=bc_appdata_path)
     log.debug("WJ: got join data from IPFS!")
 
     return check_and_start_joined_blockchain(blockchain_id, blockchain_name)

@@ -14,7 +14,7 @@ import shutil
 import sys
 import time
 
-import ipfs_api
+from _testing_utils import ipfs
 import pytest
 import testing_utils
 from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
@@ -111,7 +111,7 @@ def test_create_blockchain() -> None:
     pytest.blockchain.add_block(MESSAGE_1.encode())
     appdata_path = pytest.blockchain.get_blockchain_data()
     print(mark(os.path.isfile(appdata_path)), "Got blockchain appdata.")
-    pytest.appdata_cid = ipfs_api.publish(appdata_path)
+    pytest.appdata_cid = ipfs.files.publish(appdata_path)
     pytest.blockchain.terminate()
 
 
@@ -119,7 +119,7 @@ def docker_load_blockchain(bc_id: str, appdata_cid: str, ):
     download_tempdir = tempfile.mkdtemp()
 
     appdata_path = os.path.join(download_tempdir, "blockchain_data.zip")
-    ipfs_api.download(appdata_cid, appdata_path)
+    ipfs.files.download(appdata_cid, appdata_path)
     walytis_beta_api.join_blockchain_from_zip(
         bc_id, appdata_path, blockchain_name=BLOCKCHAIN_NAME
     )

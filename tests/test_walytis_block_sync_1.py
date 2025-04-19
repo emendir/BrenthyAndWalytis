@@ -20,7 +20,7 @@ import sys
 import time
 from threading import Thread
 
-import ipfs_api
+from _testing_utils import ipfs
 import testing_utils
 from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
 from testing_utils import mark, polite_wait, test_threads_cleanup
@@ -144,7 +144,7 @@ def get_docker_latest_block_content(
 def ipfs_connect_to_container(index: int) -> bool:
     """Try to connect to the specified docker container via IPFS."""
     for i in range(NUMBER_OF_FIND_ATTEMPTS):
-        if ipfs_api.find_peer(brenthy_dockers[index].ipfs_id):
+        if ipfs.peers.find(brenthy_dockers[index].ipfs_id):
             return True
     return False
 
@@ -188,7 +188,7 @@ def test_sync_block_creation() -> None:
     )
 
     brenthy_dockers[0].start()
-    print(mark(ipfs_connect_to_container(0)), "ipfs_api.find_peer")
+    print(mark(ipfs_connect_to_container(0)), "ipfs.peers.find")
     print(mark(docker_join_blockchain(0)), "join_blockchain")
 
     blockchain.add_block("DUMMY".encode())
@@ -208,7 +208,7 @@ def test_sync_on_join() -> None:
     time.sleep(2)
     brenthy_dockers[1].start()
 
-    print(mark(ipfs_connect_to_container(1)), "ipfs_api.find_peer")
+    print(mark(ipfs_connect_to_container(1)), "ipfs.peers.find")
     print(mark(docker_join_blockchain(1)), "join_blockchain")
 
     for _ in range(8):

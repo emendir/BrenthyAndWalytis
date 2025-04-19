@@ -10,7 +10,7 @@ ID recording format: long_id + 000000
 
 import os
 
-import ipfs_api
+from .networking import ipfs
 
 if True:
     # pylint: disable=import-error
@@ -449,7 +449,7 @@ class BlockRecords(ABC):
             return None
         self.block_record_initialised.wait()
         ipfs_cid = decode_short_id(short_id)["ipfs_cid"]
-        block_data = ipfs_api.read(ipfs_cid)
+        block_data = ipfs.files.read(ipfs_cid)
         block = self.read_block(block_data, ipfs_cid, live=False)
         return block
 
@@ -585,7 +585,7 @@ class BlockRecords(ABC):
         """Ensure all block's data-files are pinned on our IPFS node."""
         self.check_alive()  # ensure this Blockchain object isn't shutting down
 
-        ipfs_pins = ipfs_api.pins(cids_only=True, cache_age_s=300)
+        ipfs_pins = ipfs.files.list_pins(cids_only=True, cache_age_s=300)
         for subfolder in os.listdir(self.received_blocks_dir):
             subfolder_dir = os.path.join(self.received_blocks_dir, subfolder)
             if not os.path.isdir(subfolder_dir):
@@ -596,7 +596,7 @@ class BlockRecords(ABC):
                 )
             for block_cid in os.listdir(subfolder_dir):
                 if block_cid not in ipfs_pins:
-                    cid = ipfs_api.publish(
+                    cid = ipfs.files.publish(
                         os.path.join(subfolder_dir, block_cid)
                     )
                     if not cid == block_cid:
@@ -606,7 +606,7 @@ class BlockRecords(ABC):
                             f"{self.name} {block_cid}"
                         )
                     else:
-                        ipfs_api.pin(block_cid)
+                        ipfs.files.pin(block_cid)
 
     @abstractmethod  # defined in Blockchain
     def check_alive(self) -> None:

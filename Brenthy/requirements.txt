@@ -1,10 +1,12 @@
 appdirs>=1.4.3
 cryptography>=2.8
 coincurve==20.0.0
-IPFS-Toolkit>=0.5.32
+git+https://github.com/emendir/IPFS-Toolkit-Python@kubo_python
 pyzmq>=23.2.0
 setuptools>=45.2.0
 termcolor
 cryptem>=0.1.1
 tqdm
 pytest
+ipfs_tk
+ipfs_node
