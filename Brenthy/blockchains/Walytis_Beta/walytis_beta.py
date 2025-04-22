@@ -924,6 +924,8 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         )
         self.peer_monitor.register_contact_event(peer_id)
         try:
+            import time;time.sleep(0.5)#TODO: FIX THIS DELAY WITH TRNAMISSION RETRIES
+
             # conv.join(conversation_name, peer_id, conversation_name)
             conv = ipfs.join_conversation(conversation_name, peer_id,conversation_name, )
             log.debug("WJR: joined conversation")

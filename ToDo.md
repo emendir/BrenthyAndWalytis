@@ -25,6 +25,7 @@
 - [ ] Walytis.get_blockchain_data: tests & documentation
 - [ ] Brenthy and Brenthy-Tools: assert that maximum Brenthy API module protocol version is not greater than BAP version
 - [ ] survive IPFS daemon restarts
+- [ ] Joining: replace delay with transmission retry (see TODO comment, probably fix in `ipfs_tk`)
 ### API
 - [ ] fix _load_brenthy_api_protocols_from_registry
 - [ ] GenericBlockchain: add abstract method `set_block_received_handler`?

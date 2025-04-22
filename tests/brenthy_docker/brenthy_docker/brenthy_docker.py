@@ -11,7 +11,6 @@ from _testing_utils import ipfs
 import pexpect
 import pyperclip
 from termcolor import colored as coloured
-from termcolor._types import Color as Colour
 
 
 class DockerShellError(Exception):
@@ -154,7 +153,7 @@ class BrenthyDocker:
         command: str,
         user: str | None = None,
         print_output: bool = True,
-        colour: Colour = "light_yellow",
+        colour: str = "light_yellow",
         background: bool = False,
         timeout: int = 10,
         ignore_errors=False
@@ -207,7 +206,7 @@ class BrenthyDocker:
         self,
         command: str,
         print_output: bool = True,
-        colour: Colour = "light_yellow",
+        colour: str = "light_yellow",
         timeout: int = 10
     ) -> str:
         """Run shell code from within the container's operating system.
@@ -264,7 +263,7 @@ class BrenthyDocker:
         self,
         code: str | list[str],
         print_output: bool = True,
-        colour: Colour = "light_yellow",
+        colour: str = "light_yellow",
         background: bool = False,
         timeout: int = 10,
         ignore_errors: bool = False
@@ -296,7 +295,7 @@ class BrenthyDocker:
         self,
         command: str,
         print_output: bool = True,
-        colour: Colour = "light_yellow",
+        colour: str = "light_yellow",
         background: bool = False,
         timeout: int = 10,
         ignore_errors: bool = False
@@ -324,7 +323,7 @@ class BrenthyDocker:
         self,
         code: str | list[str],
         print_output: bool = True,
-        colour: Colour = "light_yellow",
+        colour: str = "light_yellow",
         background: bool = False,
         timeout: int = 10,
         ignore_errors: bool = False,

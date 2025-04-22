@@ -9,4 +9,4 @@ cryptem>=0.1.1
 tqdm
 pytest
 ipfs_tk
-ipfs_node
+ipfs_node>=0.1.1
