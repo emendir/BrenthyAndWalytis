@@ -9,8 +9,10 @@ from types import ModuleType
 brenthy_dir = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "Brenthy"
 )
-walytis_dir = os.path.join(brenthy_dir, "blockchains", "Walytis_Beta")
+blockchains_dir = os.path.join(brenthy_dir, "blockchains")
+walytis_dir = os.path.join(blockchains_dir, "Walytis_Beta")
 sys.path.insert(0, brenthy_dir)
+sys.path.insert(0, blockchains_dir)
 sys.path.insert(0, walytis_dir)
 if True:
     # ensure IPFS is initialised via Walytis_Beta.networking, not walytis_beta_api
