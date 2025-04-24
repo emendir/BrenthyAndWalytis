@@ -3,8 +3,7 @@
 from brenthy_tools_beta import log
 
 from .walytis_beta import Blockchain
-from .walytis_beta_api import decode_long_id
-from .walytis_beta_api.block_model import Block
+from .walytis_beta_tools.block_model import decode_long_id, Block
 
 
 class BlockModel:

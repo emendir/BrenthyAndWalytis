@@ -3,7 +3,7 @@
 import os
 
 from brenthy_tools_beta.version_utils import version_to_string
-from walytis_beta_api import WALYTIS_BETA_CORE_VERSION
+from walytis_beta_tools.versions import WALYTIS_BETA_CORE_VERSION
 
 # pylint: disable=unused-variable
 # pylint: disable=invalid-name

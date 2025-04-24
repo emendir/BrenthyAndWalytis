@@ -1,15 +1,18 @@
 ## [Docs](Documentation/DocsRoadmap.md)
 
 ## Urgent
+
 - fix pip installation
 - fix OSError Too many open files
 
 ## Repo-Organisation
+
 - move /Brenthy/Docker and /Brenthy/InstallScripts to /deployement/
 - rename /Brenthy to /src, /Documentation to /docs etc.
 - For brenthy_testing, implement Multi-Stage Docker File instead of two files https://docs.docker.com/build/building/multi-stage/
 
 ## Docs
+
 - BrenthyAPI port
 - contributions
 - docs wiki?
@@ -17,6 +20,7 @@
 ## Technical
 
 ### Core
+
 - [ ] reduce unnecessary logging
 - [ ] Make `walytis_beta_api` capable of fully verifying a blockchain from block data files, so that the role of Walytis Core is only creating and sharing blocks.
 - [ ] Join Blockchain timeout when no data has been received during file transmission
@@ -26,20 +30,23 @@
 - [ ] Brenthy and Brenthy-Tools: assert that maximum Brenthy API module protocol version is not greater than BAP version
 - [ ] survive IPFS daemon restarts
 - [ ] Joining: replace delay with transmission retry (see TODO comment, probably fix in `ipfs_tk`)
+
 ### API
-- [ ] fix _load_brenthy_api_protocols_from_registry
+
+- [ ] fix `_load_brenthy_api_protocols_from_registry`
 - [ ] GenericBlockchain: add abstract method `set_block_received_handler`?
 - [ ] Blockchain: pass directory #phase4
-  - [x] implement
-  - [ ] tests
-  - [x] static function param
-  - [x] docstrings
+    - [x] implement
+    - [ ] tests
+    - [x] static function param
+    - [x] docstrings
 - [ ] check on efficiency of `walytis_api.Blockchain._load_missed_blocks` amount parameter
 - [ ] fix issue with pip install not updating installed version of package, test for 2nd docker container
 - [ ] proper error message when IPFS is turned off
 - [ ] Blockchain only remembers if user's block handler processed the block if update_blockids_before_handling == False
 - [ ] Blockchain: replace `auto_load_missed_blocks` with `auto_start_block_handling`
 - [ ] add replacement for `get_latest_blocks` which automatically uses long IDs
+- [ ] deprecate `get_and_read_block` & `read_block`
 
 ### Installation
 
@@ -49,6 +56,7 @@
 - [ ] don't hardcode version of PyPy
 
 ### Debugging
+
 - `join_blockchain` seems to fail rather often
 
 ## Tests:
@@ -97,6 +105,7 @@ _Plan roadmap for following new features._
 - [ ] walytis_api: print message when user uses blockchain name
 
 ## Security
+
 - [ ] blacklist/whitelisting options in API
 - [ ] spam filters: disconnect from and blacklist nodes spamming on:
   - [ ] PubSub listener

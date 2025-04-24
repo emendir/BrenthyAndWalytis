@@ -21,14 +21,14 @@ from brenthy_tools_beta.utils import (
     string_to_bytes,
 )
 
-from ._experimental.block_lazy_loading import BlocksList, BlockLazilyLoaded
-from .block_model import Block, short_from_long_id
-from .exceptions import (  # pylint: disable=unused-import
+from walytis_beta_tools._experimental.block_lazy_loading import BlocksList, BlockLazilyLoaded
+from walytis_beta_tools.block_model import Block, short_from_long_id
+from walytis_beta_tools.exceptions import (  # pylint: disable=unused-import
     BlockCreationError,
     BlockNotFoundError,
     NotSupposedToHappenError,
 )
-from ._experimental.generic_blockchain import _GenericBlockchainImpl as GenericBlockchain
+from walytis_beta_tools._experimental.generic_blockchain import _GenericBlockchainImpl as GenericBlockchain
 from .walytis_beta_interface import (
     WALYTIS_BETA,
     BlocksListener,
@@ -47,7 +47,7 @@ from .walytis_beta_interface import (
     join_blockchain,
 )
 from collections.abc import Generator
-from ._experimental.generic_block import GenericBlock
+from walytis_beta_tools._experimental.generic_block import GenericBlock
 brenthy_appdata_dir = os.path.join(appdirs.user_data_dir(), "Brenthy")
 walytis_beta_appdata_dir = os.path.join(
     brenthy_appdata_dir, "Blockchains", WALYTIS_BETA

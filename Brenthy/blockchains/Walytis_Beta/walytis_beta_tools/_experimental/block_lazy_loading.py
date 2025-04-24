@@ -9,7 +9,7 @@ from typing import Generic, Type, TypeVar
 from .config import ipfs
 
 from ..block_model import Block, decode_long_id, short_from_long_id
-from ..walytis_beta_interface import (
+from ..exceptions import (
     BlockIntegrityError,
     BlockNotFoundError,
 )

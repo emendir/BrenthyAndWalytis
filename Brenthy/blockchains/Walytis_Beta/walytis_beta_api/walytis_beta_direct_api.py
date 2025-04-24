@@ -10,79 +10,46 @@ which is in turn intended for use by the Walytis_Beta API user.
 
 from __future__ import annotations
 
-
-from __future__ import annotations
-from typing import TypeVar, Type
-import json
 import os
-import shutil
-from datetime import datetime
-from typing import Callable
-
-from walytis_beta_tools._experimental.config import ipfs
-from brenthy_tools_beta import brenthy_api, log
-from brenthy_tools_beta.utils import (
-    bytes_to_string,
-    decode_timestamp,
-    from_b255_no_0s,
-    function_name,
-    string_to_bytes,
-    to_b255_no_0s,
-)
-from brenthy_tools_beta.version_utils import (
-    decode_version,
-    encode_version,
-    version_to_string,
-)
-
-from walytis_beta_tools.block_model import (
-    Block,
-    decode_short_id,  # pylint: disable=unused-import
-    short_from_long_id
-)
-from walytis_beta_tools.exceptions import (
-    BlockchainAlreadyExistsError,
-    BlockIntegrityError,
-    BlockNotFoundError,
-    JoinFailureError,
-    NoSuchBlockchainError,
-    NoSuchInvitationError,
-    WalytisBugError,
-    WalytisReplyDecodeError,
-)
-from .versions import (
-    WALYTIS_BETA_API_PROTOCOL_VERSION,
-    WALYTIS_BETA_API_VERSION,
-)
-
-from abc import ABC, abstractmethod, abstractproperty
 from datetime import datetime
 from typing import Callable, Type, TypeVar
 
-from brenthy_tools_beta import log
+from brenthy_tools_beta.utils import (
+    make_directory_readable,
+    make_file_readable,
+)
 
-from walytis_beta_tools.block_model import (
+from .. import walytis_beta
+from ..walytis_beta_tools.block_model import (
     Block,
+    decode_short_id,  # pylint: disable=unused-import
+    short_from_long_id,
+)
+from ..walytis_beta_tools.exceptions import (
+    BlockchainAlreadyExistsError,#noqa
+    BlockIntegrityError,#noqa
+    BlockNotFoundError,#noqa
+    JoinFailureError,#noqa
+    NoSuchBlockchainError,#noqa
+    NoSuchInvitationError,#noqa
+    WalytisBugError,#noqa
+    WalytisReplyDecodeError,#noqa
+)
+from ..walytis_beta_tools.versions import (
+    WALYTIS_BETA_API_VERSION,
+)
+from ..walytis_beta_tools.block_model import short_from_long_id
+from ..walytis_beta_tools.versions import (
+    WALYTIS_BETA_CORE_VERSION,
+)
+from .walytis_beta_generic_interface import (
+    BaseBlocksListener,
+    BaseWalytisBetaInterface,
+    classproperty,
 )
 
 
-# --- Blockchain IDs and Names ---
-
-from typing import Any, Callable, Generic, TypeVar
-
-T = TypeVar("T")
-R = TypeVar("R")
-
-
-class classproperty(Generic[T, R]):
-    def __init__(self, func: Callable[[type[T]], R]) -> None:
-        self.func = func
-
-    def __get__(self, obj: Any, cls: type[T]) -> R:
-        return self.func(cls)
-
-
-class BaseBlocksListener(ABC):
+class DirectBlocksListener(BaseBlocksListener):
     """Listen for a blockchain's new block events."""
 
     event_listener = None
@@ -103,7 +70,6 @@ class BaseBlocksListener(ABC):
         """
         pass
 
-    @abstractmethod
     def terminate(self) -> None:
         """Clean up all resources used by this object."""
         pass
@@ -112,14 +78,12 @@ class BaseBlocksListener(ABC):
 TBlocksListener = TypeVar('TBlocksListener', bound=BaseBlocksListener)
 
 
-class BaseWalytisBetaInterface(ABC):
-    @abstractproperty
+class WalytisBetaDirectInterface(BaseWalytisBetaInterface):
     @classproperty
     def BlocksListener(cls) -> Type[BaseBlocksListener]:
         pass
 
     @classmethod
-    @abstractmethod
     def list_blockchains(cls, names_first: bool = False) -> list[tuple[str, str]]:
         """Get the IDs names of all the blockchains we have.
 
@@ -132,82 +96,18 @@ class BaseWalytisBetaInterface(ABC):
                     blockchains we have. Tuples are (id, name) by default,
                     but (name, id) if names_first == True
         """
-        pass
-
-    @classmethod
-    def list_blockchain_names(cls,) -> list[str]:
-        """Get the names of all the blockchains we have.
-
-        Returns:
-            list: A list of the names of all the Walytis_Beta blockchains we have.
-        """
-        return [name for id, name in cls.list_blockchains()]
-
-    @classmethod
-    def list_blockchain_ids(cls,) -> list[str]:
-        """Get the ids of all the blockchains we have.
-
-        Returns:
-            list: A list of the names of all the Walytis_Beta blockchains we have.
-        """
-        return [id for id, name in cls.list_blockchains()]
-
-    @classmethod
-    def get_blockchain_id(cls, blockchain_name: str | bytearray) -> str:
-        """Given a blockchain's name, returns its ID.
-
-        If a blockchain's ID is given, it returns the ID.
-
-        Args:
-            blockchain_name (str): the name of the blockchain to look up
-        Returns:
-            str: the ID of the blockchain
-        """
-        blockchains = cls.list_blockchains()
-
-        # if a blockchain id was passed
-        if blockchain_name in [id for id, name in blockchains]:
-            return blockchain_name
-        for id, name in blockchains:
-            if name == blockchain_name:
-                return id
-        error = NoSuchBlockchainError(blockchain_name=blockchain_name)
-        log.error(f"WAPI: {function_name()}: {str(error)}")
-        raise error
-
-    @classmethod
-    def get_blockchain_name(cls, blockchain_id: str) -> str:
-        """Given a blockchain's id, returns its name.
-
-        If a blockchain's name is given, it returns the name.
-
-        Args:
-            blockchain_id (str): the id of the blockchain to look up
-        Returns:
-            str: the name of the blockchain
-        """
-        blockchains = cls.list_blockchains()
-
-        # if a blockchain id was passed
-        for id, name in blockchains:
-            if blockchain_id == id:
-                return name
-
-        # if a blockchain name was passed
-        if blockchain_id in [name for id, name in blockchains]:
-            return blockchain_id
-        error = NoSuchBlockchainError(blockchain_id=blockchain_id)
-        log.error(f"WAPI: {function_name()}: {str(error)}")
-        raise error
+        return [
+            (blockchain.blockchain_id, blockchain.name)
+            for blockchain in walytis_beta.blockchains
+        ]
 
     # --- Blockchain Lifecycle ---
 
     @classmethod
-    @abstractmethod
     def create_blockchain(cls, blockchain_name: str = "") -> str:
         """Create and run a new blockchain.
 
-        Args:
+        Args: 
             blockchain_name (str): blockchain's local name: a human-readable label
                     to ease recognition when manually interacting with Walytis_API.
                     Note: A blockchain's name only exists in the scope of a single
@@ -218,10 +118,12 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             str: ID of the created blockchain
         """
-        pass
+        blockchain = walytis_beta.create_blockchain(blockchain_name)
+        if not blockchain:
+            raise BlockchainAlreadyExistsError()
+        return blockchain.blockchain_id
 
     @classmethod
-    @abstractmethod
     def join_blockchain(cls, invitation: str, blockchain_name: str = "") -> str:
         """Join a blockchain using an invitation generated by a blockchain node.
 
@@ -237,59 +139,14 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             str: the ID of the joined blockchain
         """
-        pass
-
-    @classmethod
-    def join_blockchain_from_zip(cls,
-                                 blockchain_id: str, blockchain_data_path: str, blockchain_name: str = ""
-                                 ) -> None:
-        """Join an existing live blockchain, given a zip file of all its data.
-
-        Args:
-            blockchain_id (str): the name of the blockchain
-            blockchain_data_path (str): path of the zip file containing the
-                    blockchain's data
-            blockchain_name (str): blockchain's local name: a human-readable label
-                    to ease recognition when manually interacting with WalytisAPI.
-                    Note: A blockchain's name only exists in the scope of a single
-                    node, meaning it is not guaranteed to be globally unique.
-                    Applications should use a blockchain's ID (attribute 'id') as
-                    its identifier, not the blockchain_name.
-        """
-        log.debug(f"WAPI: {function_name()}: Unpacking appdata...")
-
-        import tempfile
-
-        tempdir = tempfile.mkdtemp()
-        # extract zip file
-        shutil.unpack_archive(
-            os.path.abspath(blockchain_data_path), tempdir, "zip"
+        blockchain = walytis_beta.join_blockchain(
+            invitation, blockchain_name=blockchain_name
         )
-        log.debug(f"WAPI: {function_name()}: Publishing on IPFS...")
-
-        # if the appdata is in the zip file's root directory
-        if os.path.exists(os.path.join(tempdir, "KnownBlocksIndex")):
-            cid = ipfs.files.publish(tempdir)
-        # if the appdata folder is a folder inside the zip file's
-        elif os.path.exists(
-            os.path.join(tempdir, blockchain_id, "KnownBlocksIndex")
-        ):
-            cid = ipfs.files.publish(os.path.join(tempdir, blockchain_id))
-        else:
-            error_message = (
-                "The provided appdata zip file doesn't contain readable "
-                "blockchain appdata"
-            )
-            log.error(error_message)
-            raise JoinFailureError(error_message=error_message)
-        shutil.rmtree(tempdir)
-        log.debug(f"WAPI: {function_name()}: Ready to join blockchain...")
-
-        return cls.join_blockchain_from_cid(blockchain_id, cid, blockchain_name)
-
+        if not blockchain:
+            raise BlockchainAlreadyExistsError()
+        return blockchain.blockchain_id
 
     @classmethod
-    @abstractmethod
     def join_blockchain_from_cid(cls,
                                  blockchain_id: str, blockchain_data_cid: str, blockchain_name: str = ""
                                  ) -> None:
@@ -306,20 +163,23 @@ class BaseWalytisBetaInterface(ABC):
                     Applications should use a blockchain's ID (attribute 'id') as
                     its identifier, not the blockchain_name.
         """
-        pass
+        blockchain = walytis_beta.join_blockchain_from_cid(
+            blockchain_id, blockchain_data_cid, blockchain_name=blockchain_name
+        )
+        if not blockchain:
+            raise BlockchainAlreadyExistsError()
+        return blockchain.blockchain_id
 
     @classmethod
-    @abstractmethod
     def delete_blockchain(cls, blockchain_id: str) -> None:
         """Delete the blockchain with the given id or name.
 
         Args:
             blockchain_id (str): the id or name of the blockchain to delete
         """
-        pass
+        walytis_beta.delete_blockchain(blockchain_id)
 
     @classmethod
-    @abstractmethod
     def create_block(cls,
                      blockchain_id: str,
                      content: bytearray | bytes,
@@ -334,10 +194,15 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             Block: the newly created block
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+        if topics is None:
+            topics = []
+        elif isinstance(topics, str):
+            topics = [topics]
+        block = blockchain.create_block(content, topics)
+        return block
 
     @classmethod
-    @abstractmethod
     def get_block(cls, blockchain_id: str, block_id: bytearray) -> Block:
         """Get a block from the specified blokchain given its block ID.
 
@@ -348,10 +213,20 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             Block: the Block object for the requested block
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+        if blockchain.is_block_known(block_id):
+            ipfs_cid = decode_short_id(block_id)["ipfs_cid"]
+            data_file = blockchain.get_block_datafile_path(block_id)
+            with open(data_file, "rb") as file:
+                block_data = file.read()
+            block = blockchain.read_block(block_data, ipfs_cid, live=False)
+        else:
+            block = blockchain.download_and_process_block(block_id)
+        if not block:
+            raise BlockNotFoundError()
+        return block
 
     @classmethod
-    @abstractmethod
     def is_block_known(cls, blockchain_id: str, block_id: bytearray) -> bool:
         """Check whether or not the specified blockchain has the given block.
 
@@ -362,10 +237,10 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             bool: Whether the block is a known block
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+        return blockchain.is_block_known(block_id)
 
     @classmethod
-    @abstractmethod
     def get_latest_blocks(cls,
                           blockchain_id: str,
                           amount: int | None = None,
@@ -394,10 +269,18 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             list: a list of IDs of the latest few blocks
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+        block_ids = blockchain.load_latest_block_ids(
+            amount, since_date, topics
+        )
+        if long_ids:
+            return block_ids
+        else:
+            return [
+                short_from_long_id(block_id) for block_id in block_ids
+            ]
 
     @classmethod
-    @abstractmethod
     def get_blockchain_data(cls, blockchain_id: str) -> str:
         """Create a zip file of all this blockchain's data, returning its path.
 
@@ -406,10 +289,13 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             str: the path of the zip file created
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+        result = blockchain.zip_appdata()
+        make_file_readable(result)
+        make_directory_readable(os.path.dirname(result))
+        return result
 
     @classmethod
-    @abstractmethod
     def get_peers(cls, blockchain_id: str) -> list[str]:
         """Get a list of IPFS IDs of the given blockchain's currently online nodes.
 
@@ -418,10 +304,11 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             list[str]: the IPFS IDs of the blockchain's currently online nodes
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+
+        return blockchain.get_peers()
 
     @classmethod
-    @abstractmethod
     def create_invitation(cls,
                           blockchain_id: str, one_time: bool = True, shared: bool = False
                           ) -> str:
@@ -438,10 +325,12 @@ class BaseWalytisBetaInterface(ABC):
             str: an invitation code that can be used by other computers to join
                     this blockchain
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+        return blockchain.create_invitation(
+            one_time=one_time, shared=shared
+        )
 
     @classmethod
-    @abstractmethod
     def get_invitations(cls, blockchain_id: str) -> list[str]:
         """Get the specified blockchain's active invitations.
 
@@ -451,10 +340,10 @@ class BaseWalytisBetaInterface(ABC):
         Returns:
             list: the invitations of this blockchain
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+        return blockchain.invitations
 
     @classmethod
-    @abstractmethod
     def delete_invitation(cls, blockchain_id: str, invitation: str) -> None:
         """Delete an invitation from the specified blockchain.
 
@@ -463,48 +352,34 @@ class BaseWalytisBetaInterface(ABC):
                                 invitation from
             invitation (str): the invitation to delete
         """
-        pass
+        blockchain = cls._get_blockchain(blockchain_id)
+        blockchain.delete_invitation(invitation)
 
     @classmethod
-    @abstractmethod
     def get_walytis_beta_version(cls, ) -> tuple[int, int, int]:
         """Get the software version of the locally running Walytis node.
 
         Returns:
             tuple: the software version of the locally running Walytis_Beta node
         """
-        pass
+        return WALYTIS_BETA_CORE_VERSION
 
     @classmethod
-    def get_walytis_beta_version_string(cls,) -> str:
-        """Get the software version of the locally running Walytis_Beta node.
-
-        Returns:
-            str: the software version of the locally running Walytis_Beta node
-        """
-        return version_to_string(cls.get_walytis_beta_version())
-
-    @classmethod
-    @abstractmethod
     def get_walytis_beta_api_version(cls, ) -> tuple[int, int, int]:
         """Get the software version of the this walytis_beta_api library.
 
         Returns:
             tuple: the software version of the this walytis_beta_api library
         """
-        pass
-
+        return WALYTIS_BETA_API_VERSION
     @classmethod
-    def get_walytis_beta_api_version_string(cls,) -> str:
-        """Get the software version of the this walytis_beta_api library.
-
-        Returns:
-            str: the software version of the this walytis_beta_api library
-        """
-        return version_to_string(cls.get_walytis_beta_api_version())
-
+    def _get_blockchain(cls,blockchain_id:str)->walytis_beta.Blockchain:
+        blockchain_id = cls.get_blockchain_id(blockchain_id)
+        blockchain = walytis_beta.get_blockchain(blockchain_id)
+        if blockchain:
+            return blockchain
+        raise NoSuchBlockchainError(blockchain_id=blockchain_id)
     @classmethod
-    @abstractmethod
     def get_and_read_block(cls, short_id: bytearray) -> Block:
         """Given a block's ID, download and verify it.
 
@@ -517,7 +392,6 @@ class BaseWalytisBetaInterface(ABC):
         pass
 
     @classmethod
-    @abstractmethod
     def read_block(cls, block_data: bytearray, ipfs_cid: str) -> Block:
         """Read a block-file, generating a block object if it's valid.
 

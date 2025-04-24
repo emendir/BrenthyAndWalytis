@@ -38,13 +38,13 @@ from brenthy_tools_beta.brenthy_api import (
     get_brenthy_version_string,
 )
 from .blockchain_model import Blockchain
-from .block_model import (
+from walytis_beta_tools.block_model import (
     Block,
     decode_short_id,
     decode_long_id,
     short_from_long_id,
 )
-from .exceptions import (
+from walytis_beta_tools.exceptions import (
     WalytisReplyDecodeError,
     WalytisBugError,
     NoSuchBlockchainError,
@@ -55,7 +55,7 @@ from .exceptions import (
     BlockCreationError,
     BlockIntegrityError,
 )
-from .versions import (
+from walytis_beta_tools.versions import (
     WALYTIS_BETA_PROTOCOL_VERSION,
     WALYTIS_BETA_API_PROTOCOL_VERSION,
     WALYTIS_BETA_API_VERSION,

@@ -8,6 +8,9 @@ user, but is used by the blockchain_model.Blockchain class instead,
 which is in turn intended for use by the Walytis_Beta API user.
 """
 
+from enum import Enum
+import os
+from .walytis_beta_generic_interface import BaseWalytisBetaInterface
 from datetime import datetime
 
 from brenthy_tools_beta import log
@@ -15,14 +18,14 @@ from brenthy_tools_beta import log
 from .block_model import Block
 
 from .exceptions import (
-    BlockchainAlreadyExistsError, #noqa
-    BlockIntegrityError, #noqa
-    BlockNotFoundError, #noqa
-    JoinFailureError, #noqa
-    NoSuchBlockchainError, #noqa
-    NoSuchInvitationError, #noqa
-    WalytisBugError, #noqa
-    WalytisReplyDecodeError, #noqa
+    BlockchainAlreadyExistsError,  # noqa
+    BlockIntegrityError,  # noqa
+    BlockNotFoundError,  # noqa
+    JoinFailureError,  # noqa
+    NoSuchBlockchainError,  # noqa
+    NoSuchInvitationError,  # noqa
+    WalytisBugError,  # noqa
+    WalytisReplyDecodeError,  # noqa
 )
 # storing this blockchain's name so that we don't missspell it
 WALYTIS_BETA = "Walytis_Beta"
@@ -37,15 +40,47 @@ NO_SUCH_INVITATION_MESSAGE = "no such join-key"
 BLOCK_NOT_FOUND = "block not found"
 WALYTIS_BETA_ERROR_MESSAGE = "internal Walytis_Beta error"
 BLOCKCHAIN_EXISTS_MESSAGE = "blockchain already exists"
-from .walytis_beta_generic_interface import BaseWalytisBetaInterface
 
-_waly:BaseWalytisBetaInterface
+_waly: BaseWalytisBetaInterface
 
 
-if True:
-    from .walytis_beta_net_api import WalytisBetaNetApi
-    _waly = WalytisBetaNetApi()
-BlocksListener=_waly.BlocksListener
+class WalytisBetaApiTypes(Enum):
+    WALYTIS_BETA_BRENTHY_API = 0
+    WALYTIS_BETA_DIRECT_API = 1
+
+WalytisBetaApiTypes.WALYTIS_BETA_BRENTHY_API.name
+_WALYTIS_BETA_API_TYPE = os.getenv("WALYTIS_BETA_API_TYPE")
+
+if not _WALYTIS_BETA_API_TYPE:
+    # if environment variable wasn't set, use default
+    WALYTIS_BETA_API_TYPE = WalytisBetaApiTypes.WALYTIS_BETA_BRENTHY_API
+else:
+    type_match = None
+    for wapi_type in WalytisBetaApiTypes:
+        if _WALYTIS_BETA_API_TYPE == wapi_type.name:
+            type_match = wapi_type
+    if not type_match:
+        raise Exception(
+            "Invalid value for environment variable WALYTIS_BETA_API_TYPE "
+            f"'{_WALYTIS_BETA_API_TYPE}'\n"
+            f"Valid values are: {[member.name for member in WalytisBetaApiTypes]}"
+        )
+    WALYTIS_BETA_API_TYPE = wapi_type
+
+
+match WALYTIS_BETA_API_TYPE:
+    case WalytisBetaApiTypes.WALYTIS_BETA_BRENTHY_API:
+        from .walytis_beta_net_api import WalytisBetaNetApi
+        _waly = WalytisBetaNetApi()
+    case WalytisBetaApiTypes.WALYTIS_BETA_DIRECT_API:
+        from .walytis_beta_direct_api import WalytisBetaDirectInterface
+        _waly = WalytisBetaDirectInterface()
+    case _:
+        raise WalytisBugError(
+            "walytis_beta_interface: Didn't take into account how to process "
+            f"WALYTIS_BETA_API_TYPE {WALYTIS_BETA_API_TYPE}"
+        )
+BlocksListener = _waly.BlocksListener
 
 
 # --- Blockchain IDs and Names ---
@@ -167,6 +202,7 @@ def join_blockchain_from_zip(
     return _waly.join_blockchain_from_zip(
         blockchain_id, blockchain_data_path, blockchain_name
     )
+
 
 def join_blockchain_from_cid(
     blockchain_id: str, blockchain_data_cid: str, blockchain_name: str = ""
@@ -406,5 +442,3 @@ def read_block(block_data: bytearray, ipfs_cid: str) -> Block:
         Block: a Block object
     """
     return _waly.read_block(block_data, ipfs_cid)
-
-

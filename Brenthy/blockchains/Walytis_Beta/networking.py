@@ -51,7 +51,7 @@ if True:
 
 
     # walytis_beta_api must be loaded only after IPFS is initialised
-    from .walytis_beta_api.block_model import decode_short_id
+    from .walytis_beta_tools.block_model import decode_short_id
 
 STARTUP_BLOCKLISTENER_PATIENCE = 10  # seconds
 RUNTIME_BLOCKLISTENER_PATIENCE = 20  # seconds
