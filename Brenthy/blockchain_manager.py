@@ -1,12 +1,13 @@
 """Manages the installed blockchain types."""
 # pylint: disable=global-statement
 
+from typing import Callable
 from threading import Thread
 import os
 from types import ModuleType
 
 from brenthy_tools_beta import log, utils
-
+import api_terminal
 # list of the blockchains we're running
 blockchain_modules: list[ModuleType] = []
 os.chdir(os.path.dirname(__file__))
@@ -16,13 +17,23 @@ BLOCKCHAIN_REQUIRED_MODULES = [
     ("BLOCKCHAIN_TYPE_api", "BLOCKCHAIN_TYPE_api.py"),
 ]
 IGNORED_FOLDERS = {"__pycache__"}
-MODULES_PATH="blockchains"
+MODULES_PATH = "blockchains"
+
+
+
 
 
 def run_blockchains() -> None:  # pylint: disable=unused-variable
     """Run all blockchain types."""
     # ask each blockchain module to load its blockchains
     for blockchain_module in load_blockchain_modules():
+        def handler(
+            message: dict,
+            topics: list[str],
+            bc_type: str = blockchain_module.blockchain_type
+        ) -> None:
+            api_terminal.publish_event(bc_type, message, topics)
+        blockchain_module.add_eventhandler(handler)
         blockchain_module.run_blockchains()
 
 

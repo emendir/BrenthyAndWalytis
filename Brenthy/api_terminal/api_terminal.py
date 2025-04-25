@@ -126,7 +126,7 @@ def handle_request(request: bytearray) -> bytearray:
 
 
 def publish_event(
-    blockchain_type: str, payload: dict, topics: list | None = None
+    blockchain_type: str, payload: dict, topics: list[str] | None = None
 ) -> None:
     """Publish a blockchain type's message to all subscribed applications."""
     if not isinstance(blockchain_type, str):

@@ -19,11 +19,12 @@ import _testing_utils
 from _testing_utils import mark
 if True:
     import os
+    os.environ["USE_BRENTHY_API"] = "false"
     os.environ["WALYTIS_BETA_API_TYPE"] = "WALYTIS_BETA_DIRECT_API"
     from Walytis_Beta import  walytis_beta_api
     import Walytis_Beta
 
-
+BC_NAME="LibWalytisTester"
 def run_walytis():
     Walytis_Beta.run_blockchains()
     mark(True, "Walytis is running")
@@ -41,13 +42,13 @@ def test_create_blockchain() -> None:
     global blockchain
     try:
         blockchain = walytis_beta_api.Blockchain.create(
-            "TestingBrenthy",
+            BC_NAME,
             app_name="BrenthyTester",
             block_received_handler=on_block_received,
         )
-    except walytis_beta_api.BlockchainAlreadyExistsError:
+    except Walytis_Beta.walytis_beta_tools.exceptions.BlockchainAlreadyExistsError:
         blockchain = walytis_beta_api.Blockchain(
-            "TestingBrenthy",
+            BC_NAME,
             app_name="BrenthyTester",
             block_received_handler=on_block_received,
         )
@@ -55,6 +56,26 @@ def test_create_blockchain() -> None:
 
     mark(success, "create_blockchain")
 
+def test_add_block() -> None:
+    """Test that we can add a block to the blockchain."""
+    block = blockchain.add_block("Hello there!".encode(), topics="TestTopic")
+    success = (
+        block.short_id in blockchain._blocks.get_short_ids() and
+        block.long_id in blockchain._blocks.get_long_ids() and
+        blockchain.get_block(blockchain._blocks.get_short_ids()[-1]).content.decode()
+        == blockchain.get_block(blockchain._blocks.get_long_ids()[-1]).content.decode()
+        == "Hello there!"
+    )
+    mark(success, "Blockchain.add_block")
+def test_delete_blockchain() -> None:
+    """Test that we can delete a blockchain."""
+    blockchain.terminate()
+    walytis_beta_api.delete_blockchain(BC_NAME)
+    success = (
+        BC_NAME not in walytis_beta_api.list_blockchain_names(),
+        "failed to delete blockchain",
+    )
+    mark(success, "delete_blockchain")
 
 def stop_walytis():
     Walytis_Beta.terminate()
@@ -65,6 +86,8 @@ def run_tests() -> None:
     run_walytis()
     test_list_blockchains()
     test_create_blockchain()
+    test_add_block()
+    test_delete_blockchain()
     stop_walytis()
 
 

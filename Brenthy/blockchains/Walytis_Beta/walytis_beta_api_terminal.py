@@ -1,10 +1,10 @@
 """Machinery for handling WalytisAPI requests."""
 
 # pylint: disable=import-error
+from typing import Callable
 import json
 import os
 
-import api_terminal
 from brenthy_tools_beta import log
 from brenthy_tools_beta.utils import (
     bytes_to_string,
@@ -434,14 +434,10 @@ def post_reply_tasks(
         # if block creation succeeded
         if json.loads(reply.decode()).get("success"):
             blockchain_id = payload[: payload.index(bytearray([0]))].decode()
-            # reply is the new block's short_id
-            api_terminal.publish_event(
-                "Walytis_Beta",
-                {
-                    "blockchain_id": blockchain_id,
-                    "block_id": bytes_to_string(reply),
-                },
-                topics=f"{blockchain_id}-NewBlocks",
+            publish_event(
+                blockchain_id,
+                {"block_id": bytes_to_string(reply)},
+                topics="NewBlocks",
             )
 
 
@@ -493,7 +489,10 @@ def request_router(request: bytearray) -> bytes:
                 {"success": False, "error": "not understood"}
             ).encode()
     except Exception as e:
-        log.error(f"Unhandled Exception in api_terminal.request_router: \n{e}")
+        log.error(
+            "Unhandled Exception in walytis_beta_api_terminal.request_router:"
+            f"\n{e}"
+        )
         return json.dumps(
             {"success": False, "error": WALYTIS_BETA_ERROR_MESSAGE}
         ).encode()
@@ -513,6 +512,13 @@ def api_request_handler(request: bytearray) -> bytearray:
     )
 
 
+_publish_event_handlers: list[Callable[[dict, list[str]], None]] = []
+
+
+def add_eventhandler(eventhandler: Callable[[dict, list[str]], None]):
+    _publish_event_handlers.append(eventhandler)
+
+
 def publish_event(
     blockchain_id: str, message: dict, topics: list[str] | str | None = None
 ) -> None:
@@ -523,9 +529,8 @@ def publish_event(
         topics = [topics]
     if "" not in topics:
         topics.append("")
-
-    api_terminal.publish_event(
-        "Walytis_Beta",
-        message,
-        topics=[f"{blockchain_id}-{topic}" for topic in topics],
-    )
+    for eventhandler in _publish_event_handlers:
+        eventhandler(
+            message,
+            [f"{blockchain_id}-{topic}" for topic in topics],
+        )

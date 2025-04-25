@@ -52,9 +52,9 @@ from walytis_beta_tools.versions import (
     WALYTIS_BETA_API_VERSION,
 )
 
-from .walytis_beta_generic_interface import(
-     BaseWalytisBetaInterface, BaseBlocksListener, classproperty
- )
+from .walytis_beta_generic_interface import (
+    BaseWalytisBetaInterface, BaseBlocksListener, classproperty
+)
 # storing this blockchain's name so that we don't missspell it
 WALYTIS_BETA = "Walytis_Beta"
 
@@ -82,7 +82,7 @@ class _NetBlocksListener(BaseBlocksListener):
     def __init__(
         self,
         blockchain_id: str,
-        eventhandler: Callable[[Block, str], None] | Callable[[Block], None],
+        eventhandler: Callable[[Block], None],
         topics: list[str] | None = None,
     ):
         """Call an eventhandler when the specified blockchain gets a new block.
@@ -96,38 +96,22 @@ class _NetBlocksListener(BaseBlocksListener):
         blockchain_id = WalytisBetaNetApi.get_blockchain_id(blockchain_id)
         log.info(f"Walytis_BetaAPI: BlocksListener: {blockchain_id}")
         self.blockchain_id = blockchain_id
-        self.eventhandler = eventhandler
+        self._eventhandler = eventhandler
         if isinstance(topics, str):
             topics = [topics]
         self.topics = topics
 
         self.event_listener = brenthy_api.EventListener(
-            "Walytis_Beta", self._eventhandler, f"{blockchain_id}-NewBlocks"
+            "Walytis_Beta", self._on_event_received,
+            f"{blockchain_id}-NewBlocks"
         )
 
-    def _eventhandler(self, data: dict, topic: str) -> None:
-        """Handle new block messages, calling the user's eventhandler."""
-        # decapsulate topic for documentation purposes
-        blockchain_topic = topic.strip(f"{self.blockchain_id}-")
+    def get_block(self, block_id: bytearray) -> Block:
+        return WalytisBetaNetApi.get_block(self.blockchain_id, block_id)
 
-        block_id = string_to_bytes(data["block_id"])
-        block = WalytisBetaNetApi.get_block(self.blockchain_id, block_id)
-        log.info(
-            "Walytis_BetaAPI: BlocksListener: got block: "
-            f"{(self.topics, block.topics)}"
-        )
-        try:
-            # if we aren't filtering by topics
-            # or any of our topics match the topics of the block
-            if not self.topics or list(
-                set(self.topics).intersection(block.topics)
-            ):
-                self.eventhandler(block)
-        except Exception as error:
-            log.info(
-                "Walytis_BetaAPI: BlocksListener: Error in eventhandler: "
-                f"{type(error)} {error}"
-            )
+    @property
+    def eventhandler(self) -> Callable[[Block], None]:
+        return self._eventhandler
 
     def terminate(self) -> None:
         """Clean up all resources used by this object."""
@@ -137,7 +121,6 @@ class _NetBlocksListener(BaseBlocksListener):
     def __del__(self) -> None:
         """Clean up all resources used by this object."""
         self.terminate()
-
 
 
 class WalytisBetaNetApi(BaseWalytisBetaInterface):
@@ -282,7 +265,6 @@ class WalytisBetaNetApi(BaseWalytisBetaInterface):
             error = JoinFailureError(error_message=error)
             log.error(f"WAPI: {function_name()}: {str(error)}")
             raise error
-
 
     @classmethod
     def join_blockchain_from_cid(cls,
@@ -738,8 +720,6 @@ class WalytisBetaNetApi(BaseWalytisBetaInterface):
             log.error(f"WAPI: {function_name()}: {str(_error)}")
             raise _error
 
-
-
     @classmethod
     def get_walytis_beta_api_version(cls,) -> tuple[int, int, int]:
         """Get the software version of the this walytis_beta_api library.
@@ -748,8 +728,6 @@ class WalytisBetaNetApi(BaseWalytisBetaInterface):
             tuple: the software version of the this walytis_beta_api library
         """
         return WALYTIS_BETA_API_VERSION
-
-
 
     @classmethod
     def get_and_read_block(cls, short_id: bytearray) -> Block:

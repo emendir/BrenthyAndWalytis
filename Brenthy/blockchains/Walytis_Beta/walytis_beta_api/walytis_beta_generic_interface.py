@@ -90,7 +90,7 @@ class BaseBlocksListener(ABC):
     def __init__(
         self,
         blockchain_id: str,
-        eventhandler: Callable[[Block, str], None] | Callable[[Block], None],
+        eventhandler: Callable[[Block], None],
         topics: list[str] | None = None,
     ):
         """Call an eventhandler when the specified blockchain gets a new block.
@@ -102,7 +102,43 @@ class BaseBlocksListener(ABC):
             topics (list): the name of the topic to receive blocks from
         """
         pass
+    @abstractproperty
+    def eventhandler(self)->Callable[[Block], None]:
+        pass
+    def _on_event_received(self, data: dict,*args, **kwargs) -> None:
+        """Handle new block messages, calling the user's eventhandler."""
+        block_id = string_to_bytes(data["block_id"])
+        block = self.get_block(block_id)
+        log.info(
+            "Walytis_BetaAPI: BlocksListener: got block: "
+            f"{(self.topics, block.topics)}"
+        )
+        try:
+            # if we aren't filtering by topics
+            # or any of our topics match the topics of the block
+            if not self.topics or list(
+                set(self.topics).intersection(block.topics)
+            ):
+                self.eventhandler(block)
+        except Exception as error:
+            log.info(
+                "Walytis_BetaAPI: BlocksListener: Error in eventhandler: "
+                f"{type(error)} {error}"
+            )
 
+    @abstractmethod
+    def get_block(self, block_id: bytearray) -> Block:
+        """Get a block from the specified blokchain given its block ID.
+
+        Args:
+            blockchain_id (str): the id or name of the blockchain from which to get
+                                    the block
+            block_id (str): the id of the block
+        Returns:
+            Block: the Block object for the requested block
+        """
+        pass
+        
     @abstractmethod
     def terminate(self) -> None:
         """Clean up all resources used by this object."""
