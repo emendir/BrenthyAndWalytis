@@ -48,12 +48,26 @@ from .walytis_beta_interface import (
 )
 from collections.abc import Generator
 from walytis_beta_tools._experimental.generic_block import GenericBlock
-walytis_beta_appdata_dir = os.path.join(appdirs.user_data_dir(), "BrenthyApps")
+
 
 N_STARTUP_BLOCKS = (
     400  # how many of this blockchain's  blocks we should load on startup
 )
 # log.set_print_level("info")
+
+
+walytis_beta_appdata_dir = os.path.join(appdirs.user_data_dir(), "BrenthyApps")
+def set_appdata_dir(appdata_dir: str):
+    """Set the appdata directory for keeping track of apps' Walytis usage."""
+    global walytis_beta_appdata_dir
+    walytis_beta_appdata_dir = appdata_dir
+    if not os.path.exists(walytis_beta_appdata_dir):
+        os.makedirs(walytis_beta_appdata_dir)
+
+
+def get_walytis_appdata_dir():
+    """Get the appdata directory for keeping track of apps' Walytis usage."""
+    return walytis_beta_appdata_dir
 
 
 class Blockchain(GenericBlockchain):
@@ -448,7 +462,8 @@ class Blockchain(GenericBlockchain):
         """
         # self._blocklist_lock.acquire()
         log.info(amount)
-        latest_blocks = get_latest_blocks(self.blockchain_id, amount=amount, long_ids=True)
+        latest_blocks = get_latest_blocks(
+            self.blockchain_id, amount=amount, long_ids=True)
         if not latest_blocks:
             # self._blocklist_lock.release()
             error = NotSupposedToHappenError(
@@ -506,9 +521,11 @@ class Blockchain(GenericBlockchain):
                     (bytes(short_from_long_id(long_id)), long_id)
                     for long_id in get_latest_blocks(self.blockchain_id, long_ids=True)
                 ])
-                block_ids = [block_long_ids[bytes(short_id)] for short_id in block_ids]
+                block_ids = [block_long_ids[bytes(short_id)]
+                             for short_id in block_ids]
 
-            self._blocks = BlocksList.from_block_ids(block_ids, BlockLazilyLoaded)
+            self._blocks = BlocksList.from_block_ids(
+                block_ids, BlockLazilyLoaded)
         self._blocklist_lock.release()
 
     @property

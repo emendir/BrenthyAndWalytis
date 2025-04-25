@@ -15,14 +15,17 @@ run the following commands to stop and remove the unterminated container:
     docker rm $(docker ps -aqf "name=^brenthy_test$")
 """
 
-import _testing_utils
-from _testing_utils import mark
 if True:
     import os
     os.environ["USE_IPFS_NODE"] = "true"
+    import _testing_utils
+    from _testing_utils import mark
     os.environ["WALYTIS_BETA_API_TYPE"] = "WALYTIS_BETA_DIRECT_API"
-    from Walytis_Beta import  walytis_beta_api
     import Walytis_Beta
+    from Walytis_Beta import  walytis_beta_api
+    import appdirs
+    walytis_beta_appdata_dir = os.path.join(appdirs.user_data_dir(), "BrenthyApps")
+    Walytis_Beta.set_appdata_dir(walytis_beta_appdata_dir)
 
 BC_NAME="LibWalytisTester"
 def run_walytis():

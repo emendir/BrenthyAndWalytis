@@ -68,6 +68,7 @@
 - [ ] test all security functionality
 - [ ] test for performance metrics
 - [ ] find out scalability limits, expand and test them
+- [ ] in _testing_utils, remove `from blockchains.Walytis_Beta.networking import ipfs`
 
 ## Future Features
 

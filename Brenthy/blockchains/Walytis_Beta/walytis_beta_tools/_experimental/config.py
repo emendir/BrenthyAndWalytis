@@ -1,19 +1,29 @@
 import os
 from ipfs_tk_generics import IpfsClient
+from brenthy_tools_beta import log
 
-ipfs_node:IpfsClient
-
+# initialise IPFS
 USE_IPFS_NODE = os.environ.get("USE_IPFS_NODE", "").lower() in ["true", "1"]
 IPFS_REPO_DIR = os.environ.get("IPFS_REPO_DIR", "")
-from brenthy_tools_beta import log
+ipfs:IpfsClient
 if USE_IPFS_NODE:
+    if IPFS_REPO_DIR:
+        if not os.path.exists(IPFS_REPO_DIR):
+            raise Exception(
+                "The path specified in the environment variable IPFS_REPO_DIR "
+                f"doesn't exist: {IPFS_REPO_DIR}"
+            )
+    else:
+        IPFS_REPO_DIR = os.path.join(".ipfs_repo")
+        if not os.path.exists(IPFS_REPO_DIR):
+            os.makedirs(IPFS_REPO_DIR)
+        os.environ["IPFS_REPO_DIR"]=IPFS_REPO_DIR # set environment variable for walytis_beta_api
     from ipfs_node import IpfsNode
-    if not IPFS_REPO_DIR:
-        print("WARNING - IPFS EPHEMERAL NODE: walytis_beta_api is creating and ephemeral IPFS node.")
+
     ipfs = IpfsNode(IPFS_REPO_DIR)
 else:
     from ipfs_remote import IpfsRemote
-    ipfs = IpfsRemote("127.0.0.1:5001")
+    ipfs = IpfsRemote("localhost:5001")
     try:
         ipfs.wait_till_ipfs_is_running(timeout_sec=5)
     except TimeoutError:
