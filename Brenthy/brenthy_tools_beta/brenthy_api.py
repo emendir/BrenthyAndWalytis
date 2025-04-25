@@ -417,5 +417,17 @@ class UnknownBlockchainTypeError(Exception):
             self.message = self.blockchain_type + ": " + self.message
         return self.message
 
+_AUTO_LOAD_BAP_MODULES = os.environ.get("AUTO_LOAD_BAP_MODULES", "").lower()
+if not _AUTO_LOAD_BAP_MODULES or _AUTO_LOAD_BAP_MODULES in ["true", "1"]:
+    AUTO_LOAD_BAP_MODULES = True
+elif _AUTO_LOAD_BAP_MODULES in ["false", "0"]:
+    AUTO_LOAD_BAP_MODULES = False
+else:
+    error_message = (
+        "Invalid value for environment variable AUTO_LOAD_BAP_MODULES: "
+        f"{_AUTO_LOAD_BAP_MODULES}\n"
+        "Valid values: 0, false, False, 1, true, True"
+    )
 
-_load_brenthy_api_protocols()
+if AUTO_LOAD_BAP_MODULES:
+    _load_brenthy_api_protocols()
