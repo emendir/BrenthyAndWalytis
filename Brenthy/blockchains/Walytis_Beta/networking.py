@@ -1,7 +1,6 @@
 """Networking machinery for the Walytis Blockchain (except joining)."""
 
 from ipfs_tk_generics import IpfsClient
-from app_data import blockchaintypes_dir
 import json
 import os
 import time
@@ -32,7 +31,7 @@ if True:
                     f"doesn't exist: {IPFS_REPO_DIR}"
                 )
         else:
-            IPFS_REPO_DIR = os.path.join(blockchaintypes_dir, "IpfsRepo")
+            IPFS_REPO_DIR = os.path.join(".ipfs_repo")
             if not os.path.exists(IPFS_REPO_DIR):
                 os.makedirs(IPFS_REPO_DIR)
             os.environ["IPFS_REPO_DIR"]=IPFS_REPO_DIR # set environment variable for walytis_beta_api

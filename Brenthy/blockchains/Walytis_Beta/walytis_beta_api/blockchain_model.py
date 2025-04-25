@@ -48,10 +48,7 @@ from .walytis_beta_interface import (
 )
 from collections.abc import Generator
 from walytis_beta_tools._experimental.generic_block import GenericBlock
-brenthy_appdata_dir = os.path.join(appdirs.user_data_dir(), "Brenthy")
-walytis_beta_appdata_dir = os.path.join(
-    brenthy_appdata_dir, "Blockchains", WALYTIS_BETA
-)
+walytis_beta_appdata_dir = os.path.join(appdirs.user_data_dir(), "BrenthyApps")
 
 N_STARTUP_BLOCKS = (
     400  # how many of this blockchain's  blocks we should load on startup

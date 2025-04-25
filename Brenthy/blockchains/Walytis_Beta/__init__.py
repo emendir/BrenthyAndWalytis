@@ -7,4 +7,5 @@ from .walytis_beta import Blockchain
 from .walytis_beta import run_blockchains, terminate
 from .walytis_beta_tools.versions import WALYTIS_BETA_CORE_VERSION as version
 from .walytis_beta_api_terminal import api_request_handler, add_eventhandler
+from .walytis_beta_appdata import set_appdata_dir
 from brenthy_tools_beta import log

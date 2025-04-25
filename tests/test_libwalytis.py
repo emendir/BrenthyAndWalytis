@@ -19,7 +19,7 @@ import _testing_utils
 from _testing_utils import mark
 if True:
     import os
-    os.environ["USE_BRENTHY_API"] = "false"
+    os.environ["USE_IPFS_NODE"] = "true"
     os.environ["WALYTIS_BETA_API_TYPE"] = "WALYTIS_BETA_DIRECT_API"
     from Walytis_Beta import  walytis_beta_api
     import Walytis_Beta

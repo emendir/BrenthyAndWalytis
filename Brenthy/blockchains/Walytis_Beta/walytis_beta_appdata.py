@@ -9,14 +9,18 @@ import tempfile
 from abc import ABC
 from threading import Event, Lock
 
-from app_data import blockchaintypes_dir
 from brenthy_tools_beta import log
+import os
 
-walytis_beta_appdata_dir = os.path.join(blockchaintypes_dir, "Walytis_Beta")
-if not os.path.exists(walytis_beta_appdata_dir):
-    os.makedirs(walytis_beta_appdata_dir)
+walytis_beta_appdata_dir = ""
 
-
+def set_appdata_dir(appdata_dir:str):
+    global walytis_beta_appdata_dir
+    walytis_beta_appdata_dir = appdata_dir
+    if not os.path.exists(walytis_beta_appdata_dir):
+        os.makedirs(walytis_beta_appdata_dir)
+def get_walytis_appdata_dir():
+    return walytis_beta_appdata_dir
 class BlockchainAppdata(ABC):
     """Blockchain class's appdata machinery, inherited by class Blockchain."""
 

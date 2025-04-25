@@ -42,8 +42,7 @@ from .walytis_beta_api.block_model import (
     PREFERRED_HASH_ALGORITHM,
 )
 from .walytis_beta_api.exceptions import NotSupposedToHappenError
-from .walytis_beta_appdata import BlockchainAppdata, walytis_beta_appdata_dir
-
+from .walytis_beta_appdata import BlockchainAppdata, get_walytis_appdata_dir
 # a variable with this blockchain's name so that we don't missspell it
 WALYTIS_BETA = "Walytis_Beta"
 
@@ -108,7 +107,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 raise TypeError(error_message)
             self.blockchain_id = id
             self.appdata_dir = os.path.join(
-                walytis_beta_appdata_dir, self.blockchain_id
+                get_walytis_appdata_dir(), self.blockchain_id
             )
             BlockchainAppdata.__init__(self)
             BlockRecords.__init__(self)
@@ -188,7 +187,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         if not self.name:
             self.name = self.blockchain_id[:14]
         self.appdata_dir = os.path.join(
-            walytis_beta_appdata_dir, self.blockchain_id
+            get_walytis_appdata_dir(), self.blockchain_id
         )
 
         if os.path.exists(self.appdata_dir):
@@ -1122,7 +1121,7 @@ def join_blockchain_from_cid(
     Returns:
         Blockchain: the blockchain object representing the joined blockchain
     """
-    bc_appdata_path = os.path.join(walytis_beta_appdata_dir, blockchain_id)
+    bc_appdata_path = os.path.join(get_walytis_appdata_dir(), blockchain_id)
     if [
         bc
         for bc in blockchains
@@ -1160,7 +1159,7 @@ def join_blockchain_from_zip(
     Returns:
         Blockchain: the blockchain object representing the joined blockchain
     """
-    bc_appdata_path = os.path.join(walytis_beta_appdata_dir, blockchain_id)
+    bc_appdata_path = os.path.join(get_walytis_appdata_dir(), blockchain_id)
     if [
         bc
         for bc in blockchains
@@ -1331,13 +1330,21 @@ def get_blockchain(blockchain_id: str) -> Blockchain | None:
 
 def run_blockchains() -> None:
     """Start running our blockchains."""
+    if not get_walytis_appdata_dir():
+        error_message = (
+            "Walytis appdata directory not set!\n"
+            "Call `walytis_api.set_appdata_dir() before calling run_blockchains`"
+        )
+        log.error(error_message)
+        raise Exception(error_message)
+    
     blockchain_ids = []
     log.important(
-        f"Loading blockchains from {os.path.abspath(walytis_beta_appdata_dir)}"
+        f"Loading blockchains from {os.path.abspath(get_walytis_appdata_dir())}"
     )
-    for blockchain_id in os.listdir(walytis_beta_appdata_dir):
+    for blockchain_id in os.listdir(get_walytis_appdata_dir()):
         blockchain_data_dir = os.path.join(
-            walytis_beta_appdata_dir, blockchain_id
+            get_walytis_appdata_dir(), blockchain_id
         )
         if os.path.isdir(blockchain_data_dir):
             blockchain_ids.append(blockchain_id)

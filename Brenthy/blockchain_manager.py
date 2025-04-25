@@ -1,6 +1,7 @@
 """Manages the installed blockchain types."""
 # pylint: disable=global-statement
 
+from app_data import blockchaintypes_dir
 from typing import Callable
 from threading import Thread
 import os
@@ -20,9 +21,6 @@ IGNORED_FOLDERS = {"__pycache__"}
 MODULES_PATH = "blockchains"
 
 
-
-
-
 def run_blockchains() -> None:  # pylint: disable=unused-variable
     """Run all blockchain types."""
     # ask each blockchain module to load its blockchains
@@ -34,6 +32,9 @@ def run_blockchains() -> None:  # pylint: disable=unused-variable
         ) -> None:
             api_terminal.publish_event(bc_type, message, topics)
         blockchain_module.add_eventhandler(handler)
+        blockchain_module.set_appdata_dir(os.path.join(
+            blockchaintypes_dir, blockchain_module.blockchain_type
+        ))
         blockchain_module.run_blockchains()
 
 
