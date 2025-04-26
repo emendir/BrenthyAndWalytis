@@ -15,9 +15,9 @@ from datetime import datetime
 
 from brenthy_tools_beta import log
 
-from .block_model import Block
+from walytis_beta_tools.block_model import Block
 
-from .exceptions import (
+from walytis_beta_tools.exceptions import (
     BlockchainAlreadyExistsError,  # noqa
     BlockIntegrityError,  # noqa
     BlockNotFoundError,  # noqa

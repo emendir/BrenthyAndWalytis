@@ -34,8 +34,8 @@ from .block_networking import (
 from .block_records import BlockRecords
 from .exceptions import BlockchainNotInitialised, BlockchainTerminatedError
 from .networking import Networking, ipfs
-from .walytis_beta_api import WALYTIS_BETA_CORE_VERSION
-from .walytis_beta_api.block_model import (
+from .walytis_beta_tools.versions import WALYTIS_BETA_CORE_VERSION
+from .walytis_beta_tools.block_model import (
     decode_long_id,
     decode_short_id,
     short_from_long_id,
