@@ -21,9 +21,6 @@ if True:
     brenthy_dir = os.path.join(
         os.path.dirname(os.path.dirname(__file__)), "Brenthy"
     )
-    from blockchains.Walytis_Beta.walytis_beta_appdata import (
-        walytis_beta_appdata_dir,
-    )
 
     sys.path.insert(0, brenthy_dir)
 
@@ -36,7 +33,7 @@ if True:
 
     import testing_utils
     from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
-
+    from update import get_walytis_appdata_dir
     from testing_utils import mark, polite_wait, test_threads_cleanup
     testing_utils.BREAKPOINTS = BREAKPOINTS
 
@@ -55,10 +52,14 @@ def prepare() -> None:
     if REBUILD_DOCKER:
 
         build_docker_image(verbose=False)
-    upd_blck_path = os.path.join(walytis_beta_appdata_dir, "BrenthyUpdates")
+    run.TRY_INSTALL = False
+    run.log.set_print_level("important")
+    run.run_brenthy()
+    upd_blck_path = os.path.join(get_walytis_appdata_dir(), "BrenthyUpdates")
     test_upd_blck_path = os.path.join(
-        walytis_beta_appdata_dir, "BrenthyUpdatesTEST"
+        get_walytis_appdata_dir(), "BrenthyUpdatesTEST"
     )
+    run.stop_brenthy()
     if os.path.exists(upd_blck_path):
         shutil.rmtree(upd_blck_path)
     if os.path.exists(test_upd_blck_path):
@@ -70,13 +71,7 @@ def prepare() -> None:
         test_upd_blck_path,
         "zip",
     )
-
-
-def run_brenthy() -> None:
-    """Stop Brenthy-Core."""
-    run.TRY_INSTALL = False
-    run.log.set_print_level("important")
-    run.run_brenthy()
+    run.restart_brenthy()
 
 
 def stop_brenthy() -> None:
@@ -100,7 +95,7 @@ def get_docker_brenthy_version() -> str:
         "import brenthy_tools_beta;"
         "print(brenthy_tools_beta.get_brenthy_version_string())",
         print_output=False
-    ).strip("\n")
+    ).split("\n")[-1]
 
 
 def get_docker_walytis_beta_version() -> str:
@@ -109,7 +104,7 @@ def get_docker_walytis_beta_version() -> str:
         "import walytis_beta_api;"
         "print(walytis_beta_api.get_walytis_beta_version_string())",
         print_output=False
-    ).strip("\n")
+    ).split("\n")[-1]
 
 
 # print("Starting tests...")
@@ -128,6 +123,10 @@ def test_find_peer() -> None:
 
 def test_walytis_beta_update() -> None:
     """Test that updating Walytis_Beta works."""
+    # allow docker filesystem to consolidate after renaming updates blockchain
+    # to avoid errors when copying Brenthy update folders
+    brenthy_docker.restart()
+
     brenthy_version_1 = get_docker_brenthy_version()
     walytis_beta_version_1 = get_docker_walytis_beta_version()
     publish_brenthy_updates.publish_release(testing_walytis_beta_update=True)
@@ -184,7 +183,6 @@ def run_tests() -> None:
     prepare()
     print("\nRunning tests for update system...")
     run_docker()
-    run_brenthy()
     test_find_peer()
     test_walytis_beta_update()
     test_brenthy_update()

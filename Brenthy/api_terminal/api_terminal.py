@@ -60,7 +60,7 @@ def request_router(request: bytearray, blockchain_type: str) -> bytearray:
     """
     if blockchain_type == "Brenthy":
         return bytearray([1]) + brenthy_request_handler(request)
-    for blockchain_module in blockchain_manager.blockchain_modules:
+    for blockchain_module in blockchain_manager.blockchain_modules.values():
         if blockchain_module.blockchain_type == blockchain_type:
             reply = blockchain_module.api_request_handler(request)
             if reply:
@@ -136,10 +136,7 @@ def publish_event(
         )
         log.error(error_message)
         raise TypeError(error_message)
-    if blockchain_type not in [
-        module.blockchain_type
-        for module in blockchain_manager.blockchain_modules
-    ]:
+    if blockchain_type not in blockchain_manager.blockchain_modules.keys():
         error_message = (
             "api_terminal.publish_event: "
             "The blockchain_type provided does not exist."

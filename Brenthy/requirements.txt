@@ -3,7 +3,7 @@ pyzmq>=23.2.0
 termcolor
 tqdm
 
-git+https://github.com/emendir/IPFS-Toolkit-Python@kubo_python
+git+https://github.com/emendir/IPFS-Toolkit-Python.git@65517e0#egg=ipfs_toolkit
 ipfs_tk
 ipfs_node>=0.1.1
 

@@ -15,6 +15,9 @@ RUN sed -i ':a;N;$!ba;s/## disable TCP communications/ipfs config Addresses.API 
 ## allow brenthy user to use shell for debugging
 RUN usermod -s /bin/bash brenthy
 
+# why is this needed? One day brenthy always ended up disabled in the docker image
+RUN systemctl enable brenthy
+
 COPY tests /opt/Brenthy/tests
 ## Run with:
 # docker run -it --privileged local/brenthy_testing

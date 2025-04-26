@@ -91,6 +91,8 @@ class ZmqMultiRequestsReceiver:
 
         while not self._terminate:
             identity, _, request = worker_socket.recv_multipart()
+            if request == TERMINATTION_CODE:
+                self._terminate = True
             if self._terminate:
                 worker_socket.close()
                 return
@@ -182,7 +184,7 @@ class TcpMultiRequestsReceiver:
     ) -> None:
         """Handle a freshly accepted TCP connection."""
         request = _tcp_recv_counted(conn)
-        if request == bytearray(TERMINATTION_CODE):
+        if request == TERMINATTION_CODE:
             conn.close()
             return
         if request:

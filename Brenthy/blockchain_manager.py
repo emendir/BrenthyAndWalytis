@@ -10,7 +10,7 @@ from types import ModuleType
 from brenthy_tools_beta import log, utils
 import api_terminal
 # list of the blockchains we're running
-blockchain_modules: list[ModuleType] = []
+blockchain_modules: dict[str,ModuleType] = {}
 os.chdir(os.path.dirname(__file__))
 
 BLOCKCHAIN_REQUIRED_MODULES = [
@@ -24,7 +24,7 @@ MODULES_PATH = "blockchains"
 def run_blockchains() -> None:  # pylint: disable=unused-variable
     """Run all blockchain types."""
     # ask each blockchain module to load its blockchains
-    for blockchain_module in load_blockchain_modules():
+    for blockchain_module in load_blockchain_modules().values():
         def handler(
             message: dict,
             topics: list[str],
@@ -38,10 +38,10 @@ def run_blockchains() -> None:  # pylint: disable=unused-variable
         blockchain_module.run_blockchains()
 
 
-def load_blockchain_modules() -> list:
+def load_blockchain_modules() -> dict[str, ModuleType]:
     """Load the installed blockchain types, ensuring they are valid."""
     global blockchain_modules
-    blockchain_modules = []
+    blockchain_modules = {}
     for blockchain_type in os.listdir(MODULES_PATH):
         blockchain_path = os.path.join(MODULES_PATH, blockchain_type)
         # check if all the modules specified in BLOCKCHAIN_REQUIRED_MODULES
@@ -85,10 +85,10 @@ def load_blockchain_modules() -> list:
             log.error(f"Failed to load blockchain type {blockchain_type}\n{e}")
             continue
         blockchain_module.blockchain_type = blockchain_type
-        blockchain_modules.append(blockchain_module)
+        blockchain_modules.update({blockchain_type: blockchain_module})
     log.important(
         "Loaded blockchain modules: "
-        f"{[module.blockchain_type for module in blockchain_modules]}"
+        f"{blockchain_modules.keys()}"
     )
     return blockchain_modules
 
@@ -97,7 +97,7 @@ def terminate() -> None:  # pylint: disable=unused-variable
     """Shut down all blockchain types."""
     log.debug("Terminating all blockchain types...")
     threads: list[Thread] = []
-    for module in blockchain_modules:
+    for module in blockchain_modules.values():
         thread = Thread(target=module.terminate, args=())
         thread.start()
         threads.append(thread)

@@ -76,7 +76,7 @@ def publish_release(
     # get list of blockchains and their versions
     blockchain_versions = [
         {"blockchain_type": module.blockchain_type, "version": module.version}
-        for module in load_blockchain_modules()
+        for module in load_blockchain_modules().values()
     ]
     log.important("Preparing to publish release...")
     if TESTING_BRENTHY or TESTING_WALYTIS_BETA:
@@ -155,7 +155,7 @@ def publish_project_on_ipfs() -> str:
                 "Brenthy",
                 "blockchains",
                 "Walytis_Beta",
-                "walytis_beta_api",
+                "walytis_beta_tools",
                 "versions.py",
             )
         )

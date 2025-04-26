@@ -7,12 +7,12 @@ import os
 import shutil
 import sys
 import tempfile
+from threading import Lock
 
+import blockchain_manager
 import brenthy_tools_beta.versions
-from blockchains.Walytis_Beta.networking import ipfs
 import run
-from app_data import blockchaintypes_dir
-from blockchain_manager import load_blockchain_modules
+from blockchains.Walytis_Beta.networking import ipfs
 from blockchains.Walytis_Beta.walytis_beta_api import (
     Block,
     BlocksListener,
@@ -28,6 +28,12 @@ from brenthy_tools_beta.version_utils import (
 )
 from cryptem import verify_signature
 from install import am_i_installed
+
+
+def get_walytis_appdata_dir():
+    walytis = blockchain_manager.blockchain_modules["Walytis_Beta"]
+    return walytis.walytis_beta_appdata.get_walytis_appdata_dir()
+
 
 update_blockchain_blocks_listener = None  # pylint: disable=invalid-name
 
@@ -107,11 +113,12 @@ def switch_to_test_blockchain() -> None:
     and restarts Brenthy.
     """
     log.important("Renaming BrenthyUpdates to BrenthyUpdatesTEST")
+    log.debug(get_walytis_appdata_dir())
     brenthy_updates_dir = os.path.join(
-        blockchaintypes_dir, "Walytis_Beta", "BrenthyUpdates"
+        get_walytis_appdata_dir(), "BrenthyUpdates"
     )
     brenthy_updates_test_dir = os.path.join(
-        blockchaintypes_dir, "Walytis_Beta", "BrenthyUpdatesTEST"
+        get_walytis_appdata_dir(), "BrenthyUpdatesTEST"
     )
 
     if not os.path.exists(brenthy_updates_dir):
@@ -124,13 +131,17 @@ def switch_to_test_blockchain() -> None:
     log.important("Restarting Brenthy to using BrenthyUpdatesTEST")
     run.stop_brenthy()
     os.rename(brenthy_updates_dir, brenthy_updates_test_dir)
-    run.run_brenthy()
+    run.restart_brenthy()
+
+
+update_lock = Lock()
 
 
 def on_update_released(block: Block) -> None:
     """Process an update block, exception-handled."""
     try:
-        process_update_block(block)
+        with update_lock:
+            process_update_block(block)
     except Exception as e:  # pylint: disable=broad-exception-caught
         log.error(str(e) + "\n" + str(block.content))
 
@@ -174,7 +185,7 @@ def process_update_block(block: Block) -> bool:
     current_brenthy_version = brenthy_tools_beta.versions.BRENTHY_CORE_VERSION
     current_blockchains = [
         {"blockchain_type": module.blockchain_type, "version": module.version}
-        for module in load_blockchain_modules()
+        for module in blockchain_manager.blockchain_modules.values()
     ]
 
     # Decide whether or not to install this udpate by checking whether or not
@@ -298,7 +309,10 @@ def check_for_installable_update() -> None:
     if not update:
         log.info("All available updates failed testing and were removed.")
         return
-    install_update(update)
+    try:
+        install_update(update)
+    except Exception as e:
+        log.error(f"Installation of update failed:\n{e}")
 
 
 def test_update(update_path: str) -> bool:
@@ -311,17 +325,6 @@ def test_update(update_path: str) -> bool:
 
     log.info("Download update test successfull")
     return True
-
-
-def rename_slowly(source: str, destination: str) -> None:
-    """Rename a folder by copying it and deleting the source.
-
-    This function is horribly inefficient for this task,
-    but avoids a nonsensical error I sometimes get in docker containers:
-    OSError: [Errno 18] Invalid cross-device link
-    """
-    shutil.copytree(source, destination)
-    shutil.rmtree(source)
 
 
 def install_update(update: str) -> None:
@@ -342,16 +345,15 @@ def install_update(update: str) -> None:
     if os.path.exists(".src_backup"):
         shutil.rmtree(".src_backup")
 
-    try:
-        os.rename("Brenthy", ".src_backup")
-    except OSError:
-        rename_slowly("Brenthy", ".src_backup")
-    update_path = os.path.join(".src_backup", ".updates", "verified", update)
+    log.debug("Backing up current installation...")
+    shutil.move("Brenthy", ".src_backup")
+
     # shutil.move(os.path.join(update_path, "Brenthy"), "Brenthy")
-    try:
-        os.rename(os.path.join(update_path, "Brenthy"), "Brenthy")
-    except OSError:
-        rename_slowly(os.path.join(update_path, "Brenthy"), "Brenthy")
+    update_path = os.path.join(".src_backup", ".updates", "verified", update)
+    log.debug("Replacing current installation with update...")
+    shutil.move(os.path.join(update_path, "Brenthy"), "Brenthy")
+
+    log.debug("Restoring log files...")
     if os.path.exists(os.path.join(".src_backup", "brenthy.log")):
         shutil.copy(os.path.join(".src_backup", "brenthy.log"), "Brenthy")
     elif os.path.exists(os.path.join(".src_backup", ".log")):
@@ -360,6 +362,7 @@ def install_update(update: str) -> None:
             os.path.join("Brenthy", "brenthy.log"),
         )
     shutil.rmtree(update_path)
+    log.important(f"Installed update {update}")
 
 
 def terminate_updater() -> None:  # pylint: disable=unused-variable

@@ -42,10 +42,7 @@ if True:
     from walytis_beta_api import Blockchain
     test_run_brenthy()
 
-    walytis = [
-        mod for mod in blockchain_manager.blockchain_modules
-        if mod.__name__ == "Walytis_Beta"
-    ][0]
+    walytis = blockchain_manager.blockchain_modules["Walytis_Beta"]
 
     mon_brenthy.track_class_method(
         walytis.networking.Networking, "get_pubsub_peers")
