@@ -187,3 +187,10 @@ class NotSupposedToHappenError(Exception):
 
     def __str__(self):
         return self.message
+
+
+NO_SUCH_BLOCKCHAIN_MESSAGE = "no such blockchain"
+NO_SUCH_INVITATION_MESSAGE = "no such join-key"
+BLOCK_NOT_FOUND = "block not found"
+WALYTIS_BETA_ERROR_MESSAGE = "internal Walytis_Beta error"
+BLOCKCHAIN_EXISTS_MESSAGE = "blockchain already exists"

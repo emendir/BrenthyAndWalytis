@@ -20,8 +20,8 @@ if True:
     from blockchains.Walytis_Beta.walytis_beta_api import (
         short_from_long_id,
     )
-    from blockchains.Walytis_Beta.walytis_beta_api.block_model import Block
-    from blockchains.Walytis_Beta.walytis_beta_api.versions import (
+    from blockchains.Walytis_Beta.walytis_beta_tools.block_model import Block
+    from blockchains.Walytis_Beta.walytis_beta_tools.versions import (
         WALYTIS_BETA_CORE_VERSION,
     )
 

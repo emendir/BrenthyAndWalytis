@@ -1,4 +1,4 @@
-"""The fundamental machinery constituting Blocks."""
+"""DEPRECATING: The fundamental machinery constituting Blocks."""
 
 import hashlib
 from copy import deepcopy

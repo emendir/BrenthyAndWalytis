@@ -22,7 +22,7 @@ if True:
     from .walytis_beta_tools._experimental.config import ipfs
 
 
-    # walytis_beta_api must be loaded only after IPFS is initialised
+    # walytis_beta_tools must be loaded only after IPFS is initialised
     from .walytis_beta_tools.block_model import decode_short_id
 
 STARTUP_BLOCKLISTENER_PATIENCE = 10  # seconds

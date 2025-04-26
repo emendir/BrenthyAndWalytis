@@ -41,7 +41,7 @@ from .walytis_beta_tools.block_model import (
     short_from_long_id,
     PREFERRED_HASH_ALGORITHM,
 )
-from .walytis_beta_api.exceptions import NotSupposedToHappenError
+from .walytis_beta_tools.exceptions import NotSupposedToHappenError
 from .walytis_beta_appdata import BlockchainAppdata, get_walytis_appdata_dir
 # a variable with this blockchain's name so that we don't missspell it
 WALYTIS_BETA = "Walytis_Beta"

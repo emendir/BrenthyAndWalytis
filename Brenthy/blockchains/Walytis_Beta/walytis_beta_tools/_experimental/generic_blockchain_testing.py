@@ -2,7 +2,7 @@
 import string
 import random
 from random import randint
-from walytis_beta_api._experimental.generic_blockchain import GenericBlockchain, GenericBlock
+from walytis_beta_tools._experimental.generic_blockchain import GenericBlockchain, GenericBlock
 from walytis_beta_api import Blockchain
 from termcolor import colored as coloured
 BREAKPOINTS = False

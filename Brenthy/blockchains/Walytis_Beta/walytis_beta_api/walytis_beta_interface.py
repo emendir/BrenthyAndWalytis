@@ -27,6 +27,13 @@ from walytis_beta_tools.exceptions import (
     WalytisBugError,  # noqa
     WalytisReplyDecodeError,  # noqa
 )
+from walytis_beta_tools.exceptions import (
+    NO_SUCH_BLOCKCHAIN_MESSAGE,
+    NO_SUCH_INVITATION_MESSAGE,
+    BLOCK_NOT_FOUND,
+    WALYTIS_BETA_ERROR_MESSAGE,
+    BLOCKCHAIN_EXISTS_MESSAGE,
+)
 # storing this blockchain's name so that we don't missspell it
 WALYTIS_BETA = "Walytis_Beta"
 
@@ -35,11 +42,7 @@ WALYTIS_BETA = "Walytis_Beta"
 log.PRINT_DEBUG = False
 
 
-NO_SUCH_BLOCKCHAIN_MESSAGE = "no such blockchain"
-NO_SUCH_INVITATION_MESSAGE = "no such join-key"
-BLOCK_NOT_FOUND = "block not found"
-WALYTIS_BETA_ERROR_MESSAGE = "internal Walytis_Beta error"
-BLOCKCHAIN_EXISTS_MESSAGE = "blockchain already exists"
+
 
 _waly: BaseWalytisBetaInterface
 
@@ -70,10 +73,10 @@ else:
 
 match WALYTIS_BETA_API_TYPE:
     case WalytisBetaApiTypes.WALYTIS_BETA_BRENTHY_API:
-        from .walytis_beta_net_api import WalytisBetaNetApi
+        from .walytis_beta_brenthy_api import WalytisBetaNetApi
         _waly = WalytisBetaNetApi()
     case WalytisBetaApiTypes.WALYTIS_BETA_DIRECT_API:
-        from .walytis_beta_direct_api import WalytisBetaDirectInterface
+        from .walytis_beta_native_api import WalytisBetaDirectInterface
         _waly = WalytisBetaDirectInterface()
     case _:
         raise WalytisBugError(
