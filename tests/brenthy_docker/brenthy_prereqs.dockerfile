@@ -18,7 +18,7 @@ RUN python3 -m pip install --break-system-packages --root-user-action ignore -e 
 RUN touch we_are_in_docker
 RUN touch ../brenthy_installer/Brenthy/we_are_in_docker
 RUN python3 ../brenthy_installer/Brenthy --dont-update --install-dont-run
-RUN /opt/Brenthy/Python/bin/pip install --break-system-packages -r /opt/brenthy_installer/requirements-devops.txt
+RUN /opt/Brenthy/Python/bin/python -m pip install --break-system-packages -r /opt/brenthy_installer/requirements-devops.txt
 
 ## allow brenthy user to use shell for debugging
 RUN usermod -s /bin/bash brenthy

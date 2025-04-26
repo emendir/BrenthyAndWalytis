@@ -74,9 +74,9 @@ fi
 # copy Brenthy source code to install_dir
 echo "Copying files to installation directory..."
 cp -r . $install_dir/Brenthy
-rm ./Brenthy/*.log >/dev/null 2>/dev/null
-rm -r ./Brenthy/.log_archive >/dev/null 2>/dev/null
-rm -r ./Brenthy/.brenthy_api_log_archive >/dev/null 2>/dev/null
+rm ./Brenthy/*.log >/dev/null 2>/dev/null || true
+rm -r ./Brenthy/.log_archive >/dev/null 2>/dev/null || true
+rm -r ./Brenthy/.brenthy_api_log_archive >/dev/null 2>/dev/null || true
 
 
 echo "Creating OS user..."
@@ -124,6 +124,7 @@ else
   # install pip, the package manager
   Python/bin/python -m ensurepip
   Python/bin/python -m pip -qq install --root-user-action ignore --upgrade pip
+  
   Python/bin/python -m pip -qq install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
   $install_dir/Python/bin/python -m pip -qq install --root-user-action ignore $install_dir/Brenthy/blockchains/Walytis_Beta/
 fi
@@ -136,7 +137,7 @@ Wants=ipfs.service
 [Service]
 User=brenthy
 WorkingDirectory=${install_dir}/Brenthy
-ExecStart=${install_dir}/Python/bin/python ${install_dir}/Brenthy
+ExecStart=${install_dir}/Python/bin/python ${install_dir}/Brenthy --dont-install
 Restart=always
 
 [Install]
