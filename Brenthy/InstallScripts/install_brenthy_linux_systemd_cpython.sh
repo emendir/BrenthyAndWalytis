@@ -6,6 +6,8 @@ install_dir=$1
 data_dir=$2
 run_brenthy=$3 # True of False; whether or not the installed Brenthy should be run when finished
 
+set -e # Exit if any command fails
+
 echo "Running Brenthy Installer for Linux with Systemd using CPython with args:"
 echo "Install Dir: $install_dir"
 echo "Data Dir:    $data_dir"
@@ -96,6 +98,7 @@ else
   fi
   virtualenv $install_dir/Python
   $install_dir/Python/bin/python -m pip -qq install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
+  $install_dir/Python/bin/python -m pip -qq install --root-user-action ignore $install_dir/Brenthy/blockchains/Walytis_Beta/
 fi
 
 # register Brenthy as a service/background process, and running it
