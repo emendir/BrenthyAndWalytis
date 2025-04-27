@@ -3,9 +3,7 @@ pyzmq>=23.2.0
 termcolor
 tqdm
 ipfs_node>=0.1.8
+ipfs_toolkit==0.6.0rc1
 eciespy
 brenthy_tools_beta
 walytis_beta_api>=2.4.1
-
-# comment out the following before running `python -m build`
-#git+https://github.com/emendir/IPFS-Toolkit-Python.git@65517e0#egg=ipfs_toolkit

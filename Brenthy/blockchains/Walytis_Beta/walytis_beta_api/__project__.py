@@ -42,7 +42,7 @@ python_requires = ">=3.6"
 
 # load install_requires data from requirements.txt
 requirements_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
-install_requires = []
+install_requires = ["brenthy_tools_beta"]
 if os.path.exists(requirements_path):
     with open(requirements_path, "r") as file:
         install_requires = [line.strip("\n") for line in file.readlines()]
