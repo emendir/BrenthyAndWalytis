@@ -68,7 +68,7 @@ else:
             f"'{_WALYTIS_BETA_API_TYPE}'\n"
             f"Valid values are: {[member.name for member in WalytisBetaApiTypes]}"
         )
-    WALYTIS_BETA_API_TYPE = wapi_type
+    WALYTIS_BETA_API_TYPE = type_match
 
 
 match WALYTIS_BETA_API_TYPE:

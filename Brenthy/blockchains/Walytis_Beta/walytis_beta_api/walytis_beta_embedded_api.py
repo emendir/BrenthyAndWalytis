@@ -20,12 +20,12 @@ from brenthy_tools_beta.utils import (
 )
 
 from .. import walytis_beta
-from ..walytis_beta_tools.block_model import (
+from walytis_beta_tools.block_model import (
     Block,
     decode_short_id,  # pylint: disable=unused-import
     short_from_long_id,
 )
-from ..walytis_beta_tools.exceptions import (
+from walytis_beta_tools.exceptions import (
     BlockchainAlreadyExistsError,  # noqa
     BlockIntegrityError,  # noqa
     BlockNotFoundError,  # noqa
@@ -35,11 +35,11 @@ from ..walytis_beta_tools.exceptions import (
     WalytisBugError,  # noqa
     WalytisReplyDecodeError,  # noqa
 )
-from ..walytis_beta_tools.versions import (
+from walytis_beta_tools.versions import (
     WALYTIS_BETA_API_VERSION,
 )
-from ..walytis_beta_tools.block_model import short_from_long_id
-from ..walytis_beta_tools.versions import (
+from walytis_beta_tools.block_model import short_from_long_id
+from walytis_beta_tools.versions import (
     WALYTIS_BETA_CORE_VERSION,
 )
 from .walytis_beta_generic_interface import (
@@ -69,16 +69,25 @@ class _DirectBlocksListener(BaseBlocksListener):
                     when the blockchain gets a new block
             topics (list): the name of the topic to receive blocks from
         """
-        self.blockchain_id = WalytisBetaDirectInterface.get_blockchain_id(
+        self._blockchain_id = WalytisBetaDirectInterface.get_blockchain_id(
             blockchain_id
         )
         self._eventhandler = eventhandler
         if isinstance(topics, str):
             topics = [topics]
-        self.topics = topics
-
-        walytis_beta_api_terminal.add_eventhandler(self._on_event_received)
-
+        if topics:
+            self._topics = set(topics)
+        else:
+            self._topics = set()
+        walytis_beta_api_terminal.add_eventhandler(self._waly_event_received)
+    def _waly_event_received(self, data: dict,topics:list[str]) -> None:
+        self._on_event_received(data,set(topics))
+    @property
+    def blockchain_id(self)->str:
+        return self._blockchain_id
+    @property
+    def topics(self)->set[str]:
+        return self._topics
     @property
     def eventhandler(self) -> Callable[[Block], None]:
         return self._eventhandler

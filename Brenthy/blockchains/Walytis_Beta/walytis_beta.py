@@ -174,7 +174,15 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             self.download_and_process_block(block.short_id)
 
         # self.number_of_known_ids = len(genesis_blocks)
+
         self._genesis = False
+
+        for block in genesis_blocks:
+            walytis_beta_api_terminal.publish_event(
+                self.blockchain_id,
+                message={"block_id": bytes_to_string(block.short_id)},
+                topics="NewBlocks",
+            )
         log.info("Walytis_Beta: Finished processing Genesis blocks!")
         self.listen_for_blocks()
 
@@ -422,13 +430,14 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             )
 
         self.create_block_lock.release()
-
-        # inform applications about the new block
-        walytis_beta_api_terminal.publish_event(
-            self.blockchain_id,
-            message={"block_id": bytes_to_string(block.short_id)},
-            topics="NewBlocks",
-        )
+        
+        if not self._genesis:
+            # inform applications about the new block
+            walytis_beta_api_terminal.publish_event(
+                self.blockchain_id,
+                message={"block_id": bytes_to_string(block.short_id)},
+                topics="NewBlocks",
+            )
 
         return block
 
@@ -439,7 +448,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         log.info(f"{self.name}:  Received new block.")
         self.download_and_process_block(short_id)
 
-    def download_and_process_block(self, long_id: bytearray) -> Block | None:
+    def download_and_process_block(self, long_id: bytearray, live=True) -> Block | None:
         """Download a new block, add it to our block history if it is ok."""
         self.check_alive()  # ensure this Blockchain object isn't shutting down
 
@@ -463,7 +472,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             return None
         block = None
         try:
-            block = self.read_block(block_data, ipfs_cid)
+            block = self.read_block(block_data, ipfs_cid, live=live)
         except Exception as error:  # if file data seems corrupt
             log.error(error)
             log.important(
@@ -511,12 +520,13 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
                 f"{self.name}:  sending received block to " + "applications..."
             )
 
-            # inform applications about the new block
-            walytis_beta_api_terminal.publish_event(
-                self.blockchain_id,
-                message={"block_id": bytes_to_string(block.short_id)},
-                topics="NewBlocks",
-            )
+            if not self._genesis:
+                # inform applications about the new block
+                walytis_beta_api_terminal.publish_event(
+                    self.blockchain_id,
+                    message={"block_id": bytes_to_string(block.short_id)},
+                    topics="NewBlocks",
+                )
     def read_block(
         self, block_data: bytearray | bytes, ipfs_cid: str, live: bool = True
     ) -> Block | None:

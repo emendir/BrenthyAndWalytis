@@ -21,6 +21,7 @@ if True:
     import _testing_utils
     from _testing_utils import mark
     import walytis_beta_embedded
+    import walytis_beta_tools
     import appdirs
     walytis_beta_appdata_dir = os.path.join(appdirs.user_data_dir(), "BrenthyApps")
     walytis_beta_embedded.set_appdata_dir(walytis_beta_appdata_dir)
@@ -47,7 +48,7 @@ def test_create_blockchain() -> None:
             app_name="BrenthyTester",
             block_received_handler=on_block_received,
         )
-    except walytis_beta_embedded.BlockchainAlreadyExistsError:
+    except walytis_beta_tools.exceptions.BlockchainAlreadyExistsError:
         blockchain = walytis_beta_embedded.Blockchain(
             BC_NAME,
             app_name="BrenthyTester",

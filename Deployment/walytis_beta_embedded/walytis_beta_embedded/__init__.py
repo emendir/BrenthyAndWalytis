@@ -6,8 +6,11 @@ interacting with Walytis, as well as utilities common to both Walytis and
 """
 import os
 # os.environ["USE_IPFS_NODE"] = "true"
-os.environ["WALYTIS_BETA_API_TYPE"] = "WALYTIS_BETA_DIRECT_API"
-os.environ["AUTO_LOAD_BAP_MODULES"] = "false"
+_WALYTIS_BETA_API_TYPE = os.getenv("WALYTIS_BETA_API_TYPE")
+if not _WALYTIS_BETA_API_TYPE:
+    # if environment variable wasn't set, use default
+    os.environ["WALYTIS_BETA_API_TYPE"] = "WALYTIS_BETA_DIRECT_API"
+    os.environ["AUTO_LOAD_BAP_MODULES"] = "false"
 
 from ._walytis_beta.walytis_beta_api import (
     list_blockchains,

@@ -19,7 +19,8 @@ if True:
     from brenthy_tools_beta import log
     from brenthy_tools_beta.utils import bytes_to_string, string_to_bytes
     
-    from .walytis_beta_tools._experimental.config import ipfs
+    # from .walytis_beta_tools._experimental.config import ipfs
+    from walytis_beta_tools._experimental.config import ipfs
 
 
     # walytis_beta_tools must be loaded only after IPFS is initialised

@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Callable, Iterable
 
-from .generic_block import GenericBlock
+from walytis_beta_tools._experimental.generic_block import GenericBlock
 
 
 class GenericBlockchain(ABC):

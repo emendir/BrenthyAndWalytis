@@ -2,8 +2,8 @@
 import string
 import random
 from random import randint
-from walytis_beta_tools._experimental.generic_blockchain import GenericBlockchain, GenericBlock
-from walytis_beta_api import Blockchain
+from .generic_blockchain import GenericBlockchain, GenericBlock
+from ...walytis_beta_api import Blockchain
 from termcolor import colored as coloured
 BREAKPOINTS = False
 PYTEST = True  # whether or not this script is being run by pytest

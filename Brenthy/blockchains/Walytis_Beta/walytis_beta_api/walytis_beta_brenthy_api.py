@@ -95,20 +95,31 @@ class _NetBlocksListener(BaseBlocksListener):
         """
         blockchain_id = WalytisBetaNetApi.get_blockchain_id(blockchain_id)
         log.info(f"Walytis_BetaAPI: BlocksListener: {blockchain_id}")
-        self.blockchain_id = blockchain_id
+        self._blockchain_id = blockchain_id
         self._eventhandler = eventhandler
         if isinstance(topics, str):
             topics = [topics]
-        self.topics = topics
+        if topics:
+            self._topics = set(topics)
+        else:
+            self._topics = set()
 
         self.event_listener = brenthy_api.EventListener(
-            "Walytis_Beta", self._on_event_received,
+            "Walytis_Beta", self._bap_event_received,
             f"{blockchain_id}-NewBlocks"
         )
+    def _bap_event_received(self, data: dict,topic:str) -> None:
+        self._on_event_received(data,set(topic))
 
     def get_block(self, block_id: bytearray) -> Block:
         return WalytisBetaNetApi.get_block(self.blockchain_id, block_id)
-
+    @property
+    def topics(self)->set[str]:
+        return self._topics
+    
+    @property
+    def blockchain_id(self)->str:
+        return self._blockchain_id
     @property
     def eventhandler(self) -> Callable[[Block], None]:
         return self._eventhandler

@@ -21,14 +21,14 @@ from brenthy_tools_beta.utils import (
     string_to_bytes,
 )
 
-from walytis_beta_tools._experimental.block_lazy_loading import BlocksList, BlockLazilyLoaded
+from ._experimental.block_lazy_loading import BlocksList, BlockLazilyLoaded
 from walytis_beta_tools.block_model import Block, short_from_long_id
 from walytis_beta_tools.exceptions import (  # pylint: disable=unused-import
     BlockCreationError,
     BlockNotFoundError,
     NotSupposedToHappenError,
 )
-from walytis_beta_tools._experimental.generic_blockchain import _GenericBlockchainImpl as GenericBlockchain
+from ._experimental.generic_blockchain import _GenericBlockchainImpl as GenericBlockchain
 from .walytis_beta_interface import (
     WALYTIS_BETA,
     BlocksListener,

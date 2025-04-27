@@ -105,8 +105,17 @@ class BaseBlocksListener(ABC):
     @abstractproperty
     def eventhandler(self)->Callable[[Block], None]:
         pass
-    def _on_event_received(self, data: dict,*args, **kwargs) -> None:
+    @abstractproperty
+    def topics(self)->set[str]:
+        pass
+    @abstractproperty
+    def blockchain_id(self)->str:
+        pass
+    def _on_event_received(self, data: dict,event_topics:set[str]) -> None:
         """Handle new block messages, calling the user's eventhandler."""
+        # ensure event is relevant
+        if f"{self.blockchain_id}-NewBlocks" not in event_topics:
+            return
         block_id = string_to_bytes(data["block_id"])
         block = self.get_block(block_id)
         log.info(

@@ -84,6 +84,7 @@ def record(message: str, record_timestamp: bool = True) -> None:
         record_timestamp (bool): whether or not a timestamp should be prepended
                             to the logged text
     """
+    global unlogged_messages
     if not isinstance(message, str):
         message = str(message)
     log_file_path = os.path.join(LOG_DIR, LOG_FILENAME)
@@ -99,6 +100,7 @@ def record(message: str, record_timestamp: bool = True) -> None:
         for unlogged_message in unlogged_messages:
             with open(log_file_path, "a+", encoding="utf-8") as f:
                 f.write(unlogged_message)
+        unlogged_messages=[]
     except PermissionError:
         print(f"Logging: Permission denied: {os.path.abspath(log_file_path)}")
     except OSError as e:
@@ -250,12 +252,12 @@ def time_stamp() -> str:
 def add_empty_line() -> None:
     """Add an empty line to the log file."""
     log_file_path = os.path.join(LOG_DIR, LOG_FILENAME)
-    if not os.path.exists(log_file_path):
-        with open(log_file_path, "w+", encoding="utf-8") as f:
-            f.write("")
-        return
-    elif os.stat(log_file_path).st_size == 0:
-        return
     with log_file_lock:
+        if not os.path.exists(log_file_path):
+            with open(log_file_path, "w+", encoding="utf-8") as f:
+                f.write("")
+            return
+        elif os.stat(log_file_path).st_size == 0:
+            return
         with open(log_file_path, "a+", encoding="utf-8") as f:
             f.write("\n")
