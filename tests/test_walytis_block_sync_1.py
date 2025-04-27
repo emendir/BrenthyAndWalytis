@@ -168,7 +168,7 @@ def docker_join_blockchain(index: int) -> bool:
         result = (
             brenthy_dockers[index]
             .run_python_code(test_join_python_code, print_output=False)
-            .strip("\n")
+            .split("\n")[-1]
         )
 
         if result == "True":

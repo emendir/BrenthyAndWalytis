@@ -8,7 +8,7 @@ from typing import Generic, Type, TypeVar
 
 from walytis_beta_tools._experimental.config import ipfs
 
-from ..block_model import Block, decode_long_id, short_from_long_id
+from walytis_beta_tools.block_model import Block, decode_long_id, short_from_long_id
 from ..exceptions import (
     BlockIntegrityError,
     BlockNotFoundError,
@@ -36,7 +36,10 @@ class BlockLazilyLoaded(Block):
     def from_block(cls, block: Block):
         """Turn a trusted Block object into a BlockLazilyLoaded"""
         if not isinstance(block, Block):
-            raise TypeError()
+            raise TypeError(
+                f"BlockLazilyLoaded.from_block: block must be of type {Block}"
+                f", not {type(block)}"
+            )
 
         block.__class__ = cls
         if (

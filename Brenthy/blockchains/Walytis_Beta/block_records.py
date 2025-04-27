@@ -27,11 +27,11 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from threading import Event, Lock
 
-from .walytis_beta_tools.exceptions import (
+from walytis_beta_tools.exceptions import (
     InvalidBlockIdError,
     NotSupposedToHappenError,
 )
-from .walytis_beta_tools.block_model import (
+from walytis_beta_tools.block_model import (
     Block,
     decode_long_id,
     decode_short_id,

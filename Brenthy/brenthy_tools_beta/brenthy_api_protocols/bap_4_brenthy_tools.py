@@ -151,11 +151,11 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
                             params = (data,)
                         else:
                             params = (data, topic)
-                        log.info(
-                            "BAP-4-BT.EventListener.listen: passing on "
-                            f"received block to eventhandler with {n_params} "
-                            "parameters"
-                        )
+                        # log.info(
+                        #     "BAP-4-BT.EventListener.listen: passing on "
+                        #     f"received block to eventhandler with {n_params} "
+                        #     f"parameters for topic {topic}"
+                        # )
 
                         Thread(
                             target=self.eventhandler,

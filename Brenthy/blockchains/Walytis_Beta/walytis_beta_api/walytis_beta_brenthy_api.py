@@ -109,7 +109,7 @@ class _NetBlocksListener(BaseBlocksListener):
             f"{blockchain_id}-NewBlocks"
         )
     def _bap_event_received(self, data: dict,topic:str) -> None:
-        self._on_event_received(data,set(topic))
+        self._on_event_received(data,set([topic]))
 
     def get_block(self, block_id: bytearray) -> Block:
         return WalytisBetaNetApi.get_block(self.blockchain_id, block_id)
@@ -237,7 +237,7 @@ class WalytisBetaNetApi(BaseWalytisBetaInterface):
                 "The parameter invitation must be of type str or dict,"
                 + f" not {type(invitation)}"
             )
-        log.debug(f"WAPI: {function_name()}: ")
+        # log.debug(f"WAPI: {function_name()}: ")
         # invitation is now of type dict
         blockchain_id = invitation["blockchain_id"]
 

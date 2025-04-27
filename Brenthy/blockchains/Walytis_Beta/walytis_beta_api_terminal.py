@@ -16,12 +16,12 @@ from brenthy_tools_beta.version_utils import decode_version, encode_version
 from brenthy_tools_beta.utils import make_file_readable, make_directory_readable
 
 from . import walytis_beta
-from .walytis_beta_tools.block_model import short_from_long_id
+from walytis_beta_tools.block_model import short_from_long_id
 from .walytis_beta_tools.versions import (
     WALYTIS_BETA_API_PROTOCOL_VERSION,
     WALYTIS_BETA_CORE_VERSION,
 )
-from .walytis_beta_tools.exceptions import (
+from walytis_beta_tools.exceptions import (
     BLOCK_NOT_FOUND,
     BLOCKCHAIN_EXISTS_MESSAGE,
     NO_SUCH_BLOCKCHAIN_MESSAGE,

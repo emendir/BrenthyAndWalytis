@@ -35,7 +35,7 @@ setuptools.setup(
     url=url,
     project_urls=project_urls,
     classifiers=classifiers,
-    packages=["walytis_beta_api","walytis_beta_tools", "walytis_beta_tools._experimental"],
+    packages=["walytis_beta_api", "walytis_beta_api._experimental","walytis_beta_tools", "walytis_beta_tools._experimental"],
     python_requires=python_requires,
     install_requires=install_requires,
 )

@@ -263,7 +263,10 @@ class EventListener:
 
     def _handler(self, message: dict, topic: str) -> None:
         """Process an event from Brenthy Core."""
-        topic = topic.strip(f"{self.blockchain_type}-")
+        if topic.startswith(f"{self.blockchain_type}-"):
+            topic=topic[len(f"{self.blockchain_type}-"):]
+        else:
+            log.warning(f"BrenthyAPI.EventListener topic `{topic}` didn't doesn't start with `{self.blockchain_type}-`")
         # call the eventhandler, passing it the data and topic
         n_params = len(signature(self.users_eventhandler).parameters)
         if n_params == 1:

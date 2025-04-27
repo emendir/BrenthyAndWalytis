@@ -51,7 +51,7 @@ from ._walytis_beta import (
 )
 
 
-from ._walytis_beta.walytis_beta_tools.exceptions import (
+from walytis_beta_tools.exceptions import (
     WalytisReplyDecodeError,
     WalytisBugError,
     NoSuchBlockchainError,
@@ -69,4 +69,4 @@ from ._walytis_beta.walytis_beta_tools.versions import (
     WALYTIS_BETA_CORE_VERSION,
 )
 
-from ._walytis_beta.walytis_beta_tools._experimental.config import ipfs
+from walytis_beta_tools._experimental.config import ipfs

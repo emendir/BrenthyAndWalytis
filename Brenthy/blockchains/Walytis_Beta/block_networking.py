@@ -11,7 +11,7 @@ from brenthy_tools_beta.utils import (  # pylint: disable=unused-import
     bytes_to_string,
 )
 
-from .walytis_beta_tools import block_model
+from walytis_beta_tools import block_model
 
 from .networking import ipfs
 PREFERRED_HASH_ALGORITHM = "sha512"

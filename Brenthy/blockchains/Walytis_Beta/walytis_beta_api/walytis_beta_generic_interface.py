@@ -115,6 +115,10 @@ class BaseBlocksListener(ABC):
         """Handle new block messages, calling the user's eventhandler."""
         # ensure event is relevant
         if f"{self.blockchain_id}-NewBlocks" not in event_topics:
+            # log.debug(
+            #     f"Discarding event with topics {event_topics} for "
+            #     f"BlockListener for {self.blockchain_id}"
+            # )
             return
         block_id = string_to_bytes(data["block_id"])
         block = self.get_block(block_id)
