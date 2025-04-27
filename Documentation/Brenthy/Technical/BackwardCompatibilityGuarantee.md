@@ -25,6 +25,7 @@ In most scenarios, a project is considered dead if it is no longer maintained.
 Dead projects still have executable software, but with time they lose relevance as they misfit in the modern style, can't run on modern hardware and can't speak modern protocols.
 
 ## Rationale: Why aim for eternal guaranteed backward compatibility?
+
 Walytis was designed to enable an ecosystem of applications to flourish upon it.
 Walytis itself is built upon IPFS, which is built upon TCP/IP.
 
@@ -53,7 +54,8 @@ In summary, I find that guaranteed full backward and forward compatibility belon
 In a decentralised web with no IT-admins this is more important than ever.
 
 ## Developing Updates for Fully Backward- and Forward-Compatible Systems
-To ensure full backward and forward compatibility for systems like Brenthy & Walyis, a lot more work must be put into the development of new features.
+
+To ensure full backward and forward compatibility for systems like Brenthy & Walytis, a lot more work must be put into the development of new features.
 The important thing to keep in mind is that this extra work spares the users more work and frustration.
 
 Some feature or functionality updates to a blockchain would be so groundbreaking that it might be impossible to introduce them to an existing blockchain while keeping full backward and forward compatibility.
@@ -62,7 +64,7 @@ For example, if I decided that the next blockchain innovation I wanted to work o
 So, what I do is make this long-life blockchain into a new type of blockchain, an alternative to Walytis with different functionality and features.
 
 However, not all significant features updates must be introduced as new blockchain types.
-Let's consider  a feature update on my To-Do list for Walytis: SQL-querying.
+Let's consider a feature update on my To-Do list for Walytis: SQL-querying.
 The most sensible way to build such a system into Walytis would be to update its DBMS to handle SQL queries, and to have `walytis_api` send the user's SQL-code to Walytis using WalytisAPI, where the DBMS processes the SQL queries, and sends the reply back to `walytis_api` via WalytisAPI.
 However, if I introduced this new feature to Walytis as simply as I described it here, new versions of `walytis_api` would run into errors when trying to work with old versions of Walytis which don't have this feature yet.
 So how do we build backward _and_ forward compatibility in this example?
@@ -71,6 +73,18 @@ The solution I currently plan is to include an SQL-query processor inside of the
 This backup system will be slower, in most cases, than the main system, but all functionality will be provided.
 
 ## Beta Release
+
 Because the full bidirectional backward compatibility limits the ability to introduce updates to Walytis, for its initial release it will be published as a different blockchain type under a different name, name _Walytis_Beta_.
 Once suggestions from the wider world have been compiled and implemented, the improved blockchain will be released under its real name, _Walytis_.
-I'm not expecting any groundbreaking changes between Walytis_Beta and Walytis, because with the release of _Walytis_Beta_ I'm just playing it safe, because I know from experiences that there are always lots of ideas for improvement.
+
+I'm not expecting any groundbreaking changes between Walytis_Beta and Walytis, because with the release of Walytis_Beta I'm just playing it safe, because I know from experiences that there are always lots of ideas for improvement.
+I expect the differences to lie mainly in fine-tuning the API.
+
+## Scope
+
+An important thing to consider when combining continuous development and eternal backward compatibility is the scope of the compatibility. For a system such as Walytis, this comprises:
+
+- the blockchain protocol, so that Walytis nodes of any versions can communicate with each other to fulfil the core blockchain features of providing a decentralised database.
+- appdata, so that any backup of Walytis appdata can be used by a Walytis node of the same version or newer
+- the programming API, so that all versions of client libraries can interact with all versions of Walytis nodes to perform at least the oldest API features.
+  - The scope is constrained to all public functions, public classes and public class methods in the `walytis_api` module, and does not apply to global variables or imported modules.

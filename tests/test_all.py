@@ -21,6 +21,7 @@ if __name__ == "__main__":
 
     testing_utils.BREAKPOINTS = False
 
+    test_update.run_tests()
     test_brenthy_api.run_tests()
     test_walytis_beta_quick.run_tests()
     test_walytis_beta.run_tests()
@@ -28,4 +29,3 @@ if __name__ == "__main__":
     test_walytis_block_sync_2.run_tests()
     test_block_ancestry_funcs.run_tests()
     test_brenthy_logs.run_tests()
-    test_update.run_tests()

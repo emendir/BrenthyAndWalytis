@@ -76,7 +76,7 @@ match WALYTIS_BETA_API_TYPE:
         from .walytis_beta_brenthy_api import WalytisBetaNetApi
         _waly = WalytisBetaNetApi()
     case WalytisBetaApiTypes.WALYTIS_BETA_DIRECT_API:
-        from .walytis_beta_native_api import WalytisBetaDirectInterface
+        from .walytis_beta_embedded_api import WalytisBetaDirectInterface
         _waly = WalytisBetaDirectInterface()
     case _:
         raise WalytisBugError(
