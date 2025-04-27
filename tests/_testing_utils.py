@@ -6,14 +6,17 @@ import os
 import sys
 
 from types import ModuleType
+PROJECT_DIR=os.path.dirname(os.path.dirname(__file__))
+DEPLOYMENT_DIR=os.path.join(PROJECT_DIR, "Deployment")
 brenthy_dir = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "Brenthy"
+    PROJECT_DIR, "Brenthy"
 )
 blockchains_dir = os.path.join(brenthy_dir, "blockchains")
 walytis_dir = os.path.join(blockchains_dir, "Walytis_Beta")
 sys.path.insert(0, brenthy_dir)
 sys.path.insert(0, blockchains_dir)
 sys.path.insert(0, walytis_dir)
+sys.path.insert(0, os.path.join(DEPLOYMENT_DIR, "walytis_beta_embedded"))
 if True:
     # ensure IPFS is initialised via Walytis_Beta.networking, not walytis_beta_api
     from blockchains.Walytis_Beta.networking import ipfs

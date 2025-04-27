@@ -20,23 +20,21 @@ if True:
     os.environ["USE_IPFS_NODE"] = "true"
     import _testing_utils
     from _testing_utils import mark
-    os.environ["WALYTIS_BETA_API_TYPE"] = "WALYTIS_BETA_DIRECT_API"
-    import Walytis_Beta
-    from Walytis_Beta import  walytis_beta_api
+    import walytis_beta_embedded
     import appdirs
     walytis_beta_appdata_dir = os.path.join(appdirs.user_data_dir(), "BrenthyApps")
-    Walytis_Beta.set_appdata_dir(walytis_beta_appdata_dir)
+    walytis_beta_embedded.set_appdata_dir(walytis_beta_appdata_dir)
 
 BC_NAME="LibWalytisTester"
 def run_walytis():
-    Walytis_Beta.run_blockchains()
+    walytis_beta_embedded.run_blockchains()
     mark(True, "Walytis is running")
 
-def on_block_received(block:walytis_beta_api.Block):
+def on_block_received(block:walytis_beta_embedded.Block):
     print("test_lib_walyits: Received block!", block.topics)
 def test_list_blockchains() -> None:
     """Test that we can create a Walytis blockchain."""
-    result = walytis_beta_api.list_blockchains()
+    result = walytis_beta_embedded.list_blockchains()
     success = isinstance(result, list)
 
     mark(success, "list blockchains")
@@ -44,18 +42,19 @@ def test_create_blockchain() -> None:
     """Test that we can create a Walytis blockchain."""
     global blockchain
     try:
-        blockchain = walytis_beta_api.Blockchain.create(
+        blockchain = walytis_beta_embedded.Blockchain.create(
             BC_NAME,
             app_name="BrenthyTester",
             block_received_handler=on_block_received,
         )
-    except Walytis_Beta.walytis_beta_tools.exceptions.BlockchainAlreadyExistsError:
-        blockchain = walytis_beta_api.Blockchain(
+    except walytis_beta_embedded.BlockchainAlreadyExistsError:
+        blockchain = walytis_beta_embedded.Blockchain(
             BC_NAME,
             app_name="BrenthyTester",
             block_received_handler=on_block_received,
         )
-    success = isinstance(blockchain, walytis_beta_api.Blockchain)
+        print("Blockchain already exists!")
+    success = isinstance(blockchain, walytis_beta_embedded.Blockchain)
 
     mark(success, "create_blockchain")
 
@@ -73,15 +72,15 @@ def test_add_block() -> None:
 def test_delete_blockchain() -> None:
     """Test that we can delete a blockchain."""
     blockchain.terminate()
-    walytis_beta_api.delete_blockchain(BC_NAME)
+    walytis_beta_embedded.delete_blockchain(BC_NAME)
     success = (
-        BC_NAME not in walytis_beta_api.list_blockchain_names(),
+        BC_NAME not in walytis_beta_embedded.list_blockchain_names(),
         "failed to delete blockchain",
     )
     mark(success, "delete_blockchain")
 
 def stop_walytis():
-    Walytis_Beta.terminate()
+    walytis_beta_embedded.terminate()
 
 
 def run_tests() -> None:

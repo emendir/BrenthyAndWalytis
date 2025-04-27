@@ -30,6 +30,7 @@
 - [ ] Brenthy and Brenthy-Tools: assert that maximum Brenthy API module protocol version is not greater than BAP version
 - [ ] survive IPFS daemon restarts
 - [ ] Joining: replace delay with transmission retry (see TODO comment, probably fix in `ipfs_tk`)
+- [ ] walytis_beta_embedded: check if double-import of ipfs node in `.walytis_beta_tools` & `walytis_beta_tools` is a problem
 
 ### API
 
