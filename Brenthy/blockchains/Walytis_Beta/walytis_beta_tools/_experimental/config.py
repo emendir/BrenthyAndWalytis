@@ -29,4 +29,4 @@ else:
     except TimeoutError:
         log.warning("IPFS isn't running. Waiting for IPFS to start...")
         ipfs.wait_till_ipfs_is_running()
-        log.warning("IPFS running now, starting Brenthy now...")
+        log.warning("IPFS running now.")
