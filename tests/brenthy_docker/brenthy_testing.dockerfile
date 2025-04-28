@@ -16,7 +16,7 @@ RUN sed -i ':a;N;$!ba;s/## disable TCP communications/ipfs config Addresses.API 
 RUN usermod -s /bin/bash brenthy
 
 # why is this needed? One day brenthy always ended up disabled in the docker image
-RUN systemctl enable brenthy
+RUN systemctl enable brenthy ipfs
 
 COPY tests /opt/Brenthy/tests
 ## Run with:

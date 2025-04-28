@@ -566,7 +566,7 @@ def short_from_long_id(long_id: bytearray) -> bytearray:
         bytearray: the extracted short block ID
     """
     if not (isinstance(long_id, (bytearray, bytes))):
-        raise TypeError("long_id must be of type bytearray")
+        raise TypeError(f"long_id must be of type bytearray, not {type(long_id)}")
     try:
         short_id = long_id.split(bytearray([0, 0, 0]))[0]
     except:
