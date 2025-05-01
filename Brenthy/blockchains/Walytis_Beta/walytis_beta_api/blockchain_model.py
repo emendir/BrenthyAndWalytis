@@ -380,6 +380,8 @@ class Blockchain(GenericBlockchain):
             already_locked (bool): whether or not we've already acquired the
                         lock for working with the blocks list
         """
+        if self._terminate:
+            return
         # if not already_locked:
         #     self._blocklist_lock.acquire()
         short_ids = self._blocks.get_short_ids()

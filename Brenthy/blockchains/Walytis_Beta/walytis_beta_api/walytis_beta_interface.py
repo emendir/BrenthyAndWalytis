@@ -83,6 +83,7 @@ match WALYTIS_BETA_API_TYPE:
             "walytis_beta_interface: Didn't take into account how to process "
             f"WALYTIS_BETA_API_TYPE {WALYTIS_BETA_API_TYPE}"
         )
+log.info(WALYTIS_BETA_API_TYPE)
 BlocksListener = _waly.BlocksListener
 
 

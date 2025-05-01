@@ -16,10 +16,10 @@ walytis_beta_appdata_dir = ""
 
 def set_appdata_dir(appdata_dir:str):
     global walytis_beta_appdata_dir
+    log.info(f"Walytis: Setting appdata: {walytis_beta_appdata_dir}")
     walytis_beta_appdata_dir = appdata_dir
     if not os.path.exists(walytis_beta_appdata_dir):
         os.makedirs(walytis_beta_appdata_dir)
-    log.info(f"Walytis: Setting appdata: {walytis_beta_appdata_dir}")
 def get_walytis_appdata_dir():
     return walytis_beta_appdata_dir
 class BlockchainAppdata(ABC):

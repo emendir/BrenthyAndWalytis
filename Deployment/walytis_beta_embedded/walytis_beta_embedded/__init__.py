@@ -12,6 +12,10 @@ if not _WALYTIS_BETA_API_TYPE:
     os.environ["WALYTIS_BETA_API_TYPE"] = "WALYTIS_BETA_DIRECT_API"
     os.environ["AUTO_LOAD_BAP_MODULES"] = "false"
 
+_WALYTIS_BETA_DATA_DIR = os.getenv("WALYTIS_BETA_DATA_DIR", "")
+# if not _WALYTIS_BETA_DATA_DIR:
+#     WALYTIS_BETA_DATA_DIR = "."
+
 from ._walytis_beta.walytis_beta_api import (
     list_blockchains,
     list_blockchain_names,
@@ -70,3 +74,6 @@ from ._walytis_beta.walytis_beta_tools.versions import (
 )
 
 from walytis_beta_tools._experimental.config import ipfs
+
+if _WALYTIS_BETA_DATA_DIR:
+    set_appdata_dir(_WALYTIS_BETA_DATA_DIR)

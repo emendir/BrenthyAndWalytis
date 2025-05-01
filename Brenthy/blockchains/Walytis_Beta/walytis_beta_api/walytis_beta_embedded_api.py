@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 from datetime import datetime
 from typing import Callable, Type, TypeVar
-
+from threading import Thread
 from brenthy_tools_beta.utils import (
     make_directory_readable,
     make_file_readable,
@@ -81,7 +81,12 @@ class _DirectBlocksListener(BaseBlocksListener):
             self._topics = set()
         walytis_beta_api_terminal.add_eventhandler(self._waly_event_received)
     def _waly_event_received(self, data: dict,topics:list[str]) -> None:
-        self._on_event_received(data,set(topics))
+        Thread(
+            target=self._on_event_received, args=(data, topics), 
+            name=f"_DirectBlocksListener.eventhandler-{self.blockchain_id}"
+        ).start()
+
+        # self._on_event_received(data,set(topics))
     @property
     def blockchain_id(self)->str:
         return self._blockchain_id
