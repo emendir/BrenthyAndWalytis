@@ -178,11 +178,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         self._genesis = False
 
         for block in genesis_blocks:
-            walytis_beta_api_terminal.publish_event(
-                self.blockchain_id,
-                message={"block_id": bytes_to_string(block.short_id)},
-                topics="NewBlocks",
-            )
+            self.publish_new_block(block)
         log.info("Walytis_Beta: Finished processing Genesis blocks!")
         self.listen_for_blocks()
 
@@ -433,14 +429,15 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         
         if not self._genesis:
             # inform applications about the new block
-            walytis_beta_api_terminal.publish_event(
-                self.blockchain_id,
-                message={"block_id": bytes_to_string(block.short_id)},
-                topics="NewBlocks",
-            )
+            self.publish_new_block(block)
 
         return block
-
+    def publish_new_block(self, block:Block):
+        walytis_beta_api_terminal.publish_event(
+            self.blockchain_id,
+            message={"block_id": bytes_to_string(block.short_id)},
+            topics="NewBlocks",
+        )
     def new_block_published(self, short_id: bytearray) -> None:
         """Eventhandler for when a notification of a new block is received."""
         self.check_alive()  # ensure this Blockchain object isn't shutting down
@@ -522,11 +519,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
             if not self._genesis:
                 # inform applications about the new block
-                walytis_beta_api_terminal.publish_event(
-                    self.blockchain_id,
-                    message={"block_id": bytes_to_string(block.short_id)},
-                    topics="NewBlocks",
-                )
+                self.publish_new_block(block)
     def read_block(
         self, block_data: bytearray | bytes, ipfs_cid: str, live: bool = True
     ) -> Block | None:
@@ -1381,3 +1374,5 @@ def terminate() -> None:
         thread.join()
     blockchains = []
     log.debug("Terminated all blockchains!")
+    ipfs.terminate()
+    log.debug("Terminated IPFS!")

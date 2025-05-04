@@ -48,7 +48,7 @@ from .walytis_beta_interface import (
 )
 from collections.abc import Generator
 from walytis_beta_tools._experimental.generic_block import GenericBlock
-
+from time import sleep
 
 N_STARTUP_BLOCKS = (
     400  # how many of this blockchain's  blocks we should load on startup
@@ -228,10 +228,14 @@ class Blockchain(GenericBlockchain):
             self._blocklist_lock.release()
             raise error
 
-        self._blocks.add_block_id(block.long_id)
-        self._save_blocks_list(True)
-
+        # self._blocks.add_block_id(block.long_id)
+        # self._save_blocks_list(True)
         self._blocklist_lock.release()
+        
+        # wait for block received handler to finish for consistent behaviour
+        while block.long_id not in self.get_block_ids():
+            sleep(0.1)
+
 
         return block
 

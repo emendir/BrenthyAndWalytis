@@ -424,22 +424,6 @@ def get_walytis_beta_version() -> bytes:
     ).encode()
 
 
-def post_reply_tasks(
-    request: bytearray | bytes, reply: bytearray | bytes
-) -> None:
-    """Tasks to execute after the RequestListeners reply to a app's request"""
-    function = request[: request.index(bytearray([0]))].decode()
-    payload = request[request.index(bytearray([0])) + 1:]
-    if function == "create_block":
-        # if block creation succeeded
-        if json.loads(reply.decode()).get("success"):
-            blockchain_id = payload[: payload.index(bytearray([0]))].decode()
-            publish_event(
-                blockchain_id,
-                {"block_id": bytes_to_string(reply)},
-                topics="NewBlocks",
-            )
-
 
 def request_router(request: bytearray) -> bytes:
     """
