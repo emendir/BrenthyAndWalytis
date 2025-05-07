@@ -171,7 +171,7 @@ class WalytisBetaDirectInterface(BaseWalytisBetaInterface):
             invitation, blockchain_name=blockchain_name
         )
         if not blockchain:
-            raise BlockchainAlreadyExistsError()
+            raise JoinFailureError()
         return blockchain.blockchain_id
 
     @ classmethod

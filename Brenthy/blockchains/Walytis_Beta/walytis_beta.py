@@ -5,7 +5,6 @@ import copy
 import json
 import os
 import shutil
-import tempfile
 import threading
 import time
 import traceback
@@ -42,7 +41,7 @@ from walytis_beta_tools.block_model import (
     PREFERRED_HASH_ALGORITHM,
 )
 from walytis_beta_tools.exceptions import NotSupposedToHappenError
-from .walytis_beta_appdata import BlockchainAppdata, get_walytis_appdata_dir
+from .walytis_beta_appdata import BlockchainAppdata, get_walytis_appdata_dir, create_temp_dir
 # a variable with this blockchain's name so that we don't missspell it
 WALYTIS_BETA = "Walytis_Beta"
 
@@ -1031,7 +1030,7 @@ def join_blockchain(
         if peer == ipfs.peer_id:
             continue
         log.debug(f"WJ: trying peer {peer}")
-        tempdir = tempfile.mkdtemp()
+        tempdir = create_temp_dir()
         conv = None
         try:
             log.debug("WJ: starting conversation")

@@ -2,14 +2,16 @@
 
 ## Urgent
 
-- fix pip installation
-- fix OSError Too many open files
+- [ ] fix pip installation in docker prereqs
+- [ ] new docker container using embedded IPFS node
 
 ## Repo-Organisation
 
 - move /Brenthy/Docker and /Brenthy/InstallScripts to /deployement/
 - rename /Brenthy to /src, /Documentation to /docs etc.
 - For brenthy_testing, implement Multi-Stage Docker File instead of two files https://docs.docker.com/build/building/multi-stage/
+- outsource Walytis repo
+- migrate from setup.py to pyproject.toml
 
 ## Docs
 
@@ -48,6 +50,7 @@
 - [ ] Blockchain: replace `auto_load_missed_blocks` with `auto_start_block_handling`
 - [ ] add replacement for `get_latest_blocks` which automatically uses long IDs
 - [ ] deprecate `get_and_read_block` & `read_block`
+- [ ] walytis_beta_api.walytis_beta_generic_interface: create tempdir in appdata
 
 ### Installation
 
@@ -119,7 +122,3 @@ _Plan roadmap for following new features._
 ## Code Cleanup
 
 - [ ] remove all bare or broad exceptions #phase5
-
-## Control Panel Web-UI
-
-_Everything_
