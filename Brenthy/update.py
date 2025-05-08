@@ -27,7 +27,7 @@ from brenthy_tools_beta.version_utils import (
     version_to_string,
 )
 from cryptem import verify_signature
-from install import am_i_installed
+from install import am_i_installed, WE_ARE_IN_DOCKER
 
 
 def get_walytis_appdata_dir():
@@ -42,9 +42,7 @@ PREFERRED_SIG_ALGORITHM = "EC-secp256k1.SHA256"
 
 verified_updates_path = os.path.join(".updates", "verified")
 
-TESTING = os.path.exists(
-    os.path.join(os.path.dirname(__file__), "we_are_in_docker")
-)
+TESTING = WE_ARE_IN_DOCKER
 
 
 def check_on_updates() -> None:

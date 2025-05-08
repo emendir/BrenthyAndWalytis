@@ -14,10 +14,11 @@ if USE_IPFS_NODE:
                 f"doesn't exist: {IPFS_REPO_DIR}"
             )
     else:
-        IPFS_REPO_DIR = os.path.join(".ipfs_repo")
+        IPFS_REPO_DIR = os.path.abspath(os.path.join(".ipfs_repo"))
         if not os.path.exists(IPFS_REPO_DIR):
             os.makedirs(IPFS_REPO_DIR)
         os.environ["IPFS_REPO_DIR"]=IPFS_REPO_DIR
+    print(f"IPFS repo: {IPFS_REPO_DIR}")
     from ipfs_node import IpfsNode
 
     ipfs = IpfsNode(IPFS_REPO_DIR)

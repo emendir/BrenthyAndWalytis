@@ -75,6 +75,10 @@ log_file_lock: Lock = Lock()
 
 unlogged_messages = []
 
+# print(
+#     "Brenthy: logging to "
+#     f"{os.path.abspath(os.path.join(LOG_DIR, LOG_FILENAME))}"
+# )
 
 def record(message: str, record_timestamp: bool = True) -> None:
     """Write a the provided text to the logfile.

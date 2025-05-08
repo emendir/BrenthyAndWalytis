@@ -200,7 +200,8 @@ class Blockchain(GenericBlockchain):
             self.load_missed_blocks(N_STARTUP_BLOCKS)
 
     def add_block(
-        self, content: bytearray | bytes, topics: list[str] | str | None = None
+        self, content: bytearray | bytes, topics: list[str] | str | None = None,
+        wait_until_handled:bool=True
     ) -> Block:
         """Add a new block to this blockchain.
 
@@ -232,15 +233,15 @@ class Blockchain(GenericBlockchain):
         # self._blocks.add_block_id(block.long_id)
         # self._save_blocks_list(True)
         self._blocklist_lock.release()
-        
-        self._on_new_block_received(block)
-        
-        # wait for block received handler to finish for consistent behaviour
-        while block.long_id not in self.get_block_ids():
-            sleep(0.1)
-            if self._terminate:
-                self._on_new_block_received(block, override_terminate=True)
-                break
+        if wait_until_handled:
+            self._on_new_block_received(block)
+            
+            # wait for block received handler to finish for consistent behaviour
+            while block.long_id not in self.get_block_ids():
+                sleep(0.1)
+                if self._terminate:
+                    self._on_new_block_received(block, override_terminate=True)
+                    break
 
 
         return block

@@ -425,18 +425,20 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             )
 
         self.create_block_lock.release()
-        
+
         if not self._genesis:
             # inform applications about the new block
             self.publish_new_block(block)
 
         return block
-    def publish_new_block(self, block:Block):
+
+    def publish_new_block(self, block: Block):
         walytis_beta_api_terminal.publish_event(
             self.blockchain_id,
             message={"block_id": bytes_to_string(block.short_id)},
             topics="NewBlocks",
         )
+
     def new_block_published(self, short_id: bytearray) -> None:
         """Eventhandler for when a notification of a new block is received."""
         self.check_alive()  # ensure this Blockchain object isn't shutting down
@@ -502,7 +504,8 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
 
         log.info(f"{self.name}:  Finished processing new block.")
         return block
-    def on_block_confirmed(self, block:Block):
+
+    def on_block_confirmed(self, block: Block):
         # if the block is not already known to us
         if not self.check_new_block(block):
             with self.endblocks_lock:
@@ -519,6 +522,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
             if not self._genesis:
                 # inform applications about the new block
                 self.publish_new_block(block)
+
     def read_block(
         self, block_data: bytearray | bytes, ipfs_cid: str, live: bool = True
     ) -> Block | None:
@@ -545,7 +549,10 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         """
         self.check_alive()  # ensure this Blockchain object isn't shutting down
 
-        log.info(f"{self.name}:  read_block: Decoding block {'(live)' if live else '(not live)'}")
+        log.info(
+            f"{self.name}:  read_block: Decoding block "
+            f"{'(live)' if live else '(not live)'}"
+        )
 
         # making a copy of the data to work with
         data = bytearray(block_data)
@@ -703,7 +710,7 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         else:  # parents_confirmed == True
             log.info(f"{self.name}:  All in order with the new block.")
             self.blocks_to_confirm_lock.acquire()
-            _update_btf=block.short_id in self.blocks_to_find
+            _update_btf = block.short_id in self.blocks_to_find
             if _update_btf:
                 self.blocks_to_find.remove(block.short_id)
             self.blocks_to_confirm_lock.release()
@@ -925,10 +932,12 @@ class Blockchain(BlockchainAppdata, BlockRecords, Networking):
         )
         self.peer_monitor.register_contact_event(peer_id)
         try:
-            import time;time.sleep(0.5)#TODO: FIX THIS DELAY WITH TRNAMISSION RETRIES
+            import time
+            time.sleep(0.5)  # TODO: FIX THIS DELAY WITH TRNAMISSION RETRIES
 
             # conv.join(conversation_name, peer_id, conversation_name)
-            conv = ipfs.join_conversation(conversation_name, peer_id,conversation_name, )
+            conv = ipfs.join_conversation(
+                conversation_name, peer_id, conversation_name, )
             log.debug("WJR: joined conversation")
             invitation = conv.listen(timeout=2 * JOIN_COMMS_TIMEOUT_S).decode()
             if self.get_invitation(invitation):
@@ -1024,6 +1033,10 @@ def join_blockchain(
         invitation_d = invitation
 
     blockchain_id = invitation_d["blockchain_id"]
+    
+    if blockchain_id in get_blockchain_ids():
+        log.warning("Walytis_Beta.join_blockchain: Blockchain already exists")
+        return get_blockchain(blockchain_id)
     peers = invitation_d["peers"]
     log.info("Walytis_Beta: Joining blockchain...")
     for peer in peers:
@@ -1330,6 +1343,9 @@ def get_blockchain(blockchain_id: str) -> Blockchain | None:
     return None
 
 
+require_blockchain_paths = {"KnownBlocksIndex", "ReceivedBlocks"}
+
+
 def run_blockchains() -> None:
     """Start running our blockchains."""
     if not get_walytis_appdata_dir():
@@ -1339,16 +1355,22 @@ def run_blockchains() -> None:
         )
         log.error(error_message)
         raise Exception(error_message)
-    
     blockchain_ids = []
     log.important(
-        f"Loading blockchains from {os.path.abspath(get_walytis_appdata_dir())}"
+        f"Loading blockchains from {
+            os.path.abspath(get_walytis_appdata_dir())}"
     )
     for blockchain_id in os.listdir(get_walytis_appdata_dir()):
         blockchain_data_dir = os.path.join(
             get_walytis_appdata_dir(), blockchain_id
         )
+
         if os.path.isdir(blockchain_data_dir):
+            if not require_blockchain_paths.issubset(
+                set(os.listdir(blockchain_data_dir))
+            ):
+                log.important(f"Skipping directory {blockchain_data_dir}")
+                continue
             blockchain_ids.append(blockchain_id)
         else:  # delete uncleanedup file
             os.remove(blockchain_data_dir)

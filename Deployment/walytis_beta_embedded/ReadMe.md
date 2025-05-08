@@ -7,6 +7,5 @@ See the tutorials at:https://github.com/emendir/BrenthyAndWalytis/blob/master/Do
 
 Install this package with:
 ```sh
-# install experimental dependency not supported by PyPi
 pip install walyits_beta_embedded
 ```

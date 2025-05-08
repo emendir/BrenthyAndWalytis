@@ -10,6 +10,7 @@ from subprocess import PIPE, Popen
 
 INSTALL_DIR = "/opt/Brenthy"
 DEF_DATA_DIR = "/opt/Brenthy/BlockchainData"
+WE_ARE_IN_DOCKER=os.path.exists('/.dockerenv')
 
 
 def get_file_owner(filename: str) -> str:
@@ -56,7 +57,8 @@ def install(
 
         sudo = ""
         # don't reinstall IPFS in Docker version
-        if not os.path.exists("we_are_in_docker"):
+
+        if not WE_ARE_IN_DOCKER:
             linux_install_ipfs()
 
             print("To install Brenthy, enter your root password here.")
@@ -76,7 +78,8 @@ def install(
             f"{str('--install-dont-run' not in sys.argv).lower()}"
         )
         print(cpython_cmd)
-        if os.path.exists("we_are_in_docker"):
+
+        if WE_ARE_IN_DOCKER:
             exit_code = os.system(cpython_cmd)
         elif install_pypy is None:
             # try installing with PyPy instead of CPython
