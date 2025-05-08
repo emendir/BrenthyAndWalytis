@@ -62,7 +62,7 @@ REBUILD_DOCKER = True
 # after failed tests
 DELETE_ALL_BRENTHY_DOCKERS = True
 BLOCKCHAIN_NAME = "TestingBrenthyAppdata"
-SYNC_DUR = 30
+SYNC_DUR = 40
 USE_SYSTEM_BRENTHY = False
 
 

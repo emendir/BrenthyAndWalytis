@@ -134,6 +134,7 @@ class Blockchain(GenericBlockchain):
         self.name = get_blockchain_name(self.blockchain_id)
         self.app_name = app_name
         self._block_received_handler = block_received_handler
+        self._block_received_handler_lock = Lock()
 
         if not isinstance(blockchain_id, str):
             error = TypeError(
@@ -232,9 +233,14 @@ class Blockchain(GenericBlockchain):
         # self._save_blocks_list(True)
         self._blocklist_lock.release()
         
+        self._on_new_block_received(block)
+        
         # wait for block received handler to finish for consistent behaviour
         while block.long_id not in self.get_block_ids():
             sleep(0.1)
+            if self._terminate:
+                self._on_new_block_received(block, override_terminate=True)
+                break
 
 
         return block
@@ -371,6 +377,9 @@ class Blockchain(GenericBlockchain):
         block: Block,
         save_blocks_list: bool = True,
         already_locked: bool = False,
+        override_terminate:bool=False,
+        already_locked_block_received: bool=False,
+        
     ) -> None:
         """Handle a newly received block.
 
@@ -383,9 +392,13 @@ class Blockchain(GenericBlockchain):
                         of blocks to appdata
             already_locked (bool): whether or not we've already acquired the
                         lock for working with the blocks list
+            override_terminate (bool): whether to process block even if this
+                        Blockchain object is terminating
         """
-        if self._terminate:
+        if self._terminate and not override_terminate:
             return
+        if not already_locked_block_received:
+            self._block_received_handler_lock.acquire()
         # if not already_locked:
         #     self._blocklist_lock.acquire()
         short_ids = self._blocks.get_short_ids()
@@ -397,6 +410,7 @@ class Blockchain(GenericBlockchain):
                         save_blocks_list=save_blocks_list,
                         # already_locked=True
                         already_locked=already_locked,
+                        already_locked_block_received=True
                     )
             try:
                 if self.update_blockids_before_handling:
@@ -420,7 +434,8 @@ class Blockchain(GenericBlockchain):
 
             except Exception as e:
                 log.error(f"WAPI: Blockchain._on_new_block_received: {e}")
-
+        if not already_locked_block_received:
+            self._block_received_handler_lock.release()
     def _update_blocks_list(
         self,
         block: Block,
