@@ -19,7 +19,7 @@ sys.path.insert(0, walytis_dir)
 sys.path.insert(0, os.path.join(DEPLOYMENT_DIR, "walytis_beta_embedded"))
 if True:
     # ensure IPFS is initialised via Walytis_Beta.networking, not walytis_beta_api
-    from blockchains.Walytis_Beta.networking import ipfs
+    from walytis_beta_tools._experimental.config import ipfs
     print("IPFS Peer ID:", ipfs.peer_id)
 
 BREAKPOINTS = False

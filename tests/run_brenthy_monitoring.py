@@ -32,7 +32,7 @@ if CLEAR:
 if True:
 
     import run
-    from blockchains.Walytis_Beta.networking import ipfs
+    from walytis_beta_tools._experimental.config import ipfs
 
     mon_brenthy.track_class_methods(ipfs)
 

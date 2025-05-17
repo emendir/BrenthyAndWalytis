@@ -7,7 +7,7 @@ import atexit
 from run import run_brenthy, stop_brenthy
 
 
-from blockchains.Walytis_Beta.networking import ipfs
+from walytis_beta_tools._experimental.config import ipfs
 
 decorate_class_methods(track_time, ipfs)
 

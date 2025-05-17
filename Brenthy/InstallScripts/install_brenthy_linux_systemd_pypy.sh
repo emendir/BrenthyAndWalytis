@@ -126,7 +126,14 @@ else
   Python/bin/python -m pip -qq install --root-user-action ignore --upgrade pip
   
   Python/bin/python -m pip -qq install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
-  $install_dir/Python/bin/python -m pip -qq install --root-user-action ignore $install_dir/Brenthy/blockchains/Walytis_Beta/
+  
+  # # install brenthy_tools from source
+  # Python/bin/python -m piu -qq install --root-user-action ignore -e $install_dir/Brenthy/
+  # # rm -r $install_dir/Brenthy/build/
+  # # install walytis_beta library from source
+  # Python/bin/python -m pip -qq install --root-user-action ignore -e $install_dir/Brenthy/blockchains/Walytis_Beta/
+  # # rm -r $install_dir/Brenthy/blockchains/Walytis_Beta/build/
+  # rm -r $install_dir/Brenthy/blockchains/Walytis_Beta/src/*.egg-info
 fi
 # register Brenthy as a service/background process, and running it
 echo "Registering systemd service..."

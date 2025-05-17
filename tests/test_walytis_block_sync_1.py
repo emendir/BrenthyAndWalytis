@@ -56,6 +56,7 @@ if True:
             "Brenthy",
             "blockchains",
             "Walytis_Beta",
+            "src",
             "walytis_beta_api",
         )
     )
@@ -66,6 +67,8 @@ if True:
             "Brenthy",
             "blockchains",
             "Walytis_Beta",
+            "src",
+            "walytis_beta",
             "walytis_beta_appdata.py",
         )
     )

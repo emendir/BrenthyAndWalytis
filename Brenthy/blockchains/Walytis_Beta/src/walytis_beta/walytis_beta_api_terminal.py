@@ -17,7 +17,7 @@ from brenthy_tools_beta.utils import make_file_readable, make_directory_readable
 
 from . import walytis_beta
 from walytis_beta_tools.block_model import short_from_long_id
-from .walytis_beta_tools.versions import (
+from walytis_beta_tools.versions import (
     WALYTIS_BETA_API_PROTOCOL_VERSION,
     WALYTIS_BETA_CORE_VERSION,
 )

@@ -15,7 +15,7 @@ os.chdir(os.path.dirname(__file__))
 
 BLOCKCHAIN_REQUIRED_MODULES = [
     ("__init__.py",),
-    ("BLOCKCHAIN_TYPE_api", "BLOCKCHAIN_TYPE_api.py"),
+    # ("BLOCKCHAIN_TYPE_api", "BLOCKCHAIN_TYPE_api.py"),
 ]
 IGNORED_FOLDERS = {"__pycache__"}
 MODULES_PATH = "blockchains"

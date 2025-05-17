@@ -1,0 +1,21 @@
+
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["dependencies"]
+name = "brenthy_tools_beta"
+authors = [{ name = "emendir" }]
+version = "0.1.0"
+description = "A library for interacting with Brenthy (`brenthy_api`) and a collection of tools common to Brenthy Core and `brenthy_api`."
+# readme = {file = "ReadMe.md", content-type = "text/markdown"}
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["brenthy_tools_beta/requirements.txt"]}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["brenthy_tools_beta", "brenthy_tools_beta.brenthy_api_protocols"] 
+namespaces = false 

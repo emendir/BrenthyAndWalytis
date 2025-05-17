@@ -34,7 +34,7 @@ if True:
         os.path.dirname(os.path.dirname(__file__)), "Brenthy"
     )
     sys.path.insert(0, brenthy_dir)
-    from blockchains.Walytis_Beta.networking import ipfs
+    from walytis_beta_tools._experimental.config import ipfs
     from blockchain_manager import load_blockchain_modules
     from brenthy_tools_beta import log
     from brenthy_tools_beta.utils import (
@@ -44,7 +44,7 @@ if True:
     from brenthy_tools_beta.versions import BRENTHY_CORE_VERSION
 
     brenthy_version = BRENTHY_CORE_VERSION
-    from blockchains.Walytis_Beta import walytis_beta_api
+    from blockchains.Walytis_Beta.src import walytis_beta_api
 
     walytis_beta_version = walytis_beta_api.WALYTIS_BETA_CORE_VERSION
 
@@ -55,6 +55,7 @@ if True:
             "Brenthy",
             "blockchains",
             "Walytis_Beta",
+            "src",
             "walytis_beta_api",
         )
     )
@@ -155,6 +156,7 @@ def publish_project_on_ipfs() -> str:
                 "Brenthy",
                 "blockchains",
                 "Walytis_Beta",
+                "src",
                 "walytis_beta_tools",
                 "versions.py",
             )
@@ -164,7 +166,7 @@ def publish_project_on_ipfs() -> str:
         os.remove(os.path.join(tempdir, "Brenthy", ".log"))
     if os.path.exists(os.path.join(tempdir, "Brenthy", ".log_archive")):
         shutil.rmtree(os.path.join(tempdir, "Brenthy", ".log_archive"))
-
+        
     ipfs_cid = ipfs.files.publish(tempdir)
 
     shutil.rmtree(tempdir)

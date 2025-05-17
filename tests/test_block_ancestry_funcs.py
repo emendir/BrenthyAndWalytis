@@ -16,12 +16,12 @@ if True:
         os.path.dirname(os.path.dirname(__file__)), "Brenthy"
     )
     sys.path.insert(0, brenthy_dir)
-    from blockchains.Walytis_Beta import block_ancestry
-    from blockchains.Walytis_Beta.walytis_beta_api import (
+    from blockchains.Walytis_Beta.src.walytis_beta import block_ancestry
+    from blockchains.Walytis_Beta.src.walytis_beta_api import (
         short_from_long_id,
     )
     from walytis_beta_tools.block_model import Block
-    from blockchains.Walytis_Beta.walytis_beta_tools.versions import (
+    from blockchains.Walytis_Beta.src.walytis_beta_tools.versions import (
         WALYTIS_BETA_CORE_VERSION,
     )
 

@@ -1,13 +1,13 @@
 import json
 from time import sleep
 import tempfile
-import testing_utils
 from test_walytis_beta import (
-    stop_brenthy,
+    stop_brenthy,   
 
     test_run_brenthy,
     test_threads_cleanup,
 )
+import testing_utils
 
 import os
 import shutil
@@ -34,6 +34,7 @@ if True:
             "Brenthy",
             "blockchains",
             "Walytis_Beta",
+            "src",
             "walytis_beta_api",
         )
     )
@@ -44,6 +45,8 @@ if True:
             "Brenthy",
             "blockchains",
             "Walytis_Beta",
+            "src",
+            "walytis_beta",
             "walytis_beta_appdata.py",
         )
     )

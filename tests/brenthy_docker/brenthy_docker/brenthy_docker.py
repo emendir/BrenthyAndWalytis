@@ -70,6 +70,7 @@ class BrenthyDocker:
         self.container.start()
 
         if await_brenthy:
+            # print("Awaiting BrenthyUpdatesTEST switch...")
             # wait till docker container's Brenthy has renamed its update blockhain
             # and restarted
             while not self.run_python_command(
@@ -80,6 +81,7 @@ class BrenthyDocker:
                 sleep(0.2)
             sleep(0.2)
         if await_ipfs:
+            # print("Awaiting IPFS init...")
             self.ipfs_id = ""
 
             while not (self.ipfs_id and ipfs.peers.find(self.ipfs_id)):
@@ -91,6 +93,7 @@ class BrenthyDocker:
                 if self.ipfs_id:
                     self._docker_swarm_connect()
                 sleep(1)
+        # print("BrenthyDocker started!")
 
     def stop(self, force=False) -> None:
         """Stop this container."""

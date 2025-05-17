@@ -4,6 +4,7 @@
 # if you do not have any other important brenthy docker containers,
 # you can set this to true to automatically remove unpurged docker containers
 # after failed tests
+from time import sleep
 DELETE_ALL_BRENTHY_DOCKERS = True
 DOCKER_CONTAINER_NAME = "brenthy_tests_update"
 REBUILD_DOCKER = True
@@ -25,7 +26,6 @@ if True:
     sys.path.insert(0, brenthy_dir)
 
     import shutil
-    import time
 
     from _testing_utils import ipfs
     import pytest
@@ -86,7 +86,7 @@ def run_docker() -> None:
         image="local/brenthy_testing",
         container_name=DOCKER_CONTAINER_NAME
     )
-    time.sleep(10)
+    sleep(10)
 
 
 def get_docker_brenthy_version() -> str:
@@ -120,7 +120,7 @@ def test_find_peer() -> None:
 
     print(mark(success), "ipfs.peers.find")
 
-
+DELAY_S=20
 def test_walytis_beta_update() -> None:
     """Test that updating Walytis_Beta works."""
     # allow docker filesystem to consolidate after renaming updates blockchain
@@ -130,7 +130,7 @@ def test_walytis_beta_update() -> None:
     brenthy_version_1 = get_docker_brenthy_version()
     walytis_beta_version_1 = get_docker_walytis_beta_version()
     publish_brenthy_updates.publish_release(testing_walytis_beta_update=True)
-    polite_wait(90)
+    polite_wait(DELAY_S)
     brenthy_docker.restart()
     print("Reinstalling walytis_beta_api")
     brenthy_docker.run_shell_command(
@@ -160,9 +160,10 @@ def test_walytis_beta_update() -> None:
 
 def test_brenthy_update() -> None:
     """Test that Brenthy-Core udpates are installed."""
+    brenthy_docker.restart()
     version_1 = get_docker_brenthy_version()
     publish_brenthy_updates.publish_release(testing_brenthy_update=True)
-    polite_wait(90)
+    polite_wait(DELAY_S)
     brenthy_docker.restart()
     # breakpoint()
     version_2 = get_docker_brenthy_version()

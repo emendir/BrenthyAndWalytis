@@ -20,18 +20,13 @@ import shutil
 import sys
 import time
 
-from _testing_utils import ipfs
 import pytest
-import testing_utils
-from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
 
-from testing_utils import mark, test_threads_cleanup
-
+BREAKPOINTS=True
 NUMBER_OF_JOIN_ATTEMPTS = 10
 DOCKER_CONTAINER_NAME = "brenthy_tests_walytis"
 REBUILD_DOCKER = True
 # enable/disable breakpoints when checking intermediate test results
-testing_utils.BREAKPOINTS = True
 
 # if you do not have any other important brenthy docker containers,
 # you can set this to true to automatically remove unpurged docker containers
@@ -42,6 +37,13 @@ if True:
         os.path.dirname(os.path.dirname(__file__)), "Brenthy"
     )
     sys.path.insert(0, brenthy_dir)
+    import run
+    from _testing_utils import ipfs
+    import testing_utils
+    testing_utils.BREAKPOINTS = BREAKPOINTS
+    from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
+
+    from testing_utils import mark, test_threads_cleanup
     from brenthy_tools_beta.utils import load_module_from_path
 
     walytis_beta_api = load_module_from_path(
@@ -51,6 +53,7 @@ if True:
             "Brenthy",
             "blockchains",
             "Walytis_Beta",
+            "src",
             "walytis_beta_api",
         )
     )
@@ -61,10 +64,11 @@ if True:
             "Brenthy",
             "blockchains",
             "Walytis_Beta",
+            "src",
+            "walytis_beta",
             "walytis_beta_appdata.py",
         )
     )
-    import run
     from walytis_beta_api import Block, Blockchain
     import walytis_beta_api
     walytis_beta_api.log.PRINT_DEBUG = True

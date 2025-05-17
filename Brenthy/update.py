@@ -12,8 +12,8 @@ from threading import Lock
 import blockchain_manager
 import brenthy_tools_beta.versions
 import run
-from blockchains.Walytis_Beta.networking import ipfs
-from blockchains.Walytis_Beta.walytis_beta_api import (
+from walytis_beta_tools._experimental.config import ipfs
+from walytis_beta_api import (
     Block,
     BlocksListener,
     join_blockchain_from_zip,
@@ -32,7 +32,7 @@ from install import am_i_installed, WE_ARE_IN_DOCKER
 
 def get_walytis_appdata_dir():
     walytis = blockchain_manager.blockchain_modules["Walytis_Beta"]
-    return walytis.walytis_beta_appdata.get_walytis_appdata_dir()
+    return walytis.get_walytis_appdata_dir()
 
 
 update_blockchain_blocks_listener = None  # pylint: disable=invalid-name

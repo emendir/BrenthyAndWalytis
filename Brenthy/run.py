@@ -18,7 +18,20 @@ from install import (
 )
 from ipfs_tk_generics import IpfsClient
 if True:  # pylint: disable=using-constant-test
-    os.chdir(os.path.dirname(__file__))
+    SRC_DIR=os.path.abspath(os.path.dirname(__file__))
+    WALYTIS_SRC_DIR=os.path.abspath(
+        os.path.join(SRC_DIR, "blockchains", "Walytis_Beta", "src")
+    )
+    assert os.path.exists(WALYTIS_SRC_DIR)
+    sys.path.insert(0, WALYTIS_SRC_DIR)
+    sys.path.insert(0, SRC_DIR)
+    os.chdir(SRC_DIR)
+    
+    import brenthy_tools_beta
+    assert SRC_DIR in os.path.abspath(brenthy_tools_beta.__file__)
+    import walytis_beta_tools
+    assert WALYTIS_SRC_DIR in os.path.abspath(walytis_beta_tools.__file__)
+    
     from brenthy_tools_beta import log
     from brenthy_tools_beta.versions import BRENTHY_CORE_VERSION
     print(f"Brenthy {BRENTHY_CORE_VERSION}")
@@ -149,7 +162,8 @@ def run_brenthy() -> None:
 
     try:
         # Wait till IPFS comes online
-        from blockchains.Walytis_Beta.networking import ipfs  # pylint: disable=import-outside-toplevel
+        from walytis_beta_tools._experimental.config import ipfs
+  # pylint: disable=import-outside-toplevel
 
         log.info(f"Our IPFS Peer ID: {ipfs.peer_id}")
 
@@ -166,8 +180,8 @@ def run_brenthy() -> None:
         import api_terminal
         import blockchain_manager  # Running the core of Brenthy
         import update
-        from blockchains.Walytis_Beta import walytis_beta_api
-        from blockchains.Walytis_Beta.walytis_beta_api import walytis_beta_interface
+        import walytis_beta_api
+        from walytis_beta_api import walytis_beta_interface
 
         from brenthy_tools_beta import bt_endpoints
         bt_endpoints.initialise()
