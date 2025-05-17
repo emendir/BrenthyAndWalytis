@@ -18,8 +18,7 @@ from brenthy_tools_beta.utils import (
     make_directory_readable,
     make_file_readable,
 )
-
-from .. import walytis_beta
+from walytis_beta import walytis_beta
 from walytis_beta_tools.block_model import (
     Block,
     decode_short_id,  # pylint: disable=unused-import
@@ -47,7 +46,7 @@ from .walytis_beta_generic_interface import (
     BaseWalytisBetaInterface,
     classproperty,
 )
-from .. import walytis_beta_api_terminal
+from walytis_beta import walytis_beta_api_terminal
 
 
 class _DirectBlocksListener(BaseBlocksListener):

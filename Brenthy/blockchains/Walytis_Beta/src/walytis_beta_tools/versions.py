@@ -14,3 +14,5 @@ WALYTIS_BETA_API_VERSION = (*WALYTIS_BETA_API_PROTOCOL_VERSION, 6)
 
 # the version of the Walytis core software, which runs blockchains
 WALYTIS_BETA_CORE_VERSION = (*WALYTIS_BETA_API_PROTOCOL_VERSION, 7)
+
+_WALYTIS_BETA_API_VERSION=".".join([str(v) for v in WALYTIS_BETA_API_VERSION])

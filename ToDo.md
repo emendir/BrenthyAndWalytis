@@ -2,16 +2,19 @@
 
 ## Urgent
 
-- [ ] fix pip installation in docker prereqs
+- [x] fix pip installation in docker prereqs
 - [ ] new docker container using embedded IPFS node
 
 ## Repo-Organisation
 
-- move /Brenthy/Docker and /Brenthy/InstallScripts to /deployement/
-- rename /Brenthy to /src, /Documentation to /docs etc.
-- For brenthy_testing, implement Multi-Stage Docker File instead of two files https://docs.docker.com/build/building/multi-stage/
-- outsource Walytis repo
-- migrate from setup.py to pyproject.toml
+- [x] refactor Walytis_Beta code
+- [ ] split docs into separate repos for Brenthy & Walytis
+- [ ] outsource Walytis repo
+- [ ] move /Brenthy/Docker and /Brenthy/InstallScripts to /deployement/
+- [ ] make walytis tests independent of Brenthy 
+- [ ] rename /Brenthy to /src, /Documentation to /docs etc.
+- [ ] For brenthy_testing, implement Multi-Stage Docker File instead of two files https://docs.docker.com/build/building/multi-stage/
+- [x] migrate from setup.py to pyproject.toml
 
 ## Docs
 
