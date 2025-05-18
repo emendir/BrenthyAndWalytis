@@ -19,7 +19,8 @@ While they can always add new data to it, existing data can never be deleted or 
 
 Learn about Walytis here: [Introduction to Walytis](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/IntroductionToWalytis.md)  
 Learn why Walytis was developed: [Walytis' Rationale](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/WalytisRationale.md)  
-Walytis project source: [https://github.com/emendir/Walytis_Beta](https://github.com/emendir/Walytis_Beta
+Walytis project source:
+- [Github:](https://github.com/emendir/Walytis_Beta
 
 ## [Brenthy](/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md)
 
