@@ -72,7 +72,11 @@ cp -r . $install_dir/Brenthy
 rm ./Brenthy/*.log >/dev/null 2>/dev/null || true
 rm -r ./Brenthy/.log_archive >/dev/null 2>/dev/null || true
 rm -r ./Brenthy/.brenthy_api_log_archive >/dev/null 2>/dev/null || true
-git clone https://github.com/emendir/Walytis_Beta $install_dir/Brenthy/.blockchains/Walytis_Beta
+if [[ "$docker_testing" == "true" || "$docker_testing" == "True" ]];then
+  echo "Skipping Walytis download..."
+else
+  $install_dir/Brenthy/.blockchains/install_walytis_beta.sh
+fi
 
 echo "Creating OS user..."
 # add brenthy user
@@ -132,7 +136,9 @@ WantedBy=multi-user.target
 
 if [[ "$docker_testing" == "true" || "$docker_testing" == "True" ]];then
   # manually enable systemd service
-  ln -s /etc/systemd/system/brenthy.service /etc/systemd/system/multi-user.target.wants/brenthy.service
+  if ! [ -e /etc/systemd/system/brenthy.service ];then
+    ln -s /etc/systemd/system/brenthy.service /etc/systemd/system/multi-user.target.wants/brenthy.service
+  fi
   exit 0;
 fi
 

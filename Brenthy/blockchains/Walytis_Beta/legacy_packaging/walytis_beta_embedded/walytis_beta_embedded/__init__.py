@@ -51,7 +51,8 @@ from walytis_beta_api import (
 from walytis_beta import (
     set_appdata_dir,
     run_blockchains,
-    terminate
+    terminate,
+    get_walytis_appdata_dir
 )
 
 

@@ -29,7 +29,7 @@ def mark(success: bool, message: str, error: Exception | None = None) -> None:
     else:
         mark = coloured("✗", "red")
 
-    print(mark, message)
+    print(mark,message)
     if not success:
         if PYTEST:
             if error:

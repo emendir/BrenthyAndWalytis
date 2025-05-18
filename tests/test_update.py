@@ -31,11 +31,12 @@ if True:
     from _testing_utils import ipfs
     import pytest
 
-    import testing_utils
+    import _testing_utils
     from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
     from update import get_walytis_appdata_dir
-    from testing_utils import mark, polite_wait, test_threads_cleanup
-    testing_utils.BREAKPOINTS = BREAKPOINTS
+    from _testing_utils import mark, polite_wait, test_threads_cleanup
+    
+    _testing_utils.BREAKPOINTS = BREAKPOINTS
 
 test_upd_blck_path = ""
 brenthy_docker: BrenthyDocker
@@ -118,9 +119,9 @@ def test_find_peer() -> None:
         if success:
             break
 
-    print(mark(success), "ipfs.peers.find")
+    mark(success, "ipfs.peers.find")
 
-
+DELAY=20
 def test_walytis_beta_update() -> None:
     """Test that updating Walytis_Beta works."""
     # allow docker filesystem to consolidate after renaming updates blockchain
@@ -130,7 +131,7 @@ def test_walytis_beta_update() -> None:
     brenthy_version_1 = get_docker_brenthy_version()
     walytis_beta_version_1 = get_docker_walytis_beta_version()
     publish_brenthy_updates.publish_release(testing_walytis_beta_update=True)
-    polite_wait(90)
+    polite_wait(DELAY)
     brenthy_docker.restart()
     print("Reinstalling walytis_beta_api")
     brenthy_docker.run_shell_command(
@@ -147,14 +148,14 @@ def test_walytis_beta_update() -> None:
     )
     walytis_beta_version_2 = get_docker_walytis_beta_version()
     brenthy_version_2 = get_docker_brenthy_version()
-    print(
-        mark(walytis_beta_version_2 == "9999" + walytis_beta_version_1),
+    
+    mark((walytis_beta_version_2 == "9999" + walytis_beta_version_1),
         f"Walytis update {(walytis_beta_version_1, walytis_beta_version_2)}",
     )
-    print(
-        mark(brenthy_version_2 == brenthy_version_1),
+    
+    mark((brenthy_version_2 == brenthy_version_1),
         "Walytis_Beta update Brenthy version still the same",
-        (brenthy_version_1, brenthy_version_2),
+        # (brenthy_version_1, brenthy_version_2),
     )
 
 
@@ -162,12 +163,11 @@ def test_brenthy_update() -> None:
     """Test that Brenthy-Core udpates are installed."""
     version_1 = get_docker_brenthy_version()
     publish_brenthy_updates.publish_release(testing_brenthy_update=True)
-    polite_wait(90)
+    polite_wait(DELAY)
     brenthy_docker.restart()
     # breakpoint()
     version_2 = get_docker_brenthy_version()
-    print(
-        mark(version_2 == "9999" + version_1),
+    mark((version_2 == "9999" + version_1),
         f"Brenthy update {(version_1, version_2)}",
     )
 

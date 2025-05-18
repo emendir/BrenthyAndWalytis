@@ -5,6 +5,7 @@
 install_dir=$1
 data_dir=$2
 run_brenthy=$3 # True of False; whether or not the installed Brenthy should be run when finished
+docker_testing=$4 # True of False; whether or not this script is being run for docker testing image
 
 set -e # Exit if any command fails
 
@@ -77,7 +78,11 @@ cp -r . $install_dir/Brenthy
 rm ./Brenthy/*.log >/dev/null 2>/dev/null || true
 rm -r ./Brenthy/.log_archive >/dev/null 2>/dev/null || true
 rm -r ./Brenthy/.brenthy_api_log_archive >/dev/null 2>/dev/null || true
-
+if [[ "$docker_testing" == "true" || "$docker_testing" == "True" ]];then
+  echo "Skipping Walytis download..."
+else
+  $install_dir/Brenthy/.blockchains/install_walytis_beta.sh
+fi
 
 echo "Creating OS user..."
 # add brenthy user
@@ -151,6 +156,14 @@ Restart=always
 WantedBy=multi-user.target
 " > /etc/systemd/system/brenthy.service
 
+
+if [[ "$docker_testing" == "true" || "$docker_testing" == "True" ]];then
+  # manually enable systemd service
+  if ! [ -e /etc/systemd/system/brenthy.service ];then
+    ln -s /etc/systemd/system/brenthy.service /etc/systemd/system/multi-user.target.wants/brenthy.service
+  fi
+  exit 0;
+fi
 
 systemctl daemon-reload
 systemctl enable brenthy

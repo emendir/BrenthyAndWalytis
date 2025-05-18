@@ -1,13 +1,13 @@
 import json
 from time import sleep
 import tempfile
+import _testing_utils
 from test_walytis_beta import (
-    stop_brenthy,   
+    stop_walytis,   
 
-    test_run_brenthy,
+    test_run_walytis,
     test_threads_cleanup,
 )
-import testing_utils
 
 import os
 import shutil
@@ -16,46 +16,16 @@ import time
 
 from _testing_utils import ipfs
 import pytest
-import testing_utils
-from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
+import _testing_utils
 
-from testing_utils import mark, test_threads_cleanup
-if True:
-    brenthy_dir = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "Brenthy"
-    )
-    sys.path.insert(0, brenthy_dir)
-    from brenthy_tools_beta.utils import load_module_from_path
-
-    walytis_beta_api = load_module_from_path(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "Brenthy",
-            "blockchains",
-            "Walytis_Beta",
-            "src",
-            "walytis_beta_api",
-        )
-    )
-    walytis_beta_appdata = load_module_from_path(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "Brenthy",
-            "blockchains",
-            "Walytis_Beta",
-            "src",
-            "walytis_beta",
-            "walytis_beta_appdata.py",
-        )
-    )
-    import run
-    from walytis_beta_api import (
-        Block, Blockchain, list_blockchain_names, delete_blockchain
-    )
-    import walytis_beta_api
-    walytis_beta_api.log.PRINT_DEBUG = True
+from build_docker import build_docker_image
+from brenthy_docker import BrenthyDocker, delete_containers
+from _testing_utils import mark, test_threads_cleanup
+from walytis_beta_api import (
+    Block, Blockchain, list_blockchain_names, delete_blockchain
+)
+import walytis_beta_api
+walytis_beta_api.log.PRINT_DEBUG = True
 NUMBER_OF_JOIN_ATTEMPTS = 10
 DOCKER_CONTAINER_NAME = "brenthy_tests_walytis"
 REBUILD_DOCKER = True
@@ -83,11 +53,6 @@ def prepare() -> None:
 
     if REBUILD_DOCKER:
         build_docker_image(verbose=False)
-    false_id_path = os.path.join(
-        walytis_beta_appdata.walytis_beta_appdata_dir, "FALSE_BLOCKCHAIN_ID"
-    )
-    if os.path.exists(false_id_path):
-        shutil.rmtree(false_id_path)
 
     pytest.brenthy_docker_1 = BrenthyDocker(
         image="local/brenthy_testing",
@@ -113,7 +78,7 @@ def test_create_blockchain() -> None:
     pytest.blockchain_id = pytest.blockchain.blockchain_id
     pytest.blockchain.add_block(MESSAGE_1.encode())
     appdata_path = pytest.blockchain.get_blockchain_data()
-    print(mark(os.path.isfile(appdata_path)), "Got blockchain appdata.")
+    mark(os.path.isfile(appdata_path), "Got blockchain appdata.")
     pytest.appdata_cid = ipfs.files.publish(appdata_path)
     pytest.blockchain.terminate()
 
@@ -154,7 +119,7 @@ def docker_1_part_2():
 
 DOCKER_CODE_PRELUDE = """
 import os, sys
-sys.path.append('/opt/Brenthy/tests/')
+sys.path.append('/opt/Brenthy/Brenthy/blockchains/Walytis_Beta/tests/')
 import pytest
 import test_walytis_block_sync_2
 """
@@ -194,7 +159,7 @@ def test_block_sync():
     )
     last_line = output.split("\n")[-1].strip()
     blocks_content = json.loads(last_line.replace("'", '"'))
-    print(mark(
+    mark((
         blocks_content == [MESSAGE_1, MESSAGE_2, MESSAGE_2,
                            MESSAGE_2, MESSAGE_3, MESSAGE_3, MESSAGE_3],
         
@@ -204,7 +169,7 @@ def test_block_sync():
     )
     last_line = output.split("\n")[-1].strip()
     blocks_content = json.loads(last_line.replace("'", '"'))
-    print(mark(
+    mark((
         blocks_content == [MESSAGE_1, MESSAGE_2, MESSAGE_2,
                            MESSAGE_2, MESSAGE_3, MESSAGE_3, MESSAGE_3],
         ),
@@ -215,6 +180,7 @@ def test_block_sync():
 def cleanup():
     pytest.brenthy_docker_1.delete()
     pytest.brenthy_docker_2.delete()
+    stop_walytis()
 
 
 def run_tests() -> None:
@@ -222,18 +188,19 @@ def run_tests() -> None:
     print("\nRunning tests for Walytis joining & block sync 2...")
     prepare()
     if not USE_SYSTEM_BRENTHY:
-        test_run_brenthy()
+        test_run_walytis()
 
     test_create_blockchain()
 
     test_block_sync()
     if not USE_SYSTEM_BRENTHY:
-        stop_brenthy()
+        stop_walytis()
     test_threads_cleanup()
     cleanup()
 
 
 if __name__ == "__main__":
     # enable/disable breakpoints when checking intermediate test results
-    testing_utils.BREAKPOINTS = True
+    _testing_utils.BREAKPOINTS = True
     run_tests()
+    _testing_utils.terminate()

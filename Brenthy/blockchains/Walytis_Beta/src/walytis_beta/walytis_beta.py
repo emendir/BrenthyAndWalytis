@@ -1377,6 +1377,9 @@ def run_blockchains() -> None:
 
     log.important("Walytis_Beta: Running blockchains:")
     for blockchain_id in blockchain_ids:
+        if get_blockchain(blockchain_id):
+            log.important(f"run_blockchains: already loaded: {blockchain_id}")
+            continue
         blockchain = Blockchain(id=blockchain_id, name="")
         log.important(f" - {blockchain.name}")
         blockchains.append(blockchain)

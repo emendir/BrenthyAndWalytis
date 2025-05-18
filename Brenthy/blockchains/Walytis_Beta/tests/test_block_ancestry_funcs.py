@@ -9,7 +9,7 @@ import os
 import sys
 from datetime import datetime
 
-from testing_utils import mark
+from _testing_utils import mark
 
 if True:
     brenthy_dir = os.path.join(
@@ -100,7 +100,9 @@ def test_preparations() -> None:
     block7 = blockchain.add_block([block0.short_id, block6.short_id])
 
     block8 = blockchain.add_block([block5.short_id, block7.short_id])
-
+def test_cleanup()->None:
+    # _testing_utils.terminate()
+    pass
 
 def test_unshared_ancestors() -> None:
     """Test that block_ancestry.list_unshared_ancestors works correctly."""
@@ -115,7 +117,7 @@ def test_unshared_ancestors() -> None:
     result.sort()
     expected_result.sort()
 
-    print(mark(result == expected_result), "list_unshared_ancestors")
+    mark(result == expected_result, "list_unshared_ancestors")
 
 
 def test_remove_ancestors() -> None:
@@ -131,16 +133,18 @@ def test_remove_ancestors() -> None:
     expected_result.sort()
 
     result.sort()
-    print(mark(result == expected_result), "remove_ancestors")
+    mark(result == expected_result, "remove_ancestors")
 
-
+import _testing_utils
 def run_tests() -> None:
     """Run all tests."""
     print("\nRunning tests for Walytis' ancestry machinery...")
     test_preparations()
     test_unshared_ancestors()
     test_remove_ancestors()
+    test_cleanup()
 
 
 if __name__ == "__main__":
     run_tests()
+    _testing_utils.terminate()

@@ -122,8 +122,16 @@ class WalytisBetaDirectInterface(BaseWalytisBetaInterface):
             list: A list of tuples of the names and IDs of all the Walytis_Beta
                     blockchains we have. Tuples are (id, name) by default,
                     but (name, id) if names_first == True
-        """
-        return [
+                    """
+        
+        if names_first:
+            return [
+            (blockchain.name, blockchain.blockchain_id)
+            for blockchain in walytis_beta.blockchains
+            
+        ]
+        else:
+            return [
             (blockchain.blockchain_id, blockchain.name)
             for blockchain in walytis_beta.blockchains
         ]
@@ -194,7 +202,7 @@ class WalytisBetaDirectInterface(BaseWalytisBetaInterface):
             blockchain_id, blockchain_data_cid, blockchain_name=blockchain_name
         )
         if not blockchain:
-            raise BlockchainAlreadyExistsError()
+            raise JoinFailureError()
         return blockchain.blockchain_id
 
     @ classmethod
@@ -204,6 +212,7 @@ class WalytisBetaDirectInterface(BaseWalytisBetaInterface):
         Args:
             blockchain_id (str): the id or name of the blockchain to delete
         """
+        blockchain_id=cls.get_blockchain_id(blockchain_id)
         walytis_beta.delete_blockchain(blockchain_id)
 
     @ classmethod

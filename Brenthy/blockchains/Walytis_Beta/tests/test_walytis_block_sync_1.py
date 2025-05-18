@@ -15,15 +15,19 @@ run the following commands to stop and remove the unterminated container:
     docker rm $(docker ps -aqf "name=^brenthy_test$")
 """
 
+import _testing_utils
+from walytis_beta_api import Block, Blockchain
+from brenthy_tools_beta import log
+import walytis_beta_api
+from test_walytis_beta import test_run_walytis, stop_walytis
 import os
 import sys
 import time
 from threading import Thread
-
 from _testing_utils import ipfs
-import testing_utils
-from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
-from testing_utils import mark, polite_wait, test_threads_cleanup
+from build_docker import build_docker_image
+from brenthy_docker import BrenthyDocker, delete_containers
+from _testing_utils import mark, polite_wait, test_threads_cleanup
 
 REBUILD_DOCKER = True
 NUMBER_OF_FIND_ATTEMPTS = 10
@@ -32,49 +36,10 @@ DOCKER_CONTAINER_NAME = "brenthy_tests_onboarding"
 NUMBER_OF_CONTAINERS = 5
 
 # enable/disable breakpoints when checking intermediate test results
-testing_utils.BREAKPOINTS = True
+_testing_utils.BREAKPOINTS = True
 
 # automatically remove all docker containers after failed tests
 DELETE_ALL_BRENTHY_DOCKERS = True
-
-if True:
-    brenthy_dir = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "Brenthy"
-    )
-    walytis_beta_dir = os.path.join(brenthy_dir, "blockchains", "Walytis_Beta")
-    print(brenthy_dir)
-    print(walytis_beta_dir)
-    sys.path.insert(0, brenthy_dir)
-    sys.path.insert(0, walytis_beta_dir)
-    from brenthy_tools_beta import log
-    from brenthy_tools_beta.utils import load_module_from_path
-
-    walytis_beta_api = load_module_from_path(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "Brenthy",
-            "blockchains",
-            "Walytis_Beta",
-            "src",
-            "walytis_beta_api",
-        )
-    )
-    walytis_beta_appdata = load_module_from_path(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "Brenthy",
-            "blockchains",
-            "Walytis_Beta",
-            "src",
-            "walytis_beta",
-            "walytis_beta_appdata.py",
-        )
-    )
-
-    import run
-    from walytis_beta_api import Block, Blockchain
 
 
 brenthy_dockers: list[BrenthyDocker] = []
@@ -84,7 +49,8 @@ blockchain: Blockchain
 def prepare() -> None:
     """Get everything needed to run the tests ready."""
     if DELETE_ALL_BRENTHY_DOCKERS:
-        delete_containers(image="local/brenthy_testing", container_name_substr="brenthy")
+        delete_containers(image="local/brenthy_testing",
+                          container_name_substr="brenthy")
 
     if REBUILD_DOCKER:
         build_docker_image(verbose=False)
@@ -101,22 +67,11 @@ def prepare() -> None:
             )
         )
 
-    run_brenthy()  # run brenthy on this operating system
+    test_run_walytis()  # run brenthy on this operating system
 
     # if "TestingOnboarding" in walytis_beta_api.list_blockchain_names():
     #     walytis_beta_api.delete_blockchain("TestingOnboarding")
     delete_blockchains()  # clean up after failed tests
-
-
-def run_brenthy() -> None:
-    """Run Brenthy."""
-    run.TRY_INSTALL = False
-    run.run_brenthy()
-
-
-def stop_brenthy() -> None:
-    """Stop Brenthy-Core."""
-    run.stop_brenthy()
 
 
 def delete_blockchains() -> None:
@@ -191,8 +146,8 @@ def test_sync_block_creation() -> None:
     )
 
     brenthy_dockers[0].start()
-    print(mark(ipfs_connect_to_container(0)), "ipfs.peers.find")
-    print(mark(docker_join_blockchain(0)), "join_blockchain")
+    mark(ipfs_connect_to_container(0), "ipfs.peers.find")
+    mark(docker_join_blockchain(0), "join_blockchain")
 
     blockchain.add_block("DUMMY".encode())
     blockchain.add_block("Test1".encode())
@@ -202,7 +157,7 @@ def test_sync_block_creation() -> None:
         success = result == "Test1"
         if success:
             break
-    print(mark(success), "synchronised to peer on block creation")
+    mark(success, "synchronised to peer on block creation")
     brenthy_dockers[0].stop()
 
 
@@ -211,8 +166,8 @@ def test_sync_on_join() -> None:
     time.sleep(2)
     brenthy_dockers[1].start()
 
-    print(mark(ipfs_connect_to_container(1)), "ipfs.peers.find")
-    print(mark(docker_join_blockchain(1)), "join_blockchain")
+    mark(ipfs_connect_to_container(1), "ipfs.peers.find")
+    mark(docker_join_blockchain(1), "join_blockchain")
 
     for _ in range(8):
         polite_wait(5)
@@ -221,7 +176,7 @@ def test_sync_on_join() -> None:
         success = result == "Test1"
         if success:
             break
-    print(mark(success), "synchronised to peer on joining")
+    mark(success, "synchronised to peer on joining")
 
 
 def test_sync_on_awake() -> None:
@@ -238,7 +193,7 @@ def test_sync_on_awake() -> None:
         success = result == "Test2"
         if success:
             break
-    print(mark(success), "synchronised to peer on awaking")
+    mark(success, "synchronised to peer on awaking")
 
 
 def test_get_peers() -> None:
@@ -246,7 +201,7 @@ def test_get_peers() -> None:
     for container in brenthy_dockers:
         # container.start()
         container.restart()
-
+    polite_wait(5)
     peers = blockchain.get_peers()
 
     # we're testing for if ANY docker peer is listed, because
@@ -255,7 +210,7 @@ def test_get_peers() -> None:
     for container in brenthy_dockers:
         if container.ipfs_id in peers:
             peers_found = True
-    print(mark(peers_found), "get_peers")
+    mark(peers_found, "get_peers")
 
 
 def test_cleanup() -> None:
@@ -272,7 +227,7 @@ def test_cleanup() -> None:
         )
         termination_threads[-1].start()
     # terminate our own brenthy instance
-    stop_brenthy()
+    stop_walytis()
     # wair till all docker containers are terminated
     for thread in termination_threads:
         thread.join()
@@ -292,3 +247,4 @@ def run_tests() -> None:
 
 if __name__ == "__main__":
     run_tests()
+    _testing_utils.terminate()

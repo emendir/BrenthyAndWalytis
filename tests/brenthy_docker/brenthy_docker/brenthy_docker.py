@@ -106,6 +106,9 @@ class BrenthyDocker:
         """Restart this container."""
         self.container.restart()
 
+        # why is this necessary? Seems to sometimes work without...
+        self.run_shell_command("systemctl start ipfs")
+
     def delete(self, force=False) -> None:
         if force:
             self.container.stop(timeout=0)
