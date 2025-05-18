@@ -77,7 +77,6 @@ def install(
             f"{INSTALL_DIR} {data_dir} "
             f"{str('--install-dont-run' not in sys.argv).lower()}"
         )
-        print(cpython_cmd)
 
         if WE_ARE_IN_DOCKER:
             exit_code = os.system(cpython_cmd)

@@ -81,7 +81,7 @@ rm -r ./Brenthy/.brenthy_api_log_archive >/dev/null 2>/dev/null || true
 if [[ "$docker_testing" == "true" || "$docker_testing" == "True" ]];then
   echo "Skipping Walytis download..."
 else
-  $install_dir/Brenthy/.blockchains/install_walytis_beta.sh
+  $install_dir/Brenthy/blockchains/install_walytis_beta.sh
 fi
 
 echo "Creating OS user..."

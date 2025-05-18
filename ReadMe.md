@@ -52,6 +52,9 @@ sudo apt update && sudo apt install -y python3-virtualenv git
 git clone https://github.com/emendir/BrenthyAndWalytis
 cd BrenthyAndWalytis
 
+# install the Walytis blockchain
+Brenthy/blockchains/install_walytis_beta.sh
+
 # set up python environment (you can skip this if you only want to install)
 virtualenv .venv && source .venv/bin/activate
 pip install -r Brenthy/requirements.txt
@@ -61,7 +64,7 @@ pip install walytis_beta_api    # install API library
 python3 .
 ```
 
-Brenthy wil ask you whether you want to install or just run it.
+Brenthy wil ask you whether you want to install or run it from source.
 
 For details on how to run Brenthy & Walytis, see [Running From Source](/Documentation/Brenthy/User/RunningFromSource.md)
 
