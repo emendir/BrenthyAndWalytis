@@ -14,5 +14,5 @@ Overview of all docs: [/Documentation/DocsOverview.md](/Documentation/DocsOvervi
 
 ## Walytis
 Walytis is the novel blockchain Brenthy was originally built for.
-Read the [Introduction to Walytis](/Documentation/Walytis/Meaning/IntroductionToWalytis.md) to learn more.
+Read the [Introduction to Walytis](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/IntroductionToWalytis.md) to learn more.
 The source code for Walytis is located under [./blockchains/Walytis_Beta](./blockchains/Walytis_Beta/ReadMe.md)

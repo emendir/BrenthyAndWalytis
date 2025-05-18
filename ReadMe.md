@@ -9,7 +9,7 @@ Walytis is a lightweight, flexible, accessible and application-oriented type of 
 
 Developed together, they share a repository because they rely on each other very strongly.
 
-## [Walytis](Documentation/Walytis/Meaning/IntroductionToWalytis.md)
+## [Walytis](https://github.com/emendir/Walytis_Beta)
 
 _A flexible, lightweight, nonlinear blockchain, built to be built upon._
 
@@ -17,9 +17,9 @@ Walytis is a type of blockchain that is essentially a fully distributed database
 Applications can create a new Walytis blockchain (i.e. a new database) whenever they need one.
 While they can always add new data to it, existing data can never be deleted or modified.
 
-Learn about Walytis here: [Introduction to Walytis](/Documentation/Walytis/Meaning/IntroductionToWalytis.md)  
-Learn why Walytis was developed: [Walytis' Rationale](/Documentation/Walytis/Meaning/WalytisRationale.md)  
-Walytis project source: [./Brenthy/blockchains/Walytis_Beta](/Brenthy/blockchains/Walytis_Beta/ReadMe.md)
+Learn about Walytis here: [Introduction to Walytis](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/IntroductionToWalytis.md)  
+Learn why Walytis was developed: [Walytis' Rationale](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/WalytisRationale.md)  
+Walytis project source: [https://github.com/emendir/Walytis_Beta](https://github.com/emendir/Walytis_Beta
 
 ## [Brenthy](/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md)
 
@@ -86,7 +86,7 @@ blockchain = waly.Blockchain.create("MyFirstBlockchain")
 block = blockchain.add_block("Hello there!".encode())
 ```
 
-Read the [Tutorial](/Documentation/Walytis/Tutorials/0-TutorialOverview.md) to learn how to use Walytis, and start building cool stuff!
+Read the [Tutorial](https://github.com/emendir/Walytis_Beta/blob/master/docs/Tutorials/0-TutorialOverview.md) to learn how to use Walytis, and start building cool stuff!
 
 ## Documentation
 
@@ -99,7 +99,7 @@ Dive into the full documentation here: [Documentation Overview](/Documentation/D
 ### Analysis and Review
 
 If you have any thoughts on Brenthy & Walytis or want to discuss the sensibility of their unique features, feel free to share them under GitHub discussions.
-I would especially appreciate reviews and analyses of [Walytis' blockchain-architecture security](/Documentation/Walytis/Technical/WalytisBlockchainSecurity.md).
+I would especially appreciate reviews and analyses of [Walytis' blockchain-architecture security](https://github.com/emendir/Walytis_Beta/blob/master/docs/Technical/WalytisBlockchainSecurity.md).
 
 ### Software Development
 

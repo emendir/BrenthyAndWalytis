@@ -24,7 +24,7 @@ _preparing for release_
 - [x] [[Joining]]
 - [x] WalytisAPI
 - [x] Rationale behind invention of Walytis
-- [x] Understanding Blockchain: [Documentation/Walytis/Meaning/UnderstandingBlockchain.md](/Documentation/Walytis/Meaning/UnderstandingBlockchain.md)
+- [x] Understanding Blockchain: [https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/UnderstandingBlockchain.md](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/UnderstandingBlockchain.md)
 - [x] [[StorageAndAppdata]] - [x] Networking - [x] Blockchain Birth - [x] Blocks: datafile composition & chaining
 - [x] Tutorials: decide on using `walytis_api` or `walytis_beta_api`
 - [x] Explain Beta

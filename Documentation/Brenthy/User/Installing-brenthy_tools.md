@@ -18,7 +18,7 @@ pip install brenthy_tools_beta
 
 ## Option 2: Install from Source
 
-The `brenthy_tools_beta` is built using the [`Brenthy/setup.py`](/Brenthy/setup.py) file.
+The `brenthy_tools_beta` is built using the [`Brenthy/pyproject.toml`](/Brenthy/pyproject.toml) file.
 Follow these steps to install it using pip:
 
 1. Navigate to the `Brenthy` directory inside of this repository.
@@ -43,11 +43,11 @@ cd Brenthy
    ├── ReadMe.md
    ├── requirements.txt
    ├── run.py
-   ├── setup.py
+   ├── pyproject.toml
    ├── uninstall.py
    └── update.py
    ```
-   Crucially, this folder contains the `setup.py` script used for building the package.
+   Crucially, this folder contains the `pyproject.toml` script used for building the package.
 3. Build and install the package using pip:
 
 ```sh

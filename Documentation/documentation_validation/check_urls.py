@@ -5,14 +5,12 @@ npm install -g markdown-link-check
 """
 import os
 
-from md_utils import PROJECT_DIR, get_markdown_files
-
-os.chdir(PROJECT_DIR)
+from md_utils import get_markdown_files, DOCS_DIR
 
 for md_file in get_markdown_files():
     command = (
         "markdown-link-check "
-        "-c ./documentaion_validation/markdown-link-checker.conf -q "
+        f"-c {DOCS_DIR}/documentation_validation/markdown-link-checker.conf -q "
         f"{md_file}"
     )
     os.system(command)

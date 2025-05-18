@@ -4,16 +4,14 @@ import os
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
-from md_utils import PROJECT_DIR, get_markdown_files
+from md_utils import PROJECT_DIR, PROJECT_DIR, get_markdown_files
 
-# relative to PROJECT_DIR
-DOCS_DIR = "Documentation"
+
 
 # lines in code-snippets which should not be checked
 IGNORED_LINES = ["..."]
 
 markdown_files = get_markdown_files()
-os.chdir(PROJECT_DIR)
 
 
 def extract_code_blocks(md_file: str) -> list[Token]:
@@ -28,7 +26,7 @@ def extract_code_blocks(md_file: str) -> list[Token]:
             code_blocks.append(token)
     return code_blocks
 
-
+count = 0
 errors = []
 for doc_path in markdown_files:
     with open(doc_path, "r") as file:
@@ -74,6 +72,7 @@ for doc_path in markdown_files:
                             "line": line,
                         }
                     )
+    count+=1
 for error in errors:
     match error["type"]:
         case "FileNotFound":
@@ -87,3 +86,4 @@ for error in errors:
 
 if not errors:
     print("Looks like everything's clean!")
+    print(f"Processed {count} files")

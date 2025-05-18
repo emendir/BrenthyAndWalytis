@@ -1,7 +1,11 @@
 import os
 
-PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".."))
 
+# relative to PROJECT_DIR
+DOCS_DIR = "Documentation"
+
+os.chdir(PROJECT_DIR)
 
 def get_markdown_files(dir: str = PROJECT_DIR) -> list[str]:
     markdown_files = []
