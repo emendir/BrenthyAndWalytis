@@ -37,7 +37,7 @@ These are the block metadata fields you as the user of a Walytis blockchain as a
 | `content_length` | integer         | the size of the block's content in bytes                        |
 | `content_hash`   | array of bytes  | a cryptographic hash of the block's content                     |
 
-A complete list of a block's metadata fields is in [Blocks - Block Metadata](/Documentation/Walytis/Technical/Blocks.md#block-metadata).
+A complete list of a block's metadata fields is in [Blocks - Block Metadata](/docs/Technical/Blocks.md#block-metadata).
 
 ### Querying Using the Python API
 
@@ -105,7 +105,7 @@ The block content, which takes even more processing power and time to load than 
 Again the first access costs time, but also increased memory use.
 
 To study these effects more closely, read and run this python script:
-[block_lazy_loading_demo.py](/Documentation/Walytis/Technical/block_lazy_loading_demo.py)
+[block_lazy_loading_demo.py](/docs/Technical/block_lazy_loading_demo.py)
 
 Warning: Don't use `Blockchain._blocks` directly in your code, because I don't guarantee I won't change it's behaviour without warning, wherefore it is hidden. Use the methods described in the next section instead. 
 #### Other Block Functions

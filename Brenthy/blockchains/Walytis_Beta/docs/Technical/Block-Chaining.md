@@ -1,6 +1,6 @@
 _how blocks are chained in Walytis_
 ## Nonlinear Chaining
-_For a deeper understanding of what implications non-linear chaining has for Walytis, see [Understanding Nonlinear Blockchains](/Documentation/Walytis/Meaning/UnderstandingNonlinearBlockchain.md)._
+_For a deeper understanding of what implications non-linear chaining has for Walytis, see [Understanding Nonlinear Blockchains](/docs/Meaning/UnderstandingNonlinearBlockchain.md)._
 
 In Walytis, each block ID (except for the first two genesis blocks) contains a reference to at least two other older blocks, called its parents.
 This differs from most existing blockchains, where each block contains a reference to exactly one parent block, forming a linear chain.

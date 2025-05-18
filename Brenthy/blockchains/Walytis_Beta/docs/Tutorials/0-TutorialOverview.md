@@ -13,8 +13,8 @@ It assumes that the reader already knows what blockchain technology is, what Wal
 
 Here are some resources you can use to make sure you learn what you need about blockchain technology in general and Walytis:
 
-- [**Understanding Blockchain**](/Documentation/Walytis/Meaning/UnderstandingBlockchain.md)
-- [**Understanding Walytis**](/Documentation/Walytis/Meaning/UnderstandingNonlinearBlockchain.md)
+- [**Understanding Blockchain**](/docs/Meaning/UnderstandingBlockchain.md)
+- [**Understanding Walytis**](/docs/Meaning/UnderstandingNonlinearBlockchain.md)
 
 You should also have these basics:
 
@@ -31,4 +31,4 @@ No significant changes in the API are expected in this future release, it will m
 Before the release of Walytis comes (in succession of Walytis_Beta), wherever you see references to `walytis_api`, `walytis_beta_api` will be what is meant in practice.
 Think about `walytis_api` and `walytis_beta_api` as one and the same; `walytis_beta_api` is just an early release.
 
-To learn why different library names are being used for the beta release and the future big release, read about Walytis' [Backward Compatibility Guarantee](/Documentation/Brenthy/Technical/BackwardCompatibilityGuarantee.md).
+To learn why different library names are being used for the beta release and the future big release, read about Walytis' [Backward Compatibility Guarantee](https://github.com/emendir/BrenthyAndWalytis/blob/master/Documentation/Brenthy/Technical/BackwardCompatibilityGuarantee.md).

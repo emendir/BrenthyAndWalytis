@@ -1,4 +1,4 @@
-![](../../../Graphics/WalytisIcon.svg)
+![](/graphics/WalytisIcon.svg)
 
 # Walytis
 
@@ -60,7 +60,7 @@ However, since all block metadata is stored in its ID, it is efficient to query 
 For this reason, Walytis allows users to specify multiple fields of user-defined metadata which they can use in queries to efficiently find specific categories of blocks or individual blocks.
 While the `walytis_beta_api` library doesn't yet support the SQL Query Language, it does provide a good querying interface using pure python.
 
-Read more about querying Walytis blocks [here](/Documentation/Walytis/Tutorials/5-QueryingBlocks.md).
+Read more about querying Walytis blocks [here](/docs/Tutorials/5-QueryingBlocks.md).
 
 ## Applications: Examples of Use Cases
 
@@ -81,11 +81,11 @@ They're probably more likely to try to find loopholes in the integrity verificat
 
 Local block storage isn't all that provides security in Walytis.
 Like most blockchains, it relies heavily on the cryptographic chaining of blocks.
-To learn how this works in Walytis, read [The Walytis Blockchain-Architecture Security](/Documentation/Walytis/Technical/WalytisBlockchainSecurity.md).
+To learn how this works in Walytis, read [The Walytis Blockchain-Architecture Security](/docs/Technical/WalytisBlockchainSecurity.md).
 
 ## Techy Details:
 
-To gain a full understanding of how Walytis works, check out the [overview of the technical documentation](../../DocsOverview.md#brenthy---technical).
+To gain a full understanding of how Walytis works, check out the [overview of the technical documentation](./docs/DocsOverview.md#Technical).
 
 Here are some of the highlights:
 
@@ -104,8 +104,8 @@ Currently, `walytis_api` is implemented in Python, but due to its simplicity and
 
 ## Running Walytis
 
-Walytis is run by [Brenthy](/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md), a framework for developing and deploying new kinds of blockchains.
-Walytis comes preinstalled with Brenthy, so simply follow the instructions from Brenthy's [installation](/Documentation/Brenthy/User/InstallingBrenthy.md) or [running-from-source](../../Brenthy/User/RunningFromSource.md) guides to install or run it.
+Walytis is run by [Brenthy](https://github.com/emendir/BrenthyAndWalytis/blob/master/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md), a framework for developing and deploying new kinds of blockchains.
+Walytis comes preinstalled with Brenthy, so simply follow the instructions from Brenthy's [installation](https://github.com/emendir/BrenthyAndWalytis/blob/master/Documentation/Brenthy/User/InstallingBrenthy.md) or [running-from-source](https://github.com/emendir/BrenthyAndWalytis/blob/master/Documentation/Brenthy/User/RunningFromSource.md) guides to install or run it.
 
 ### What Exactly is Brenthy?
 
@@ -120,13 +120,9 @@ Brenthy handles all the rest of the machinery needed to make Walytis run on a co
 
 - interaction with the local operating system (installation, running on startup)
 - automatic updates of itself and Walytis
-- [BrenthyAPI](/Documentation/Brenthy/Technical/BrenthyAPI.md), the API infrastructure which applications use to interact with Walytis
+- [BrenthyAPI](https://github.com/emendir/BrenthyAndWalytis/blob/master/Documentation/Brenthy/Technical/BrenthyAPI.md), the API infrastructure which applications use to interact with Walytis
 
 Brenthy & Walytis were initially developed as a single project.
 The database-blockchain machinery (Walytis) was split off from the rest (Brenthy) to allow that rest to be used to run other types of blockchains, facilitating blockchain inventors in the development of new kinds of blockchains.
 Now, Brenthy can run other types of blockchains at the same time as Walytis.
 
-## Walytis' Source Code
-
-Because Brenthy and Walytis depend on each other, they share the same repository.
-The source code for Walytis is located under [/Brenthy/blockchains/Walytis_Beta](/Brenthy/blockchains/Walytis_Beta/ReadMe.md)

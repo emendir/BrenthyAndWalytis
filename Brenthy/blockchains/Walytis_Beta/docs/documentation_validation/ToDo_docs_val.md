@@ -1,0 +1,2 @@
+- Ensure that "..." is included where lines are omitted
+- check markdown link tags

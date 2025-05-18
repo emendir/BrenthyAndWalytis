@@ -2,7 +2,7 @@ _an overview of the functions and classes in the `walytis_api` library_
 
 _For more detailed information about the API's functions and classes, see the [API-Reference](../API-Reference/walytis_beta_api/walytis_beta_interface.html)_.
 _For a more user-friendly guide on how to use the API, see the [the walytis_api tutorials](../Tutorials/0-TutorialOverview.md) ._
-_To learn how WalytisAPI works to connect applications with blockchains, see [WalytisAPI](/Documentation/Walytis/Technical/WalytisAPI.md)_.
+_To learn how WalytisAPI works to connect applications with blockchains, see [WalytisAPI](/docs/Technical/WalytisAPI.md)_.
 
 `walytis_api`, the Walytis Application Programming Interface, is a programming library that allows programmers to create, manage and interact with Walytis blockchains.
 Programmers import and use it in their code, as in the following example:

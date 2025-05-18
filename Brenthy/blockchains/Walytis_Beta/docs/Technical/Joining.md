@@ -10,7 +10,7 @@ After creation, then, other nodes must have a way of getting access to the block
 The process of a node getting access to and becoming a member and participant of a blockchain is called _joining_.
 
 ## The Joining Process
-_To learn how to get a node to join a blockchain in practice, see the tutorial [2 - Joining Blockchains](/Documentation/Walytis/Tutorials/2-JoiningBlockchains.md)_
+_To learn how to get a node to join a blockchain in practice, see the tutorial [2 - Joining Blockchains](/docs/Tutorials/2-JoiningBlockchains.md)_
 
 1. To enable another node to join a Walytis blockchain, an existing member (e.g. the blockchain creator) creates an invitation at the application level using the Walytis API. Creating an invitation returns invitation code, which is a JSON string that encodes the technical information necessary for another node to join the blockchain:
 	- blockchain ID
