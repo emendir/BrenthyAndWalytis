@@ -17,10 +17,10 @@ Walytis is a type of blockchain that is essentially a fully distributed database
 Applications can create a new Walytis blockchain (i.e. a new database) whenever they need one.
 While they can always add new data to it, existing data can never be deleted or modified.
 
-Learn about Walytis here: [Introduction to Walytis](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/IntroductionToWalytis.md)  
-Learn why Walytis was developed: [Walytis' Rationale](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/WalytisRationale.md)  
-Walytis project source:
-- [Github:](https://github.com/emendir/Walytis_Beta
+- Learn about Walytis here: [Introduction to Walytis](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/IntroductionToWalytis.md)  
+- Learn why Walytis was developed: [Walytis' Rationale](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/WalytisRationale.md)  
+- Walytis project source:
+    - [Github](https://github.com/emendir/Walytis_Beta
 
 ## [Brenthy](/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md)
 
