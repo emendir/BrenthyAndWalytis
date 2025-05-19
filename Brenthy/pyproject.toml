@@ -5,15 +5,23 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 name = "brenthy_tools_beta"
-authors = [{ name = "emendir" }]
-version = "0.1.0"
+authors = [{ name = "Emendir" }]
 description = "A library for interacting with Brenthy (`brenthy_api`) and a collection of tools common to Brenthy Core and `brenthy_api`."
 # readme = {file = "ReadMe.md", content-type = "text/markdown"}
 
+[project.urls]
+# Homepage = "https://emendir.tech/Projects/BrenthyAndWalytis"
+Homepage = "https://github.com/emendir/BrenthyAndWalytis"
+Documentation = "https://github.com/emendir/BrenthyAndWalytis/blob/master/Documentation/DocsOverview.md"
+Repository = "https://github.com/emendir/BrenthyAndWalytis.git"
+IPFS = "https://ipfs.io/ipns/k2k4r8nismm5mmgrox2fci816xvj4l4cudnuc55gkfoealjuiaexbsup/Projects/BrenthyAndWalytis"
+
+
 [tool.setuptools.dynamic]
 dependencies = {file = ["brenthy_tools_beta/requirements.txt"]}
+version = {attr= "brenthy_tools_beta.versions._BRENTHY_TOOLS_BETA_VERSION"}
 
 [tool.setuptools.packages.find]
 where = ["."]

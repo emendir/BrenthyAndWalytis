@@ -4,9 +4,9 @@ import os
 import shutil
 from md_utils import PROJECT_DIR, DOCS_DIR
 
-templates = os.path.join(PROJECT_DIR,"..","..","..","..", "pdoc-templates")
+templates = os.path.join(PROJECT_DIR,"..", "pdoc-templates")
 module_path = os.path.join(
-     "src", "walytis_beta_api"
+    PROJECT_DIR, "Brenthy", "brenthy_tools_beta"
 )
 docs_path = os.path.join(DOCS_DIR, "API-Reference")
 if os.path.exists(docs_path):
