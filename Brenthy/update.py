@@ -227,16 +227,19 @@ def process_update_block(block: Block) -> bool:
             f"Update: update has nothing new, ignoring release message. {data}"
         )
         return False
-
+    log.debug(f"Downloading update... {ipfs_cid}")
     if not os.path.exists(verified_updates_path):
         os.makedirs(verified_updates_path)
     download_path = tempfile.mkdtemp(dir=".updates")
     ipfs.files.download(ipfs_cid, download_path)
+    log.debug("Verifying download...")
     release_path = os.path.join(download_path, ipfs_cid)
     if not verify_downloaded_release(release_path, ipfs_cid):
         shutil.rmtree(download_path)
 
         return False
+    
+    log.debug("Moving update...")
     shutil.move(
         release_path,
         os.path.join(
@@ -254,6 +257,7 @@ def process_update_block(block: Block) -> bool:
 
 def verify_downloaded_release(release_path: str, cid: str) -> bool:
     """Check the integrity and authenticity of a downloaded Brenthy release."""
+    log.debug(f"Verifying update at {release_path}")
     real_cid = ipfs.files.publish(release_path)
     if not real_cid == cid:
         log.warning("update integrity check failed.")

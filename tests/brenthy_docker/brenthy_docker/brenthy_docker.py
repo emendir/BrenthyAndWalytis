@@ -1,3 +1,4 @@
+import uuid
 import io
 import os
 import shutil
@@ -133,21 +134,39 @@ class BrenthyDocker:
             f"mkdir -p {os.path.dirname(remote_filepath)}", print_output=False)
         self.container.put_archive(dst_dir, stream.getvalue())
 
+
     def write_to_tempfile(self, data: str | bytes) -> str:
         if isinstance(data, str):
             data = data.encode("utf-8")
-        tempdir = tempfile.mkdtemp()
-        local_tempfile = os.path.join(tempdir, "tempf")
 
-        with open(local_tempfile, "wb+") as file:
-            file.write(data)
-        remote_tempfile = self.run_shell_command(
-            "mktemp -d", print_output=False).strip() + "python_code.py"
-        self.transfer_file(local_tempfile, remote_tempfile)
+        filename = f"temp_{uuid.uuid4().hex[:12]}"
+        local_tempdir = tempfile.mkdtemp()
+        local_path = os.path.join(local_tempdir, filename)
+        remote_path = f"/opt/tmp/{filename}"
 
-        shutil.rmtree(tempdir)
-        return remote_tempfile
+        try:
+            # Write and flush to ensure file exists on disk
+            with open(local_path, "wb") as f:
+                f.write(data)
+                f.flush()
+                os.fsync(f.fileno())
 
+            if not os.path.exists(local_path):
+                raise RuntimeError(f"Local temp file was not created: {local_path}")
+
+            # Transfer to container and check for success
+            transfer_result = self.transfer_file(local_path, remote_path)
+
+            # Optional: Run `ls` in the container to confirm file landed
+            check_result = self.run_shell_command(f"ls {remote_path}", print_output=False, ignore_errors=True)
+            if remote_path not in check_result:
+                raise RuntimeError(f"File does not appear to exist in container after transfer: {remote_path}")
+
+            return remote_path
+
+        finally:
+            # Important: Delay deletion until after transfer
+            shutil.rmtree(local_tempdir, ignore_errors=True)
     def is_running(self) -> bool:
         """Check if this docker container is running or not."""
         return self._docker.containers.get(
@@ -291,7 +310,7 @@ class BrenthyDocker:
             # concatenate list elements into single string
             code = "\n".join(code)
         remote_tempfile = self.run_shell_command(
-            "mktemp -d", print_output=False).strip() + "bash_code.py"
+            "mktemp", print_output=False).strip()
         return self.run_shell_command(
             f"/bin/bash {remote_tempfile}",
             print_output=print_output, colour=colour, background=background,

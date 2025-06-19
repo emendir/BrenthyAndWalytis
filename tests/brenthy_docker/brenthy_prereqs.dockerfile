@@ -1,14 +1,17 @@
 FROM emendir/systemd-ipfs:latest
 WORKDIR /opt/Brenthy
+RUN mkdir /opt/tmp/
+
+## Install Prerequisites:
+RUN apt update && apt install -y python3 python3-dev python3-venv python3-pip python-is-python3 virtualenv git
+RUN python3 -m pip install --break-system-packages --upgrade setuptools build 
+
 COPY Brenthy /opt/brenthy_installer/Brenthy
 COPY tests /opt/Brenthy/tests
 COPY requirements-devops.txt /opt/brenthy_installer
-## Install Prerequisites:
-RUN apt update && apt install -y virtualenv git
+
 RUN ../brenthy_installer/Brenthy/InstallScripts/install_brenthy_linux_systemd_cpython.sh  /opt/Brenthy /opt/Brenthy/BlockchainData false true
 
-
-RUN python3 -m pip install --break-system-packages --upgrade setuptools build 
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/Brenthy/requirements.txt
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/requirements-devops.txt
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy

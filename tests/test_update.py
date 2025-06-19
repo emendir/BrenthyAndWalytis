@@ -121,7 +121,7 @@ def test_find_peer() -> None:
 
     mark(success, "ipfs.peers.find")
 
-DELAY=20
+DELAY=30
 def test_walytis_beta_update() -> None:
     """Test that updating Walytis_Beta works."""
     # allow docker filesystem to consolidate after renaming updates blockchain

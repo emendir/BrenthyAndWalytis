@@ -133,7 +133,12 @@ def publish_release(
         f"Walytis_Beta version {walytis_beta_version}"
     )
 
-
+PATHS_TO_DELETE=[
+    "__pycache__",
+    ".mypy_cache",
+    os.path.join("Brenthy","blockchains","Walytis_Beta","__pycache__"),
+    os.path.join("Brenthy","blockchains","Walytis_Beta",".mypy_cache")
+]
 def publish_project_on_ipfs() -> str:
     """Publish Brenthy's essential files to IPFS, returning their CID."""
     tempdir = tempfile.mkdtemp()
@@ -141,7 +146,11 @@ def publish_project_on_ipfs() -> str:
     shutil.copytree("../Brenthy", os.path.join(tempdir, "Brenthy"))
     shutil.copy("../__main__.py", os.path.join(tempdir, "__main__.py"))
     shutil.copy("../ReadMe.md", os.path.join(tempdir, "ReadMe.md"))
-
+    
+    for rm_dir in PATHS_TO_DELETE:
+        rm_path = os.path.join(tempdir, "Brenthy", rm_dir)
+        if os.path.exists(rm_path):
+            shutil.rmtree(rm_path)
     if TESTING_BRENTHY:
         replace_brenthy_version_for_test_publish(
             os.path.join(
