@@ -142,7 +142,7 @@ class BrenthyDocker:
         with open(local_tempfile, "wb+") as file:
             file.write(data)
         remote_tempfile = self.run_shell_command(
-            "mktemp", print_output=False).strip()
+            "mktemp -d", print_output=False).strip() + "python_code.py"
         self.transfer_file(local_tempfile, remote_tempfile)
 
         shutil.rmtree(tempdir)
@@ -290,7 +290,8 @@ class BrenthyDocker:
         if isinstance(code, list):
             # concatenate list elements into single string
             code = "\n".join(code)
-        remote_tempfile = self.write_to_tempfile(code)
+        remote_tempfile = self.run_shell_command(
+            "mktemp -d", print_output=False).strip() + "bash_code.py"
         return self.run_shell_command(
             f"/bin/bash {remote_tempfile}",
             print_output=print_output, colour=colour, background=background,
