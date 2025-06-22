@@ -24,7 +24,7 @@ if True:  # pylint: disable=using-constant-test
     )
     if not os.path.exists(WALYTIS_SRC_DIR):
         raise Exception(
-            f"The Walytis_Beta blockchain isn't installed at f{WALYTIS_SRC_DIR}\n"
+            f"The Walytis_Beta blockchain isn't installed at {WALYTIS_SRC_DIR}\n"
             "Install it by running:\n"
             "Brenthy/blockchains/install_walytis_beta.sh"
         )

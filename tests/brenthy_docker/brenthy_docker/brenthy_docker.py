@@ -1,18 +1,19 @@
-import uuid
 import io
 import os
+import shlex
 import shutil
-import sys
 import tarfile
 import tempfile
+import uuid
 from time import sleep
 
 import docker
-from _testing_utils import ipfs
 import pexpect
 import pyperclip
+from _testing_utils import ipfs
 from termcolor import colored as coloured
 
+DEF_OUTPUT_COLOUR="light_yellow"
 
 class DockerShellError(Exception):
     """When a shell command run in the docker container produces an Exception."""
@@ -28,9 +29,215 @@ class DockerShellError(Exception):
             "Output:",
             f"{self.shell_output}"
         ])
+class DockerShellTimeoutError(Exception):
+    """When a shell command run in the docker container reaches its time out."""
+
+    def __init__(self, timeout:int):
+        self.timeout = timeout
+
+    def __str__(self):
+        return (
+            "The shell command run in the docker container timed out after "
+            f"{self.timeout}s."
+        )
 
 
 class BrenthyDocker:
+    
+    def run_shell_command(
+        self,
+        command: str,
+        user: str | None = None,
+        print_output: bool = True,
+        colour: str = DEF_OUTPUT_COLOUR,
+        background: bool = False,
+        timeout: int | None = None,
+        ignore_errors: bool = False
+    ) -> str:
+        """Run a shell command in the Docker container using pexpect.
+
+        Supports real-time output, background execution, timeouts, and error handling.
+
+        Args:
+            command: The shell command to run.
+            user: Optional user to run as.
+            print_output: Whether to print command output in real time.
+            colour: Colour to print output if enabled.
+            background: If True, runs the command in background (no output).
+            timeout: Timeout in seconds for the command.
+            ignore_errors: If True, suppress exceptions on non-zero exit.
+
+        Returns:
+            Command output (stdout + stderr).
+
+        Raises:
+            DockerShellError: if the command exits with a non-zero status.
+        """
+        if print_output and background:
+            print(
+                "Parameters `print_output` and `background` "
+                "can't both be `True`. Deactivating `print_output`."
+            )
+            print_output = False
+        result = ""
+        if user:
+            command = f"su {user} -c '{command}'"
+
+        if background:
+            command = f"{command} > /dev/null 2>&1 & disown"
+            # We don't expect output or status in background
+            try:
+                child = pexpect.spawn(
+                    f"docker exec {self.container.id} bash -c {shlex.quote(command)}",
+                    encoding='utf-8',
+                    timeout=timeout
+                )
+                child.expect(pexpect.EOF)
+            except Exception as e:
+                if not ignore_errors:
+                    raise DockerShellError(-1, f"Background execution failed: {str(e)}")
+            return ""
+
+        try:
+            child = pexpect.spawn(
+                f"docker exec {self.container.id} bash -c {shlex.quote(command)}",
+                encoding='utf-8',
+                timeout=timeout
+            )
+            while True:
+                try:
+                    line = child.readline()
+                    if not line:
+                        break
+                    if print_output:
+                        print(coloured(line.strip(), colour) if colour else line.strip())
+                    result += line
+                except pexpect.TIMEOUT:
+                    child.close(force=True)
+                    raise DockerShellTimeoutError(timeout) from None
+                except pexpect.EOF:
+                    break
+
+            child.expect(pexpect.EOF)
+            child.close()
+
+            if child.exitstatus != 0 and not ignore_errors:
+                raise DockerShellError(child.exitstatus or -1, result.strip())
+
+        except DockerShellError as e:
+            if not ignore_errors:
+                raise e
+
+        return result.strip()
+
+    def run_bash_code(
+        self,
+        code: str | list[str],
+        user: str | None = None,
+        print_output: bool = True,
+        colour: str = DEF_OUTPUT_COLOUR,
+        background: bool = False,
+        timeout: int | None = None,
+        ignore_errors: bool = False
+
+
+    ) -> str:
+        """Run any bash code in the docker container, returning its output.
+
+        Suitable for code that contains any quotes and escape characters.
+
+        Args:
+            code
+            print_output
+            colour
+            background
+            timeout: currently only implemented for print_output==True
+        """
+        if isinstance(code, list):
+            # concatenate list elements into single string
+            code = "\n".join(code)
+        remote_tempfile = self.write_to_tempfile(code)
+        # print(f"Running bash code {remote_tempfile}")
+        return self.run_shell_command(
+            f"/bin/bash {remote_tempfile}",
+            user=user,
+            print_output=print_output,
+             colour=colour,
+              background=background,
+            timeout=timeout,
+             ignore_errors=ignore_errors
+        )
+
+    def run_python_command(
+        self,
+        command: str,
+
+        user: str | None = None,
+        print_output: bool = True,
+        colour: str = DEF_OUTPUT_COLOUR,
+        background: bool = False,
+        timeout: int | None = None,
+        ignore_errors: bool = False
+    ) -> str:
+        """Run single-line python code, returning its output.
+
+        Not suitable for code that contains double quotes.
+
+        Args:
+            command
+            print_output
+            colour
+            background
+            timeout: currently only implemented for print_output==True
+        """
+        python_command = "python -c \"" + command + "\""
+        return self.run_shell_command(
+            python_command,
+            user=user,
+            print_output=print_output,
+             colour=colour,
+              background=background,
+            timeout=timeout,
+             ignore_errors=ignore_errors
+        )
+
+    def run_python_code(
+        self,
+        code: str | list[str],
+        user: str | None = None,
+        print_output: bool = True,
+        colour: str = DEF_OUTPUT_COLOUR,
+        background: bool = False,
+        timeout: int | None = None,
+        ignore_errors: bool = False
+
+    ) -> str:
+        """Run any python code in the docker container, returning its output.
+
+        Suitable for code that contains any quotes and escape characters.
+
+        Args:
+            code
+            print_output
+            colour
+            background
+            timeout
+        """
+        if isinstance(code, list):
+            # concatenate list elements into single string
+            code = "\n".join(code)
+        remote_tempfile = self.write_to_tempfile(code)
+        # print(f"Running python code {remote_tempfile}")
+        return self.run_shell_command(
+            f"/bin/python3 {remote_tempfile}",
+            user=user,
+            print_output=print_output,
+             colour=colour,
+              background=background,
+            timeout=timeout,
+             ignore_errors=ignore_errors
+        )
+
     def __init__(
         self,
         image: str = "emendir/brenthy_testing",
@@ -172,209 +379,6 @@ class BrenthyDocker:
         return self._docker.containers.get(
             self.container.id
         ).attrs["State"]["Running"]
-
-    def run_shell_command(
-        self,
-        command: str,
-        user: str | None = None,
-        print_output: bool = True,
-        colour: str = "light_yellow",
-        background: bool = False,
-        timeout: int = 10,
-        ignore_errors=False
-    ) -> str:
-        """Run shell code from within the container's operating system.
-
-        Not suitable for code that contains double quotes.
-
-        Args:
-            command:
-            user:
-            print_output:
-            colour:
-            background:
-            timeout: currently only implemented for print_output==True
-        """
-        if print_output and background:
-            print(
-                "Parameters `print_output` and `background` "
-                "can't both be `True`. Deactivating `print_output`."
-            )
-            print_output = False
-
-        if user:
-            command = f"su {user} -c \"{command}\""
-
-        if print_output:
-            return self.run_shell_command_printed(
-                command, print_output=True, colour=colour, timeout=timeout
-            )
-
-        if background:
-            command = f"nohup {command} > /dev/null 2>&1 &"
-        ex_id = self._docker.api.exec_create(self.container.id, command)['Id']
-        output = self._docker.api.exec_start(
-            ex_id, tty=False, detach=background
-        )
-        if background:
-            return ""
-        output_str = output.strip().decode()
-
-        exec_info = self._docker.api.exec_inspect(ex_id)
-        exit_status = exec_info['ExitCode']
-        if not ignore_errors and exit_status != 0:
-            raise DockerShellError(exit_status, output_str)
-
-        return output_str
-
-    def run_shell_command_printed(
-        self,
-        command: str,
-        print_output: bool = True,
-        colour: str = "light_yellow",
-        timeout: int = 10
-    ) -> str:
-        """Run shell code from within the container's operating system.
-
-        Not suitable for code that contains double quotes.
-
-        Args:
-            command
-            print_output
-            colour
-            timeout: currently only implemented for print_output==True
-        """
-        command = f"docker exec -it {self.container.id} {command}"
-        result = ""
-
-        try:
-            child = pexpect.spawn(command, encoding='utf-8',
-                                  timeout=timeout, logfile=sys.stdout)
-
-            while True:
-                try:
-                    line = child.readline()
-                    if not line:
-                        break
-                    if print_output:
-                        if colour:
-                            print(coloured(line.strip(), colour))
-                        else:
-                            print(line.strip())
-                    result += line
-                except pexpect.exceptions.TIMEOUT:
-                    print(coloured(
-                        "WARNING (BrenthyDocker): "
-                        "Docker shell command timeout reached for command\n"
-                        f"{command}",
-                        "red"
-                    ))
-                    break
-                except pexpect.EOF:
-                    break
-
-            # Ensure the process has finished
-            if child.isalive():
-                child.close()
-
-        except Exception as e:
-            print(coloured(f"ERROR (BrenthyDocker): {str(e)}", "red"))
-        # result = subprocess.run(
-        #     command, shell=True, capture_output=True, text=True, check=check
-        # )
-        return result.strip()
-
-    def run_bash_code(
-        self,
-        code: str | list[str],
-        print_output: bool = True,
-        colour: str = "light_yellow",
-        background: bool = False,
-        timeout: int = 10,
-        ignore_errors: bool = False
-
-
-    ) -> str:
-        """Run any bash code in the docker container, returning its output.
-
-        Suitable for code that contains any quotes and escape characters.
-
-        Args:
-            code
-            print_output
-            colour
-            background
-            timeout: currently only implemented for print_output==True
-        """
-        if isinstance(code, list):
-            # concatenate list elements into single string
-            code = "\n".join(code)
-        remote_tempfile = self.run_shell_command(
-            "mktemp", print_output=False).strip()
-        return self.run_shell_command(
-            f"/bin/bash {remote_tempfile}",
-            print_output=print_output, colour=colour, background=background,
-            timeout=timeout, ignore_errors=ignore_errors
-        )
-
-    def run_python_command(
-        self,
-        command: str,
-        print_output: bool = True,
-        colour: str = "light_yellow",
-        background: bool = False,
-        timeout: int = 10,
-        ignore_errors: bool = False
-
-    ) -> str:
-        """Run single-line python code, returning its output.
-
-        Not suitable for code that contains double quotes.
-
-        Args:
-            command
-            print_output
-            colour
-            background
-            timeout: currently only implemented for print_output==True
-        """
-        python_command = "python -c \"" + command + "\""
-        return self.run_shell_command(
-            python_command,
-            print_output=print_output, colour=colour, background=background,
-            timeout=timeout, ignore_errors=ignore_errors
-        )
-
-    def run_python_code(
-        self,
-        code: str | list[str],
-        print_output: bool = True,
-        colour: str = "light_yellow",
-        background: bool = False,
-        timeout: int = 10,
-        ignore_errors: bool = False,
-
-    ) -> str:
-        """Run any python code in the docker container, returning its output.
-
-        Suitable for code that contains any quotes and escape characters.
-
-        Args:
-            code
-            print_output
-            colour
-            background
-            timeout
-        """
-        if isinstance(code, list):
-            # concatenate list elements into single string
-            code = "\n".join(code)
-        remote_tempfile = self.write_to_tempfile(code)
-        return self.run_shell_command(
-            f"/bin/python {remote_tempfile}",
-            print_output=print_output, colour=colour, background=background,
-            timeout=timeout, ignore_errors=ignore_errors
-        )
 
     def _docker_swarm_connect(self) -> None:
         """Try to connect to this docker container via IPFS."""

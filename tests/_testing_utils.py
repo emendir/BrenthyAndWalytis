@@ -4,6 +4,7 @@ import time
 import threading
 import os
 import sys
+import pytest
 
 from types import ModuleType
 PROJECT_DIR=os.path.dirname(os.path.dirname(__file__))
@@ -23,8 +24,8 @@ if True:
     from walytis_beta_tools._experimental.config import ipfs
     print("IPFS Peer ID:", ipfs.peer_id)
 
-BREAKPOINTS = False
-PYTEST = True  # whether or not this script is being run by pytest
+BREAKPOINTS = False # whether to open a PDB session if a test fails
+PYTEST = True  # whether or not this script is being run by pytest instead of python
 
 
 def mark(success: bool, message: str, error: Exception | None = None) -> None:
@@ -54,7 +55,20 @@ def mark(success: bool, message: str, error: Exception | None = None) -> None:
         if BREAKPOINTS:
             breakpoint()
 
-
+def assert_exception(exception, error_message, call, *args, **kwargs):
+    """Run a function and check if it raises the specified error."""
+    if PYTEST:
+        with pytest.raises(exception, match=error_message):
+            call(*args, **kwargs)
+        return True
+    else:
+        try:
+            call(*args, **kwargs)
+        except Exception as e:
+            if isinstance(e, exception) and error_message in str(e):
+                return True
+            raise e
+        return False
 def test_threads_cleanup() -> None:
     """Test that all threads have exited."""
     for i in range(2):
