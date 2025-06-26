@@ -80,6 +80,9 @@ def load_blockchain_modules() -> dict[str, ModuleType]:
                 )
             continue
         try:
+            env_var_name=f"{blockchain_type.upper()}_LOG_PATH"
+            os.environ[env_var_name]=os.path.join(log.LOG_DIR, f"{blockchain_type}.log")
+            # print(env_var_name, os.environ[env_var_name])
             blockchain_module = utils.load_module_from_path(blockchain_path)
         except Exception as e:  # pylint:disable=broad-exception-caught
             log.error(f"Failed to load blockchain type {blockchain_type}\n{e}")

@@ -8,13 +8,15 @@
 ## Repo-Organisation
 
 - [x] refactor Walytis_Beta code
-- [ ] split docs into separate repos for Brenthy & Walytis
-- [x] make walytis tests independent of Brenthy 
-- [ ] outsource Walytis repo
+- [x] split docs into separate repos for Brenthy & Walytis
+- [x] make walytis tests independent of Brenthy
+- [x] outsource Walytis repo
 - [ ] move /Brenthy/Docker and /Brenthy/InstallScripts to /deployement/
 - [ ] rename /Brenthy to /src, /Documentation to /docs etc.
 - [ ] For brenthy_testing, implement Multi-Stage Docker File instead of two files https://docs.docker.com/build/building/multi-stage/
 - [x] migrate from setup.py to pyproject.toml
+- [ ] put all logs in /opt/Brenthy/logs
+- [ ] split this todo list into separate lists for Brenthy & Walytis
 
 ## Docs
 
@@ -26,7 +28,7 @@
 
 ### Core
 
-- [ ] reduce unnecessary logging
+- [ ] migrate from loguru to logging
 - [ ] Make `walytis_beta_api` capable of fully verifying a blockchain from block data files, so that the role of Walytis Core is only creating and sharing blocks.
 - [ ] Join Blockchain timeout when no data has been received during file transmission
 - [ ] Remove `block_records` block index? Make more efficient?
@@ -42,10 +44,10 @@
 - [ ] fix `_load_brenthy_api_protocols_from_registry`
 - [ ] GenericBlockchain: add abstract method `set_block_received_handler`?
 - [ ] Blockchain: pass directory #phase4
-    - [x] implement
-    - [ ] tests
-    - [x] static function param
-    - [x] docstrings
+  - [x] implement
+  - [ ] tests
+  - [x] static function param
+  - [x] docstrings
 - [ ] check on efficiency of `walytis_api.Blockchain._load_missed_blocks` amount parameter
 - [ ] fix issue with pip install not updating installed version of package, test for 2nd docker container
 - [ ] proper error message when IPFS is turned off
@@ -75,7 +77,7 @@
 - [ ] test all security functionality
 - [ ] test for performance metrics
 - [ ] find out scalability limits, expand and test them
-- [ ] in _testing_utils, remove `from blockchains.Walytis_Beta.networking import ipfs`
+- [ ] in \_testing_utils, remove `from blockchains.Walytis_Beta.networking import ipfs`
 
 ## Future Features
 

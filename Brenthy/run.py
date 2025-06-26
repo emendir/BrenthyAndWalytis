@@ -34,10 +34,30 @@ if True:  # pylint: disable=using-constant-test
     
     import brenthy_tools_beta
     assert SRC_DIR in os.path.abspath(brenthy_tools_beta.__file__)
+    from brenthy_tools_beta import log
+    # First things first: get logging working
+    try:
+        from app_data import logs_dir
+        log.LOG_DIR = logs_dir
+    except ImportError:
+        print(
+            "Failed to import some required packages. You will be able to "
+            "install Brenthy now, but to run it from source, you will need "
+            "to install its dependencies first from Brenthy/requirements.txt"
+        )
+        logs_dir = "."
+    log.LOG_FILENAME = "Brenthy.log"
+    log.LOG_ARCHIVE_DIRNAME = ".log_archive"
+    log.add_empty_line()
+    log.important("Starting up Brenthy...")
+    log.important(
+        "Logging to " +
+        os.path.abspath(os.path.join(log.LOG_DIR, log.LOG_FILENAME))
+    )
+    os.environ["WALYTIS_BETA_LOG_PATH"]=os.path.join(log.LOG_DIR, "Walytis_Beta.log")
     import walytis_beta_tools
     assert WALYTIS_SRC_DIR in os.path.abspath(walytis_beta_tools.__file__)
     
-    from brenthy_tools_beta import log
     from brenthy_tools_beta.versions import BRENTHY_CORE_VERSION
     print(f"Brenthy {BRENTHY_CORE_VERSION}")
     # log.set_print_level("Info")
@@ -78,25 +98,6 @@ def run_brenthy() -> None:
     global CHECK_UPDATES
     global DATA_DIR
     global INSTALL_PYPY
-    # First things first: get logging working
-    try:
-        from app_data import logs_dir
-        log.LOG_DIR = logs_dir
-    except ImportError:
-        print(
-            "Failed to import some required packages. You will be able to "
-            "install Brenthy now, but to run it from source, you will need "
-            "to install its dependencies first from Brenthy/requirements.txt"
-        )
-        logs_dir = "."
-    log.LOG_FILENAME = "Brenthy.log"
-    log.LOG_ARCHIVE_DIRNAME = ".log_archive"
-    log.add_empty_line()
-    log.important("Starting up Brenthy...")
-    log.important(
-        "Logging to " +
-        os.path.abspath(os.path.join(log.LOG_DIR, log.LOG_FILENAME))
-    )
     try:
         if "--dont-install" in sys.argv:
             TRY_INSTALL = False
@@ -190,7 +191,7 @@ def run_brenthy() -> None:
 
         from brenthy_tools_beta import bt_endpoints
         bt_endpoints.initialise()
-        walytis_beta_interface.log.PRINT_DEBUG = not am_i_installed() or update.TESTING
+        # walytis_beta_interface.log.PRINT_DEBUG = not am_i_installed() or update.TESTING
 
         log.important("Starting up communication with applications...")
         api_terminal.load_brenthy_api_protocols()
@@ -203,7 +204,7 @@ def run_brenthy() -> None:
         log.important("Running blockchains...")
         blockchain_manager.run_blockchains()
         # re-enable log.PRINT_DEBUG again, as run_blockchains() disables it again
-        walytis_beta_interface.log.PRINT_DEBUG = not am_i_installed() or update.TESTING
+        # walytis_beta_interface.log.PRINT_DEBUG = not am_i_installed() or update.TESTING
     except:  # pylint: disable=bare-except
         log.fatal(traceback.format_exc())
         log.fatal("Error running blockchains, exiting.")

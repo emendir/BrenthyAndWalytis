@@ -13,7 +13,8 @@ import pyperclip
 from _testing_utils import ipfs
 from termcolor import colored as coloured
 
-DEF_OUTPUT_COLOUR="light_yellow"
+DEF_OUTPUT_COLOUR = "light_yellow"
+
 
 class DockerShellError(Exception):
     """When a shell command run in the docker container produces an Exception."""
@@ -29,11 +30,14 @@ class DockerShellError(Exception):
             "Output:",
             f"{self.shell_output}"
         ])
+
+
 class DockerShellTimeoutError(Exception):
     """When a shell command run in the docker container reaches its time out."""
 
-    def __init__(self, timeout:int):
+    def __init__(self, timeout: int, output: str):
         self.timeout = timeout
+        self.output = output
 
     def __str__(self):
         return (
@@ -43,7 +47,7 @@ class DockerShellTimeoutError(Exception):
 
 
 class BrenthyDocker:
-    
+
     def run_shell_command(
         self,
         command: str,
@@ -88,19 +92,22 @@ class BrenthyDocker:
             # We don't expect output or status in background
             try:
                 child = pexpect.spawn(
-                    f"docker exec {self.container.id} bash -c {shlex.quote(command)}",
+                    f"docker exec {
+                        self.container.id} bash -c {shlex.quote(command)}",
                     encoding='utf-8',
                     timeout=timeout
                 )
                 child.expect(pexpect.EOF)
             except Exception as e:
                 if not ignore_errors:
-                    raise DockerShellError(-1, f"Background execution failed: {str(e)}")
+                    raise DockerShellError(-1,
+                                           f"Background execution failed: {str(e)}")
             return ""
 
         try:
             child = pexpect.spawn(
-                f"docker exec {self.container.id} bash -c {shlex.quote(command)}",
+                f"docker exec {
+                    self.container.id} bash -c {shlex.quote(command)}",
                 encoding='utf-8',
                 timeout=timeout
             )
@@ -110,11 +117,12 @@ class BrenthyDocker:
                     if not line:
                         break
                     if print_output:
-                        print(coloured(line.strip(), colour) if colour else line.strip())
+                        print(coloured(line.strip(), colour)
+                              if colour else line.strip())
                     result += line
                 except pexpect.TIMEOUT:
                     child.close(force=True)
-                    raise DockerShellTimeoutError(timeout) from None
+                    raise DockerShellTimeoutError(timeout, result) from None
                 except pexpect.EOF:
                     break
 
@@ -162,10 +170,10 @@ class BrenthyDocker:
             f"/bin/bash {remote_tempfile}",
             user=user,
             print_output=print_output,
-             colour=colour,
-              background=background,
+            colour=colour,
+            background=background,
             timeout=timeout,
-             ignore_errors=ignore_errors
+            ignore_errors=ignore_errors
         )
 
     def run_python_command(
@@ -195,10 +203,10 @@ class BrenthyDocker:
             python_command,
             user=user,
             print_output=print_output,
-             colour=colour,
-              background=background,
+            colour=colour,
+            background=background,
             timeout=timeout,
-             ignore_errors=ignore_errors
+            ignore_errors=ignore_errors
         )
 
     def run_python_code(
@@ -232,10 +240,10 @@ class BrenthyDocker:
             f"/bin/python3 {remote_tempfile}",
             user=user,
             print_output=print_output,
-             colour=colour,
-              background=background,
+            colour=colour,
+            background=background,
             timeout=timeout,
-             ignore_errors=ignore_errors
+            ignore_errors=ignore_errors
         )
 
     def __init__(
@@ -341,7 +349,6 @@ class BrenthyDocker:
             f"mkdir -p {os.path.dirname(remote_filepath)}", print_output=False)
         self.container.put_archive(dst_dir, stream.getvalue())
 
-
     def write_to_tempfile(self, data: str | bytes) -> str:
         if isinstance(data, str):
             data = data.encode("utf-8")
@@ -359,21 +366,25 @@ class BrenthyDocker:
                 os.fsync(f.fileno())
 
             if not os.path.exists(local_path):
-                raise RuntimeError(f"Local temp file was not created: {local_path}")
+                raise RuntimeError(
+                    f"Local temp file was not created: {local_path}")
 
             # Transfer to container and check for success
             transfer_result = self.transfer_file(local_path, remote_path)
 
             # Optional: Run `ls` in the container to confirm file landed
-            check_result = self.run_shell_command(f"ls {remote_path}", print_output=False, ignore_errors=True)
+            check_result = self.run_shell_command(
+                f"ls {remote_path}", print_output=False, ignore_errors=True)
             if remote_path not in check_result:
-                raise RuntimeError(f"File does not appear to exist in container after transfer: {remote_path}")
+                raise RuntimeError(
+                    f"File does not appear to exist in container after transfer: {remote_path}")
 
             return remote_path
 
         finally:
             # Important: Delay deletion until after transfer
             shutil.rmtree(local_tempdir, ignore_errors=True)
+
     def is_running(self) -> bool:
         """Check if this docker container is running or not."""
         return self._docker.containers.get(
