@@ -8,9 +8,14 @@ import tempfile
 from getpass import getpass
 
 from cryptem import Crypt
+from ipfs_remote import ipfshttpclient2
+
+ipfs_client = ipfshttpclient2.client.Client()
 
 publisher_public_key = "0459f93b7e8c77ec5daad9e2625ef5421028a8bcc3f158ce5e5085e1fde012e4a943a97446574d92f4330ce74c059dd4f66e78313021b8a3cdb0af141d58a70d0c"
 crypt: Crypt
+# throw an error if this size in bytes is exceeded when publishing Brenthy
+MAX_PACKAGE_SIZE = 7 * 1024**2
 
 TESTING_BRENTHY = False
 TESTING_WALYTIS_BETA = False
@@ -34,7 +39,6 @@ if True:
         os.path.dirname(os.path.dirname(__file__)), "Brenthy"
     )
     sys.path.insert(0, brenthy_dir)
-    from walytis_beta_tools._experimental.config import ipfs
     from blockchain_manager import load_blockchain_modules
     from brenthy_tools_beta import log
     from brenthy_tools_beta.utils import (
@@ -42,6 +46,7 @@ if True:
         load_module_from_path,
     )
     from brenthy_tools_beta.versions import BRENTHY_CORE_VERSION
+    from walytis_beta_tools._experimental.config import ipfs
 
     brenthy_version = BRENTHY_CORE_VERSION
     from blockchains.Walytis_Beta.src import walytis_beta_api
@@ -133,12 +138,20 @@ def publish_release(
         f"Walytis_Beta version {walytis_beta_version}"
     )
 
-PATHS_TO_DELETE=[
+
+PATHS_TO_DELETE = [
     "__pycache__",
     ".mypy_cache",
-    os.path.join("Brenthy","blockchains","Walytis_Beta","__pycache__"),
-    os.path.join("Brenthy","blockchains","Walytis_Beta",".mypy_cache")
+    "build",
+    os.path.join("", "blockchains", "Walytis_Beta", "__pycache__"),
+    os.path.join("", "blockchains", "Walytis_Beta", ".mypy_cache"),
+    os.path.join("", "blockchains", "Walytis_Beta",
+                 "legacy_packaging", "walytis_beta_api", "build"),
+    os.path.join("", "blockchains", "Walytis_Beta",
+                 "legacy_packaging", "walytis_beta_api", "dist"),
 ]
+
+
 def publish_project_on_ipfs() -> str:
     """Publish Brenthy's essential files to IPFS, returning their CID."""
     tempdir = tempfile.mkdtemp()
@@ -146,9 +159,10 @@ def publish_project_on_ipfs() -> str:
     shutil.copytree("../Brenthy", os.path.join(tempdir, "Brenthy"))
     shutil.copy("../__main__.py", os.path.join(tempdir, "__main__.py"))
     shutil.copy("../ReadMe.md", os.path.join(tempdir, "ReadMe.md"))
-    
+
     for rm_dir in PATHS_TO_DELETE:
         rm_path = os.path.join(tempdir, "Brenthy", rm_dir)
+        # print(os.path.exists(rm_path), rm_path)
         if os.path.exists(rm_path):
             shutil.rmtree(rm_path)
     if TESTING_BRENTHY:
@@ -175,11 +189,14 @@ def publish_project_on_ipfs() -> str:
         os.remove(os.path.join(tempdir, "Brenthy", ".log"))
     if os.path.exists(os.path.join(tempdir, "Brenthy", ".log_archive")):
         shutil.rmtree(os.path.join(tempdir, "Brenthy", ".log_archive"))
-        
+
     ipfs_cid = ipfs.files.publish(tempdir)
-
+    response = ipfs_client.files.stat(f"/ipfs/{ipfs_cid}")
+    size = int(response["CumulativeSize"])
+    print(f"Created Brenthy Package: {size} Bytes, {ipfs_cid}")
+    if size > MAX_PACKAGE_SIZE:
+        raise Exception(f"Brenthy package is larger than expected: {size}")
     shutil.rmtree(tempdir)
-
     return ipfs_cid
 
 
