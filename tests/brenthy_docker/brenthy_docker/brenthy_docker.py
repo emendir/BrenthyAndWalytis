@@ -322,8 +322,15 @@ class BrenthyDocker:
         """Restart this container."""
         self.container.restart()
 
+        sleep(0.2)
         # why is this necessary? Seems to sometimes work without...
-        self.run_shell_command("systemctl start ipfs")
+        while True:
+            try:
+                self.run_shell_command("systemctl start ipfs")
+                break
+            except DockerShellError:
+                print("Waiting for docker to restart...")
+                sleep(0.2)
 
     def delete(self, force=False) -> None:
         if force:
