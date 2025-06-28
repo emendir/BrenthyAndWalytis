@@ -6,13 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "brenthy_docker"
 version = "0.3.7"
 description="Interact with docker containers running IPFS and Brenthy."
-dependencies = [
-  "docker",
-  "ipfs-toolkit",
-  "termcolor",
-  "pyperclip",
-  "pexpect",
-]
+dynamic=["dependencies"]
 readme = "brenthy_docker/ReadMe.md"
 keywords = ["brenthy", "walytis", "docker", "test"]
 
@@ -21,6 +15,9 @@ Github = "https://github.com/emendir/BrenthyAndWalytis/tree/master/tests/brenthy
 Homepage = "https://ipfs.io/ipns/emendir.tech/#BrenthyAndWalytis/tests/brenthy_docker/brenthy_docker/ReadMe.md"
 IPNS = "https://ipfs.io/ipns/emendir.tech/#BrenthyAndWalytis/tests/brenthy_docker/brenthy_docker/ReadMe.md"
 
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools.packages.find]
 where = ["."]
