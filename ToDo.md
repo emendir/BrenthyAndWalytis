@@ -2,6 +2,7 @@
 
 ## Urgent
 
+- [ ] remove dependence on walytis_beta_tools._experimental
 - [x] fix pip installation in docker prereqs
 - [ ] new docker container using embedded IPFS node
 
@@ -23,6 +24,7 @@
 - BrenthyAPI port
 - contributions
 - docs wiki?
+- make clear which parts of the API are experimental
 
 ## Technical
 
@@ -58,6 +60,7 @@
 - [ ] walytis_beta_api.walytis_beta_generic_interface: create tempdir in appdata
 - [ ] finish implementation of walytis_beta_embedded (missing functions such as read_block)
 - [ ] move value checking and blockchain existence checking logic from walytis_beta_embedded_api & walytis_beta_brethy_api to walytis_beta_generic_interface
+- [ ] fix environment variables for Walytis & IPFS-Toolkit and make a stable feature
 
 ### Installation
 

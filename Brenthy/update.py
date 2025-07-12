@@ -12,7 +12,7 @@ from threading import Lock
 import blockchain_manager
 import brenthy_tools_beta.versions
 import run
-from walytis_beta_tools._experimental.config import ipfs
+from walytis_beta_tools._experimental.ipfs_interface import ipfs
 from walytis_beta_api import (
     Block,
     BlocksListener,

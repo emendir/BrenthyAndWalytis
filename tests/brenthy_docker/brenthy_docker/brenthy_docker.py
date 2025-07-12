@@ -10,7 +10,8 @@ from time import sleep
 import docker
 import pexpect
 import pyperclip
-from _testing_utils import ipfs
+# from _testing_utils import ipfs
+from walytis_beta_tools._experimental.ipfs_interface import ipfs
 from termcolor import colored as coloured
 
 DEF_OUTPUT_COLOUR = "light_yellow"

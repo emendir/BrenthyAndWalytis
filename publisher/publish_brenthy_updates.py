@@ -46,7 +46,7 @@ if True:
         load_module_from_path,
     )
     from brenthy_tools_beta.versions import BRENTHY_CORE_VERSION
-    from walytis_beta_tools._experimental.config import ipfs
+    from walytis_beta_tools._experimental.ipfs_interface import ipfs
 
     brenthy_version = BRENTHY_CORE_VERSION
     from blockchains.Walytis_Beta.src import walytis_beta_api
@@ -145,6 +145,8 @@ PATHS_TO_DELETE = [
     "build",
     os.path.join("", "blockchains", "Walytis_Beta", "__pycache__"),
     os.path.join("", "blockchains", "Walytis_Beta", ".mypy_cache"),
+    os.path.join("", "blockchains", "Walytis_Beta", "tests", ".blockchains"),
+    os.path.join("", "blockchains", "Walytis_Beta", "tests", ".ipfs_repo"),
     os.path.join("", "blockchains", "Walytis_Beta",
                  "legacy_packaging", "walytis_beta_api", "build"),
     os.path.join("", "blockchains", "Walytis_Beta",

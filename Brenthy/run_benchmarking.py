@@ -7,7 +7,7 @@ import atexit
 from run import run_brenthy, stop_brenthy
 
 
-from walytis_beta_tools._experimental.config import ipfs
+from walytis_beta_tools._experimental.ipfs_interface import ipfs
 
 decorate_class_methods(track_time, ipfs)
 

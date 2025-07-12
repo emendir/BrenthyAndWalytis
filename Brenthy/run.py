@@ -168,7 +168,7 @@ def run_brenthy() -> None:
 
     try:
         # Wait till IPFS comes online
-        from walytis_beta_tools._experimental.config import ipfs
+        from walytis_beta_tools._experimental.ipfs_interface import ipfs
   # pylint: disable=import-outside-toplevel
 
         log.info(f"Our IPFS Peer ID: {ipfs.peer_id}")

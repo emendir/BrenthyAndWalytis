@@ -1,4 +1,4 @@
-from walytis_beta_api._experimental.config import ipfs
+from walytis_beta_api._experimental.ipfs_interface import ipfs
 import os
 import sys
 

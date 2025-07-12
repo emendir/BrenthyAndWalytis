@@ -11,3 +11,4 @@ ipfs_node>=0.1.1
 setuptools>=45.2.0
 pytest
 cryptem>=0.1.1
+environs
