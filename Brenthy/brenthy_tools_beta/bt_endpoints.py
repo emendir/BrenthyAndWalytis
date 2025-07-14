@@ -42,7 +42,7 @@ def initialise() -> None:
             return
     try:
         # load ZMQ
-        import zmq
+        import zmq  # noqa
 
         ZMQ_CONTEXT = zmq.Context()
         CONTEXTS.append(ZMQ_CONTEXT)
@@ -56,17 +56,19 @@ def initialise() -> None:
 def send_request_zmq(
     request: bytearray | bytes,
     socket_address: tuple[str, int],
-    timeout: int = REQUEST_TIMEOUT_S,
+    timeout: int | None = None,
 ) -> bytes:
     """Send a request to the given address, expecting a reply.
 
     Args:
         request (bytearray): the data to send
         socket_address (tuple[str,int]): IP address and port number to send to
-        timeout (int): how long to wait before giving up
+        timeout (int): how long to wait before giving up, None to use default
     Returns:
         bytearray: reply received from the endpoint after sending the request
     """
+    if timeout is None:
+        timeout = REQUEST_TIMEOUT_S
     if not ZMQ_CONTEXT:
         raise CantConnectToSocketError(protocol="ZMQ") from None
 
@@ -91,13 +93,15 @@ def send_request_zmq(
 
 
 def send_request_tcp(
-    request: bytearray | bytes, socket_address: tuple[str, int]
+    request: bytearray | bytes, socket_address: tuple[str, int],
+    timeout: int | None = None
 ) -> bytes:
     """Send a request to the given address, expecting a reply.
 
     Args:
         request (bytearray): the data to send
         socket_address (tuple[str,int]): IP address and port number to send to
+        timeout (int): how long to wait before giving up, None to use default
     Returns:
         bytearray: reply received from the endpoint after sending the request
     """
@@ -109,7 +113,7 @@ def send_request_tcp(
                 protocol="TCP", address=socket_address
             ) from None
         _tcp_send_counted(s, request)
-        reply = _tcp_recv_counted(s)
+        reply = _tcp_recv_counted(s, timeout=timeout)
         return reply
 
 
@@ -150,13 +154,19 @@ class CantConnectToSocketError(Exception):
         return error_message
 
 
-def _tcp_send_counted(sock: socket.socket, data: bytearray | bytes) -> None:
+def _tcp_send_counted(
+    sock: socket.socket, data: bytearray | bytes
+) -> None:
     length = len(data)
     sock.send(to_b255_no_0s(length) + bytearray([0]))
     sock.send(data)
 
 
-def _tcp_recv_counted(sock: socket.socket, timeout: int = 5) -> bytes:
+def _tcp_recv_counted(
+    sock: socket.socket, timeout: int | None = None
+) -> bytes:
+    if timeout is None:
+        timeout = REQUEST_TIMEOUT_S
     # make socket non blocking
     sock.setblocking(False)
 
@@ -167,11 +177,11 @@ def _tcp_recv_counted(sock: socket.socket, timeout: int = 5) -> bytes:
     # beginning time
     begin = time.time()
     while True:
-        # if you got some data, then break after timeout
-        if len(total_data) > 0 and time.time() - begin > timeout:
+        # if we got some data, wait a little longer, twice the timeout
+        if len(total_data) > 0 and time.time() - begin > timeout * 2:
             break
 
-        # if you got no data at all, wait a little longer, twice the timeout
+        # if we got no data, then break after timeout
         if time.time() - begin > timeout * 2:
             break
 

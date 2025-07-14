@@ -143,7 +143,7 @@ fi
 # register Brenthy as a service/background process, and running it
 echo "Registering systemd service..."
 echo "[Unit]
-Description=the platform for developing and running the next generation of blockchains
+Description=the platform for developing and deploying the next generation of blockchains
 Wants=ipfs.service
 
 [Service]

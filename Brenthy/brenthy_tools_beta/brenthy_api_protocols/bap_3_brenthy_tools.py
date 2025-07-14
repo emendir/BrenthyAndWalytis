@@ -9,24 +9,29 @@ This module's counterpart, which contain's Brenthy Core's machinery, is at
 
 from brenthy_tools_beta import bt_endpoints
 from brenthy_tools_beta.brenthy_api_addresses import (
-    BRENTHY_IP_ADDRESS, BAP_3_RPC_PORT
+    BAP_3_RPC_PORT,
+    BRENTHY_IP_ADDRESS,
 )
 from brenthy_tools_beta.bt_endpoints import send_request_tcp
 
 BAP_VERSION = 3  # pylint: disable=unused-variable
 
 
-def send_request(request: bytearray | bytes) -> bytes:  # pylint: disable=unused-variable
+def send_request(
+    request: bytearray | bytes, timeout: int | None = None
+) -> bytes:  # pylint: disable=unused-variable
     """Send a BrenthyAPI request to Brenthy-Core, returning its reply.
 
     Args:
         request (bytearray): the data to send to Brenthy-Core
+        timeout (int): how long to wait before giving up, None to use default
     Returns:
         bytearray: the response received from Brenthy-Core
     """
     return send_request_tcp(
         request,
         (BRENTHY_IP_ADDRESS, BAP_3_RPC_PORT),
+        timeout=timeout
     )
 
 

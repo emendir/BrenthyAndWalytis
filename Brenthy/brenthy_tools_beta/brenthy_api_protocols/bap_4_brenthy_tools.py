@@ -15,7 +15,9 @@ from types import FunctionType
 import zmq
 from brenthy_tools_beta import bt_endpoints, log
 from brenthy_tools_beta.brenthy_api_addresses import (
-    BRENTHY_IP_ADDRESS, BAP_4_RPC_PORT, BAP_4_PUB_PORT
+    BAP_4_PUB_PORT,
+    BAP_4_RPC_PORT,
+    BRENTHY_IP_ADDRESS,
 )
 from brenthy_tools_beta.bt_endpoints import (
     CantConnectToSocketError,
@@ -29,16 +31,21 @@ BAP_VERSION = 4  # pylint: disable=unused-variable
 CONTEXTS = []
 
 
-def send_request(request: bytearray | bytes) -> bytes:  # pylint: disable=unused-variable
+def send_request(
+    request: bytearray | bytes, timeout: int | None = None
+) -> bytes:  # pylint: disable=unused-variable
     """Send a BrenthyAPI request to Brenthy-Core, returning its reply.
 
     Args:
         request (bytearray): the data to send to Brenthy-Core
+        timeout (int): how long to wait before giving up, None to use default
     Returns:
         bytearray: the response received from Brenthy-Core
     """
     # try send_request_zmq, as it is faster
-    return send_request_zmq(request, (BRENTHY_IP_ADDRESS, BAP_4_RPC_PORT))
+    return send_request_zmq(
+        request, (BRENTHY_IP_ADDRESS, BAP_4_RPC_PORT), timeout=timeout
+    )
 
 
 class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-variable
@@ -153,8 +160,8 @@ class EventListener(bt_endpoints.EventListener):  # pylint: disable=unused-varia
                             params = (data, topic)
                         # log.info(
                         #     "BAP-4-BT.EventListener.listen: passing on "
-                        #     f"received block to eventhandler with {n_params} "
-                        #     f"parameters for topic {topic}"
+                        #     f"received block to eventhandler with {n_params}"
+                        #     f" parameters for topic {topic}"
                         # )
 
                         Thread(

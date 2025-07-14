@@ -1,6 +1,5 @@
 """Library for interacting with Brenthy Core and its blockchain types."""
 
-from .brenthy_api_protocols import BAP_MODULES_REGISTRY
 import importlib
 import json
 import os
@@ -16,7 +15,11 @@ from brenthy_tools_beta.version_utils import (
     version_to_string,
 )
 from brenthy_tools_beta.versions import BRENTHY_TOOLS_VERSION
+from environs import Env
+
 from . import brenthy_api_addresses
+from .brenthy_api_protocols import BAP_MODULES_REGISTRY
+
 BLOCKCHAIN_RETURNED_NO_RESPONSE = "blockchain returned no response"
 UNKNOWN_BLOCKCHAIN_TYPE = "unknown blockchain type"
 
@@ -31,6 +34,9 @@ log.LOG_FILENAME = ".brenthy_api.log"
 log.LOG_ARCHIVE_DIRNAME = ".brenthy_api_log_archive"
 
 
+env = Env()
+
+
 def _load_brenthy_api_protocols_from_files() -> None:
     # files in the current directory which don't define bap_protocol_modules
     global bap_protocol_modules  # pylint: disable=global-statement
@@ -42,8 +48,19 @@ def _load_brenthy_api_protocols_from_files() -> None:
         if filename in BAP_EXCLUDED_MODULES:
             continue
         try:
+            bap_module = load_module_from_path(
+                os.path.join(protocols_path, filename)
+            )
+            if not env.bool(
+                f"BRENTHY_API_PROTOCOL_{bap_module.BAP_VERSION}", default=True
+            ):
+                log.info(
+                    f"Skipping BAP-{bap_module.BAP_VERSION} because of Env Var"
+                )
+                continue
+
             bap_protocol_modules.append(
-                load_module_from_path(os.path.join(protocols_path, filename))
+                bap_module
             )
         except:
             error_message = (
@@ -74,7 +91,8 @@ def _load_brenthy_api_protocols() -> None:
 
 
 def send_request(
-    blockchain_type: str, payload: bytearray | bytes
+    blockchain_type: str, payload: bytearray | bytes,
+    timeout: int | None = None
 ) -> bytearray:
     """Send a request to Brenthy or one of its installed blockchain types.
 
@@ -82,6 +100,7 @@ def send_request(
         blockchain_type(str): the blockchain type to forward the payload to
             use 'Brenthy' if the request is to Brenthy itself
         payload(bytearray): the message to send to Brenthy or the blockchain
+        timeout (int): how long to wait before giving up, None to use default
     Returns:
         bytearray: the reply from Brenthy or the blockchain.
     """
@@ -112,7 +131,7 @@ def send_request(
     # try sending request via different protocols
     for protocol in bap_protocol_modules:
         try:
-            reply = protocol.send_request(request)
+            reply = protocol.send_request(request, timeout=timeout)
         except CantConnectToSocketError:
             # try next BrenthyAPI protocol
             continue
@@ -159,7 +178,7 @@ def _analyse_no_success_reply(reply: bytearray) -> Exception:
     """
     if not reply:
         return BrenthyReplyDecodeError(
-            "Received empty JSON reply from Brenthy.", reply=data
+            "Received empty JSON reply from Brenthy.", reply=reply
         )
     data = None
     try:
@@ -190,7 +209,9 @@ def _analyse_no_success_reply(reply: bytearray) -> Exception:
     )
 
 
-def send_brenthy_request(function_name: str, payload: bytearray) -> bytearray:
+def send_brenthy_request(
+    function_name: str, payload: bytearray, timeout: int | None = None
+) -> bytearray:
     """Make a request to Brenthy (NOT a Brenthy blockchain).
 
     Args:
@@ -198,12 +219,13 @@ def send_brenthy_request(function_name: str, payload: bytearray) -> bytearray:
                                 which we want to call
         payload (bytearray): the data the function in api_terminal
                                 needs to process our request, its arguments
+        timeout (int): how long to wait before giving up, None to use default
     Returns:
         bytearray: the reply from the function we called in
                                 api_terminal
     """
     request = function_name.encode() + bytearray([0]) + payload
-    return send_request("Brenthy", request)
+    return send_request("Brenthy", request, timeout=timeout)
 
 
 class EventListener:
@@ -264,9 +286,12 @@ class EventListener:
     def _handler(self, message: dict, topic: str) -> None:
         """Process an event from Brenthy Core."""
         if topic.startswith(f"{self.blockchain_type}-"):
-            topic=topic[len(f"{self.blockchain_type}-"):]
+            topic = topic[len(f"{self.blockchain_type}-"):]
         else:
-            log.warning(f"BrenthyAPI.EventListener topic `{topic}` didn't doesn't start with `{self.blockchain_type}-`")
+            log.warning(
+                f"BrenthyAPI.EventListener topic `{topic}` "
+                f"didn't doesn't start with `{self.blockchain_type}-`"
+            )
         # call the eventhandler, passing it the data and topic
         n_params = len(signature(self.users_eventhandler).parameters)
         if n_params == 1:
@@ -288,7 +313,7 @@ class EventListener:
 # pylint: disable=unused-variable
 
 
-def get_brenthy_version() -> tuple:
+def get_brenthy_version(timeout: int | None = None) -> tuple:
     """Get the software version of the locally running Brenthy node.
 
     Returns:
@@ -296,7 +321,8 @@ def get_brenthy_version() -> tuple:
     """
     return tuple(
         json.loads(
-            send_brenthy_request("get_brenthy_version", bytearray([])).decode()
+            send_brenthy_request("get_brenthy_version",
+                                 bytearray([]), timeout=timeout).decode()
         )["brenthy_core_version"]
     )
 
@@ -360,7 +386,9 @@ class BrenthyReplyDecodeError(Exception):
         "error parsing the reply from Brenthy. " "This is probably a bug."
     )
 
-    def __init__(self, message: str = def_message, reply: bytearray | None = None):
+    def __init__(
+        self, message: str = def_message, reply: bytearray | None = None
+    ):
         """Raise a BrenthyReplyDecodeError exception.
 
         Args:
@@ -419,6 +447,7 @@ class UnknownBlockchainTypeError(Exception):
         if self.blockchain_type:
             self.message = self.blockchain_type + ": " + self.message
         return self.message
+
 
 _AUTO_LOAD_BAP_MODULES = os.environ.get("AUTO_LOAD_BAP_MODULES", "").lower()
 if not _AUTO_LOAD_BAP_MODULES or _AUTO_LOAD_BAP_MODULES in ["true", "1"]:
