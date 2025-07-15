@@ -18,6 +18,10 @@ RUN python3 -m pip install --break-system-packages --root-user-action ignore -e 
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta/legacy_packaging/walytis_beta_embedded
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/Brenthy/tests/brenthy_docker
+
+RUN for python_package in /opt/Brenthy/tests/brenthy_docker/python_packages/*; do [ -e "$python_package" ] || continue; python3 -m pip install --break-system-packages --root-user-action ignore "$python_package"; done
+RUN for python_package in /opt/Brenthy/tests/brenthy_docker/python_packages/*; do [ -e "$python_package" ] || continue; /bin/bash -c "source /opt/Brenthy/Python/bin/activate && python3 -m pip install --break-system-packages --root-user-action ignore $python_package"; done
+
 # clean up files that cause issues with brenthy updates
 RUN find /opt/ -type d -name "*.egg-info" -exec rm -rf {} +
 

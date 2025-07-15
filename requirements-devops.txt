@@ -5,4 +5,4 @@ pandas
 decorate_all
 docker
 pexpect
-emtest
+emtest>=0.0.3
