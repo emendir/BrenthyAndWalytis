@@ -104,7 +104,7 @@ find ${data_dir} -type f -exec chmod go-x {} +
 
 
 
-if [ -e $install_dir/we_are_in_docker ] && [ -d $install_dir/Python ];then
+if [ -e /.dockerenv ] &&  [ -d $install_dir/Python ];then
   echo "Skipping Python installation."
 else
   # create python virtual environment in install_dir and install all needed libraries there
@@ -128,9 +128,10 @@ else
 
   # install pip, the package manager
   Python/bin/python -m ensurepip
-  Python/bin/python -m pip -qq install --root-user-action ignore --upgrade pip
+  Python/bin/python -m pip -q install --root-user-action ignore --upgrade pip
   
-  Python/bin/python -m pip -qq install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
+  Python/bin/python -m pip -q install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
+  Python/bin/python -m pip -q install --root-user-action ignore -r $install_dir/Brenthy/blockchains/Walytis_Beta/requirements.txt
   
   # # install brenthy_tools from source
   # Python/bin/python -m piu -qq install --root-user-action ignore -e $install_dir/Brenthy/

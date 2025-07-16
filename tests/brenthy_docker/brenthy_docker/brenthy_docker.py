@@ -48,6 +48,31 @@ class DockerShellTimeoutError(Exception):
 
 
 class BrenthyDocker:
+    def __init__(
+        self,
+        image: str = "emendir/brenthy_testing",
+        container_name: str = "",
+        container_id: str | None = None,
+        auto_run: bool = True,
+        await_brenthy: bool = True,
+        await_ipfs: bool = True
+    ):
+        self._docker = docker.from_env()
+        self.ipfs_id = ""
+
+        if container_id:
+            self.container = self._docker.containers.get(container_id)
+        else:
+            self.container = self._docker.containers.create(
+                image, privileged=True, name=container_name
+            )
+        self.docker_id = self.container.id
+        if auto_run:
+            self.start(
+                await_brenthy=await_brenthy,
+                await_ipfs=await_ipfs,
+            )
+
 
     def run_shell_command(
         self,
@@ -246,31 +271,6 @@ class BrenthyDocker:
             timeout=timeout,
             ignore_errors=ignore_errors
         )
-
-    def __init__(
-        self,
-        image: str = "emendir/brenthy_testing",
-        container_name: str = "",
-        container_id: str | None = None,
-        auto_run: bool = True,
-        await_brenthy: bool = True,
-        await_ipfs: bool = True
-    ):
-        self._docker = docker.from_env()
-        self.ipfs_id = ""
-
-        if container_id:
-            self.container = self._docker.containers.get(container_id)
-        else:
-            self.container = self._docker.containers.create(
-                image, privileged=True, name=container_name
-            )
-        self.docker_id = self.container.id
-        if auto_run:
-            self.start(
-                await_brenthy=await_brenthy,
-                await_ipfs=await_ipfs,
-            )
 
     @property
     def name(self):

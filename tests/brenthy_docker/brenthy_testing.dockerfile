@@ -4,7 +4,6 @@ COPY Brenthy /opt/brenthy_installer/Brenthy
 
 
 ## Install Brenthy:
-RUN touch ../brenthy_installer/Brenthy/we_are_in_docker
 # RUN python3 ../brenthy_installer/Brenthy --dont-update --install-dont-run
 RUN ../brenthy_installer/Brenthy/InstallScripts/install_brenthy_linux_systemd_cpython.sh  /opt/Brenthy /opt/Brenthy/BlockchainData false true
 

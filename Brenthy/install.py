@@ -67,13 +67,13 @@ def install(
 
         pypy_cmd = (
             f"{sudo} bash "
-            "./InstallScripts/install_brenthy_linux_systemd_pypy.sh "
+            "./InstallScripts/install_brenthy_linux_systemd_cpython.sh "
             f"{INSTALL_DIR} {data_dir} "
             f"{str('--install-dont-run' not in sys.argv).lower()}"
         )
         cpython_cmd = (
             f"{sudo} bash "
-            "./InstallScripts/install_brenthy_linux_systemd_cpython.sh "
+            "./InstallScripts/install_brenthy_linux_systemd_pypy.sh "
             f"{INSTALL_DIR} {data_dir} "
             f"{str('--install-dont-run' not in sys.argv).lower()}"
         )

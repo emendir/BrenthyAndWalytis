@@ -41,6 +41,7 @@ if True:
 test_upd_blck_path = ""
 brenthy_docker: BrenthyDocker
 
+DELAY=90
 
 def prepare() -> None:
     """Get everything needed to run the tests ready."""
@@ -121,7 +122,6 @@ def test_find_peer() -> None:
 
     mark(success, "ipfs.peers.find")
 
-DELAY=45
 def test_walytis_beta_update() -> None:
     """Test that updating Walytis_Beta works."""
     # allow docker filesystem to consolidate after renaming updates blockchain

@@ -26,16 +26,8 @@ RUN for python_package in /opt/Brenthy/tests/brenthy_docker/python_packages/*; d
 RUN find /opt/ -type d -name "*.egg-info" -exec rm -rf {} +
 
 
-## Install Brenthy:
-RUN touch we_are_in_docker
-RUN touch ../brenthy_installer/Brenthy/we_are_in_docker
-# RUN python3 ../brenthy_installer/Brenthy --dont-update --install-dont-run
-# RUN /opt/Brenthy/Python/bin/python -m pip install --break-system-packages -r /opt/brenthy_installer/requirements-devops.txt
 
-## allow brenthy user to use shell for debugging
-# RUN usermod -s /bin/bash brenthy
-
-RUN /opt/Brenthy/tests/brenthy_docker/ipfs_router_mercy.sh
+RUN /opt/Brenthy/tests/brenthy_docker/ipfs_router_mercy_systemd_setup.sh
 
 ## Run with:
 # docker run -it --privileged local/brenthy_prereqs
