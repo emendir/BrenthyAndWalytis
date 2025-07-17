@@ -10,6 +10,7 @@ from getpass import getpass
 from cryptem import Crypt
 from ipfs_remote import ipfshttpclient2
 
+DRY_RUN=False
 ipfs_client = ipfshttpclient2.client.Client()
 
 publisher_public_key = "0459f93b7e8c77ec5daad9e2625ef5421028a8bcc3f158ce5e5085e1fde012e4a943a97446574d92f4330ce74c059dd4f66e78313021b8a3cdb0af141d58a70d0c"
@@ -128,29 +129,40 @@ def publish_release(
     # add signature to block content
     block_content.update({"signature": bytes_to_string(signature)})
 
-    log.important("Publishing release on update blockchain...")
-    update_blockchain.add_block(
-        json.dumps(block_content).encode(), topics=["update"]
-    )
+    if not DRY_RUN:
+        log.important("Publishing release on update blockchain...")
+        update_blockchain.add_block(
+            json.dumps(block_content).encode(), topics=["update"]
+        )
+        log.important(
+            f"Done. Published release. Brenthy version {brenthy_version}, "
+            f"Walytis_Beta version {walytis_beta_version}"
+        )
+    else:
+        log.important("Skipping publishing update because DRY_RUN==True")
     update_blockchain.terminate()
-    log.important(
-        f"Done. Published release. Brenthy version {brenthy_version}, "
-        f"Walytis_Beta version {walytis_beta_version}"
-    )
 
 
 PATHS_TO_DELETE = [
     "__pycache__",
     ".mypy_cache",
     "build",
-    os.path.join("", "blockchains", "Walytis_Beta", "__pycache__"),
-    os.path.join("", "blockchains", "Walytis_Beta", ".mypy_cache"),
-    os.path.join("", "blockchains", "Walytis_Beta", "tests", ".blockchains"),
-    os.path.join("", "blockchains", "Walytis_Beta", "tests", ".ipfs_repo"),
-    os.path.join("", "blockchains", "Walytis_Beta",
+    os.path.join("brenthy_tools_beta", "__pycache__"),
+    os.path.join("blockchains", "Walytis_Beta", "__pycache__"),
+    os.path.join("blockchains", "Walytis_Beta", "__pycache__"),
+    os.path.join("blockchains", "Walytis_Beta", ".mypy_cache"),
+    os.path.join("blockchains", "Walytis_Beta", "build"),
+    os.path.join("blockchains", "Walytis_Beta", "dist"),
+    os.path.join("blockchains", "Walytis_Beta", "tests", ".blockchains"),
+    os.path.join("blockchains", "Walytis_Beta", "tests", ".ipfs_repo"),
+    os.path.join("blockchains", "Walytis_Beta",
+                 "src", "walytis_beta_api", "__pycache__"),
+    os.path.join("blockchains", "Walytis_Beta",
                  "legacy_packaging", "walytis_beta_api", "build"),
-    os.path.join("", "blockchains", "Walytis_Beta",
+    os.path.join("blockchains", "Walytis_Beta",
                  "legacy_packaging", "walytis_beta_api", "dist"),
+    os.path.join("blockchains", "Walytis_Beta",
+                 "legacy_packaging", "walytis_beta_api", "__pycache__"),
 ]
 
 
