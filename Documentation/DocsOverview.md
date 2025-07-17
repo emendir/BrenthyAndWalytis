@@ -5,8 +5,7 @@
 
 ## Brenthy - Technical
 
-- [BackwardCompatibilityGuarantee](Brenthy/Technical/BackwardCompatibilityGuarantee.md): Brenthy and Walytis aim to provide full bidirectional backward compatibility between themselves and their API libraries. Why do we strive for this ideal, how do we achieve it, and what implications does this have?.
-- [BrenthyAPI-Protocol](Brenthy/Technical/BrenthyAPI-Protocol.md): how `brenthy_api` and `api_terminal` work, including how they manage to achieve their [hyperintercompatibility](/Documentation/Brenthy/Technical/BackwardCompatibilityGuarantee.md)
+- [BrenthyAPI-Protocol](Brenthy/Technical/BrenthyAPI-Protocol.md): how `brenthy_api` and `api_terminal` work, including how they manage to achieve their [hyperintercompatibility](BackwardCompatibilityGuarantee.md)
 - [BrenthyAPI-Protocols](Brenthy/Technical/BrenthyAPI-Protocols.md): 
 - [BrenthyAPI](Brenthy/Technical/BrenthyAPI.md): the API infrastructure Brenthy provides to blockchain types
 - [BrenthyVersioning](Brenthy/Technical/BrenthyVersioning.md): the version numbering systems for Brenthy and the `brenthy_tools` library
@@ -25,4 +24,7 @@
 - [RunningFromSource](Brenthy/User/RunningFromSource.md): how to run Brenthy from the project's source code, without installing it
 - [Uninstall](Brenthy/User/Uninstall.md): How to uninstall Brenthy.
 
+## documentation_validation
+
+- [ToDo_docs_val](documentation_validation/ToDo_docs_val.md): 
 

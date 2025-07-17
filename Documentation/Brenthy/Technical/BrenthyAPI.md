@@ -38,7 +38,7 @@ def send_request(
 Let's have a look at how a blockchain API library might use `brenthy_api.send_request`.
 Here's the `_send_request` function from the Walytis blockchain's `walytis_api` library:
 ```python
-# from Brenthy/blockchains/Walytis_Beta/walytis_beta_api/walytis_beta_interface.py
+# from Brenthy/blockchains/Walytis_Beta/src/walytis_beta_api/walytis_beta_interface.py
 
 def _send_request(function_name: str, payload: bytearray | bytes) -> bytearray:
 	# compose request to Walytis, encoding the library's version, remote function to call, and payload
@@ -107,7 +107,7 @@ Let's look at how the Walytis blockchain publishes messages about new blocks bei
 
 In `walytis.Blockchain.download_and_process_block()`:
 ```python
-# from Brenthy/blockchains/Walytis_Beta/walytis_beta.py
+# from Brenthy/blockchains/Walytis_Beta/src/walytis_beta.py
 
 # inform applications about the new block
 walytis_beta_api_terminal.publish_event(
@@ -180,7 +180,7 @@ class EventListener:
 Rising up from the depths of BrenthyAPI's infrastructure, let's look at how a blockchain API library uses the `brenthy_api`'s `EventListener` class to subscribe to publications from its blockchain.
 Again, we see its event-handler remove the encoded blockchain ID from the topic, completing the decapsulation:
 ```python
-# from Brenthy/blockchains/Walytis_Beta/walytis_beta_api/walytis_beta_interface.py
+# from Brenthy/blockchains/Walytis_Beta/src/walytis_beta_api/walytis_beta_interface.py
 
 class BlocksListener:
     event_listener = None

@@ -24,7 +24,6 @@
 - BrenthyAPI port
 - contributions
 - docs wiki?
-- make clear which parts of the API are experimental
 
 ## Technical
 
