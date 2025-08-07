@@ -21,11 +21,11 @@ _preparing for release_
 
 ## Phase IV
 
-- [x] [[Joining]]
+- [x] [[../../Documentation/Walytis/Technical/Joining]]
 - [x] WalytisAPI
 - [x] Rationale behind invention of Walytis
 - [x] Understanding Blockchain: [https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/UnderstandingBlockchain.md](https://github.com/emendir/Walytis_Beta/blob/master/docs/Meaning/UnderstandingBlockchain.md)
-- [x] [[StorageAndAppdata]] - [x] Networking - [x] Blockchain Birth - [x] Blocks: datafile composition & chaining
+- [x] [[../../Documentation/Walytis/Technical/StorageAndAppdata]] - [x] Networking - [x] Blockchain Birth - [x] Blocks: datafile composition & chaining
 - [x] Tutorials: decide on using `walytis_api` or `walytis_beta_api`
 - [x] Explain Beta
 - [ ] Whitepaper: whitepapers are linear, with Walytis we do things differently! But I suppose for backward compatibility with legacy academic systems we'll compile our docs into one...

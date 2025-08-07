@@ -1,8 +1,8 @@
-_how `brenthy_api` and `api_terminal` work, including how they manage to achieve their [hyperintercompatibility](BackwardCompatibilityGuarantee.md)_
+_how `brenthy_api` and `api_terminal` work, including how they manage to achieve their [hyperintercompatibility](../../../../Documentation/Walytis/Technical/BackwardCompatibilityGuarantee.md)_
 
 _**Prerequisite Knowledge**:_
 _In [BrenthyAPI](BrenthyAPI.md) we saw how programs communicate with Brenthy to interact with blockchains, using `brenthy_api` on the application side and `api_terminal` on Brenthy's to do so._
-_In [BackwardCompatibilityGuarantee](BackwardCompatibilityGuarantee.md) I explained why we want `brenthy_api` and Brenthy to eternally be fully backward compatible bidirectionally._
+_In [BackwardCompatibilityGuarantee](../../../../Documentation/Walytis/Technical/BackwardCompatibilityGuarantee.md) I explained why we want `brenthy_api` and Brenthy to eternally be fully backward compatible bidirectionally._
 
 # BrenthyAPI-Protocol
 

@@ -5,7 +5,7 @@
 
 ## Brenthy - Technical
 
-- [BrenthyAPI-Protocol](Brenthy/Technical/BrenthyAPI-Protocol.md): how `brenthy_api` and `api_terminal` work, including how they manage to achieve their [hyperintercompatibility](BackwardCompatibilityGuarantee.md)
+- [BrenthyAPI-Protocol](Brenthy/Technical/BrenthyAPI-Protocol.md): how `brenthy_api` and `api_terminal` work, including how they manage to achieve their [hyperintercompatibility](../../Documentation/Walytis/Technical/BackwardCompatibilityGuarantee.md)
 - [BrenthyAPI-Protocols](Brenthy/Technical/BrenthyAPI-Protocols.md): 
 - [BrenthyAPI](Brenthy/Technical/BrenthyAPI.md): the API infrastructure Brenthy provides to blockchain types
 - [BrenthyVersioning](Brenthy/Technical/BrenthyVersioning.md): the version numbering systems for Brenthy and the `brenthy_tools` library

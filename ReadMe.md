@@ -1,13 +1,11 @@
 ![](/Graphics/BrenthyIcon.png)
 
-# Brenthy & Walytis
+# Brenthy
 
-_`4D61646520776974682073696E63657265206C6F766520666F72206D616E6B696E642E`_
+Brenthy & Walytis are technologies designed to take the development of blockchain tech to a new level.
 
-Brenthy & Walytis are technologies that take the development of blockchain tech to a new level.
-Walytis is a lightweight, flexible, accessible and application-oriented type of blockchain, and Brenthy is a framework to aid the development and deployment of new blockchain types.
-
-Developed together, they share a repository because they rely on each other very strongly.
+Brenthy is a framework to aid the development and deployment of new blockchain types.
+It was built to support the development of Walytis, which is a lightweight, flexible, accessible and application-oriented type of blockchain, and 
 
 ## [Walytis](https://github.com/emendir/Walytis_Beta)
 
@@ -109,11 +107,6 @@ Despite the documentation on Brenthy & Walytis' DevOps not being written yet, fe
 ### Feature Requests and Bug Reports
 
 If you don't have the time to learn how to contribute code directly, feel free to request features or report bugs via GitHub Issues.
-
-### Documentation Improvement
-
-#TODO
-%% GitHub wiki? %%
 
 ### Financial Support
 
