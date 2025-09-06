@@ -1,0 +1,35 @@
+# >>> CLEANUP
+
+# This section contains patterns to be deleted by `make clean`
+build
+dist
+*.egg-info
+**/.mypy_cache/
+__pycache__
+.ccls-cache
+.pytest_cache
+.ruff_cache
+.benchmarks
+
+*.pyc
+*.log
+.log_archive
+.brenthy_api_log_archive
+*.bkp
+
+.blockchains
+# <<< CLEANUP
+.obsidian
+
+ruff.toml
+
+_hanuki
+hanuki.toml
+index.html
+
+Brenthy/blockchains/Walytis_Beta
+
+# Temporary
+PublishingMaterial
+Documentation/_DraftsAndNotes
+
