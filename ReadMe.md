@@ -114,12 +114,11 @@ To support me in my work on this and other projects, you can make donations with
 
 - **Bitcoin:** `BC1Q45QEE6YTNGRC5TSZ42ZL3MWV8798ZEF70H2DG0`
 - **Ethereum:** `0xA32C3bBC2106C986317f202B3aa8eBc3063323D4`
-- [**Fiat** (via Credit or Debit Card, Apple Pay, Google Pay, Revolut Pay)](https://checkout.revolut.com/pay/4e4d24de-26cf-4e7d-9e84-ede89ec67f32)
+- [Credit Card, Debit Card, Bank Transfer, Apple Pay, Google Pay, Revolut Pay)](https://checkout.revolut.com/pay/4e4d24de-26cf-4e7d-9e84-ede89ec67f32)
 
 Donations help me:
 - dedicate more time to developing and maintaining open-source projects
-- cover costs for IT infrastructure
-- finance projects requiring additional hardware & compute
+- cover costs for IT resources
 
 ## About the Developer
 

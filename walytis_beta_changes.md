@@ -7,6 +7,7 @@
   - don't provide block info after object is terminated
   - better name for `load_missed_blocks`, such as `start_receiving_blocks`
     - if `False`, don't process any incoming blocks
+  - `def get_peers()` return set instead of list
 
 ### class Block:
   - use bytes instead of bytearray?

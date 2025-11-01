@@ -7,7 +7,7 @@ import importlib.util
 import os
 import sys
 from base64 import urlsafe_b64decode, urlsafe_b64encode
-from datetime import datetime
+from datetime import datetime, timezone
 from types import ModuleType
 
 # pylint:disable=unused-variable
@@ -33,6 +33,8 @@ def are_elements_unique(array: list) -> bool:
 
 def encode_timestamp(date_time: datetime) -> bytearray:
     """Get a timestamp encoded in bytes without [0]s."""
+    if not date_time.tzinfo == timezone.utc:
+        raise ValueError("Ensure your datetime is time-zone aware and set to UTC")
     return (
         to_b254_no_0s1s(date_time.year)
         + bytearray([1])
@@ -70,17 +72,22 @@ def decode_timestamp(array: bytearray) -> datetime:
         minute=numbers[4],
         second=numbers[5],
         microsecond=numbers[6],
+        tzinfo=timezone.utc
     )
 
 
-def time_to_string(time: datetime) -> str:
+def time_to_string(date_time: datetime) -> str:
     """Get a string representation of a datetime."""
-    return time.strftime(TIME_FORMAT)
+    if not date_time.tzinfo == timezone.utc:
+        raise ValueError("Ensure your datetime is time-zone aware and set to UTC")
+    return date_time.strftime(TIME_FORMAT)
 
 
 def string_to_time(string: str) -> datetime:
     """Convert a timestamp string back to a datetime."""
-    return datetime.strptime(string, TIME_FORMAT)
+    result =  datetime.strptime(string, TIME_FORMAT)
+    result = result.replace(tzinfo=timezone.utc)
+    return result
 
 
 def to_b255_no_0s(number: int) -> bytearray:
@@ -269,3 +276,30 @@ def make_directory_readable(directory_path: str) -> None:
         os.chmod(directory_path, 0o555)
     else:
         raise NotImplementedError(f"Unsupported platform: {platform.system()}")
+
+import os
+import shutil
+from pathlib import Path
+import pathspec
+
+
+
+def clean_directory(
+    root_dir: str,
+    patterns: list[str],
+):
+    """
+    Given a directory and gitignore-style patterns, find and delete matches.
+    """
+    root = Path(root_dir).resolve()
+    spec = pathspec.GitIgnoreSpec.from_lines(patterns)
+
+    root = root.resolve()
+    matches = spec.match_tree(str(root))
+    matches = [root.joinpath(p).resolve() for p in matches]
+
+    for p in matches:
+        if p.is_dir() and not p.is_symlink():
+            shutil.rmtree(p)
+        else:
+            p.unlink(missing_ok=True)

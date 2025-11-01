@@ -3,4 +3,4 @@ ipfs-toolkit
 termcolor
 pyperclip
 pexpect
-
+walytis_beta_api

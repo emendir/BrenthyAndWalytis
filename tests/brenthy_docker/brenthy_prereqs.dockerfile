@@ -3,7 +3,7 @@ WORKDIR /opt/Brenthy
 RUN mkdir /opt/tmp/
 
 ## Install Prerequisites:
-RUN apt update && apt install -y python3 python3-dev python3-venv python3-pip python-is-python3 virtualenv git
+RUN apt update && apt install -y python3 python3-dev python3-venv python3-pip python-is-python3 virtualenv git jq
 RUN python3 -m pip install --break-system-packages --upgrade setuptools build 
 
 COPY Brenthy /opt/brenthy_installer/Brenthy

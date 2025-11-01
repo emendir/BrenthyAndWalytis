@@ -45,6 +45,7 @@ if True:
     from brenthy_tools_beta.utils import (
         bytes_to_string,
         load_module_from_path,
+        clean_directory,
     )
     from brenthy_tools_beta.versions import BRENTHY_CORE_VERSION
     from walytis_beta_tools._experimental.ipfs_interface import ipfs
@@ -145,23 +146,21 @@ def publish_release(
 
 WB = os.path.join("blockchains", "Walytis_Beta")
 PATHS_TO_DELETE = [
-    "__pycache__",
-    ".mypy_cache",
-    "build",
-    os.path.join("brenthy_tools_beta", "__pycache__"),
-    os.path.join(WB, "__pycache__"),
-    os.path.join(WB, "__pycache__"),
-    os.path.join(WB, ".mypy_cache"),
-    os.path.join(WB, "build"),
-    os.path.join(WB, "dist"),
-    os.path.join(WB, "docs"),
-    os.path.join(WB, "tests", ".blockchains"),
-    os.path.join(WB, "tests", ".ipfs_repo"),
-    os.path.join(WB, "src", "walytis_beta_api", "__pycache__"),
-    os.path.join(WB, "legacy_packaging", "walytis_beta_api", "build"),
-    os.path.join(WB, "legacy_packaging", "walytis_beta_api", "dist"),
-    os.path.join(WB, "legacy_packaging", "walytis_beta_api", "__pycache__"),
+    os.path.join(WB,  ".git"),
 ]
+IGNORE_PATTERNS = [
+        ".git",
+        "_hanuki",
+        "__pycache__",
+        "build",
+        "dist",
+        "*.egg-info",
+        "docs",
+        ".blockchains",
+        ".ipfs_repo",
+        ".mypy_cache",
+        "*.log"
+        ]
 
 
 def publish_project_on_ipfs() -> str:
@@ -172,11 +171,13 @@ def publish_project_on_ipfs() -> str:
     shutil.copy("../__main__.py", os.path.join(tempdir, "__main__.py"))
     shutil.copy("../ReadMe.md", os.path.join(tempdir, "ReadMe.md"))
 
+
     for rm_dir in PATHS_TO_DELETE:
         rm_path = os.path.join(tempdir, "Brenthy", rm_dir)
         # print(os.path.exists(rm_path), rm_path)
         if os.path.exists(rm_path):
             shutil.rmtree(rm_path)
+    clean_directory(tempdir, IGNORE_PATTERNS)
     if TESTING_BRENTHY:
         replace_brenthy_version_for_test_publish(
             os.path.join(

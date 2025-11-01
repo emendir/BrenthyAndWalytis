@@ -1,3 +1,4 @@
+import json
 import io
 import os
 import shlex
@@ -10,6 +11,7 @@ from time import sleep
 import docker
 import pexpect
 import pyperclip
+
 # from _testing_utils import ipfs
 from walytis_beta_tools._experimental.ipfs_interface import ipfs
 from termcolor import colored as coloured
@@ -25,12 +27,14 @@ class DockerShellError(Exception):
         self.shell_output = shell_output
 
     def __str__(self):
-        return "\n".join([
-            "The shell command run in the docker container errored.",
-            f"Exit Status: {self.exit_status}",
-            "Output:",
-            f"{self.shell_output}"
-        ])
+        return "\n".join(
+            [
+                "The shell command run in the docker container errored.",
+                f"- Exit Status: {self.exit_status}",
+                "- Output:",
+                f"{self.shell_output}",
+            ]
+        )
 
 
 class DockerShellTimeoutError(Exception):
@@ -55,7 +59,7 @@ class BrenthyDocker:
         container_id: str | None = None,
         auto_run: bool = True,
         await_brenthy: bool = True,
-        await_ipfs: bool = True
+        await_ipfs: bool = True,
     ):
         self._docker = docker.from_env()
         self.ipfs_id = ""
@@ -73,7 +77,6 @@ class BrenthyDocker:
                 await_ipfs=await_ipfs,
             )
 
-
     def run_shell_command(
         self,
         command: str,
@@ -82,7 +85,7 @@ class BrenthyDocker:
         colour: str = DEF_OUTPUT_COLOUR,
         background: bool = False,
         timeout: int | None = None,
-        ignore_errors: bool = False
+        ignore_errors: bool = False,
     ) -> str:
         """Run a shell command in the Docker container using pexpect.
 
@@ -118,24 +121,25 @@ class BrenthyDocker:
             # We don't expect output or status in background
             try:
                 child = pexpect.spawn(
-                    f"docker exec {
-                        self.container.id} bash -c {shlex.quote(command)}",
-                    encoding='utf-8',
-                    timeout=timeout
+                    f"docker exec {self.container.id} bash -c "
+                    f"{shlex.quote(command)}",
+                    encoding="utf-8",
+                    timeout=timeout,
                 )
                 child.expect(pexpect.EOF)
             except Exception as e:
                 if not ignore_errors:
-                    raise DockerShellError(-1,
-                                           f"Background execution failed: {str(e)}")
+                    raise DockerShellError(
+                        -1, f"Background execution failed: {str(e)}"
+                    )
             return ""
 
         try:
             child = pexpect.spawn(
-                f"docker exec {
-                    self.container.id} bash -c {shlex.quote(command)}",
-                encoding='utf-8',
-                timeout=timeout
+                f"docker exec {self.container.id} bash -c "
+                f"{shlex.quote(command)}",
+                encoding="utf-8",
+                timeout=timeout,
             )
             while True:
                 try:
@@ -143,8 +147,11 @@ class BrenthyDocker:
                     if not line:
                         break
                     if print_output:
-                        print(coloured(line.strip(), colour)
-                              if colour else line.strip())
+                        print(
+                            coloured(line.strip(), colour)
+                            if colour
+                            else line.strip()
+                        )
                     result += line
                 except pexpect.TIMEOUT:
                     child.close(force=True)
@@ -172,9 +179,7 @@ class BrenthyDocker:
         colour: str = DEF_OUTPUT_COLOUR,
         background: bool = False,
         timeout: int | None = None,
-        ignore_errors: bool = False
-
-
+        ignore_errors: bool = False,
     ) -> str:
         """Run any bash code in the docker container, returning its output.
 
@@ -199,19 +204,18 @@ class BrenthyDocker:
             colour=colour,
             background=background,
             timeout=timeout,
-            ignore_errors=ignore_errors
+            ignore_errors=ignore_errors,
         )
 
     def run_python_command(
         self,
         command: str,
-
         user: str | None = None,
         print_output: bool = True,
         colour: str = DEF_OUTPUT_COLOUR,
         background: bool = False,
         timeout: int | None = None,
-        ignore_errors: bool = False
+        ignore_errors: bool = False,
     ) -> str:
         """Run single-line python code, returning its output.
 
@@ -224,7 +228,7 @@ class BrenthyDocker:
             background
             timeout: currently only implemented for print_output==True
         """
-        python_command = "python -c \"" + command + "\""
+        python_command = 'python -c "' + command + '"'
         return self.run_shell_command(
             python_command,
             user=user,
@@ -232,7 +236,7 @@ class BrenthyDocker:
             colour=colour,
             background=background,
             timeout=timeout,
-            ignore_errors=ignore_errors
+            ignore_errors=ignore_errors,
         )
 
     def run_python_code(
@@ -243,8 +247,7 @@ class BrenthyDocker:
         colour: str = DEF_OUTPUT_COLOUR,
         background: bool = False,
         timeout: int | None = None,
-        ignore_errors: bool = False
-
+        ignore_errors: bool = False,
     ) -> str:
         """Run any python code in the docker container, returning its output.
 
@@ -269,7 +272,7 @@ class BrenthyDocker:
             colour=colour,
             background=background,
             timeout=timeout,
-            ignore_errors=ignore_errors
+            ignore_errors=ignore_errors,
         )
 
     @property
@@ -284,17 +287,23 @@ class BrenthyDocker:
         self, await_brenthy: bool = True, await_ipfs: bool = True
     ) -> None:
         """Start this container."""
+        # print("BrenthyDocker starting...")
         self.container.start()
 
         if await_brenthy:
             # print("Awaiting BrenthyUpdatesTEST switch...")
             # wait till docker container's Brenthy has renamed its update blockhain
             # and restarted
-            while not self.run_python_command(
-                ("import os;"
-                 "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"),
-                print_output=False
-            ) == "True":
+            while (
+                not self.run_python_command(
+                    (
+                        "import os;"
+                        "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"
+                    ),
+                    print_output=False,
+                )
+                == "True"
+            ):
                 sleep(0.2)
             sleep(0.2)
         if await_ipfs:
@@ -304,7 +313,8 @@ class BrenthyDocker:
             while not (self.ipfs_id and ipfs.peers.find(self.ipfs_id)):
                 try:
                     self.ipfs_id = self.run_shell_command(
-                        'ipfs id -f="<id>"', print_output=False)
+                        'ipfs id -f="<id>"', print_output=False
+                    )
                 except:
                     pass
                 if self.ipfs_id:
@@ -346,15 +356,16 @@ class BrenthyDocker:
         dst_dir = os.path.dirname(remote_filepath)
         stream = io.BytesIO()
         with (
-            tarfile.open(fileobj=stream, mode='w|') as tar,
-            open(local_filepath, 'rb') as f
+            tarfile.open(fileobj=stream, mode="w|") as tar,
+            open(local_filepath, "rb") as f,
         ):
             info = tar.gettarinfo(fileobj=f)
             info.name = os.path.basename(remote_filepath)
             tar.addfile(info, f)
         # create remote directory if needed
         self.run_shell_command(
-            f"mkdir -p {os.path.dirname(remote_filepath)}", print_output=False)
+            f"mkdir -p {os.path.dirname(remote_filepath)}", print_output=False
+        )
         self.container.put_archive(dst_dir, stream.getvalue())
 
     def write_to_tempfile(self, data: str | bytes) -> str:
@@ -375,17 +386,22 @@ class BrenthyDocker:
 
             if not os.path.exists(local_path):
                 raise RuntimeError(
-                    f"Local temp file was not created: {local_path}")
+                    f"Local temp file was not created: {local_path}"
+                )
 
             # Transfer to container and check for success
             transfer_result = self.transfer_file(local_path, remote_path)
 
             # Optional: Run `ls` in the container to confirm file landed
             check_result = self.run_shell_command(
-                f"ls {remote_path}", print_output=False, ignore_errors=True)
+                f"ls {remote_path}", print_output=False, ignore_errors=True
+            )
             if remote_path not in check_result:
                 raise RuntimeError(
-                    f"File does not appear to exist in container after transfer: {remote_path}")
+                    f"File does not appear to exist in container after transfer: {
+                        remote_path
+                    }"
+                )
 
             return remote_path
 
@@ -395,9 +411,9 @@ class BrenthyDocker:
 
     def is_running(self) -> bool:
         """Check if this docker container is running or not."""
-        return self._docker.containers.get(
-            self.container.id
-        ).attrs["State"]["Running"]
+        return self._docker.containers.get(self.container.id).attrs["State"][
+            "Running"
+        ]
 
     def _docker_swarm_connect(self) -> None:
         """Try to connect to this docker container via IPFS."""
@@ -450,10 +466,15 @@ class BrenthyDocker:
         except:
             pass
 
+    def get_multi_addrs(self):
+        command = "ipfs id | jq -r .Addresses"
+        result = self.run_bash_code(command, print_output=False)
+        return json.loads(result)
         # print(f"ipfs swarm connect {ip6_tcp_maddr}")
         # print(f"ipfs swarm connect {ip6_udp_maddr}")
         # print(f"ipfs swarm connect {ip4_tcp_maddr}")
         # print(f"ipfs swarm connect {ip4_udp_maddr}")
+
     def login(self) -> None:
         """Copy a shell command to log in to this docker container's shell."""
         command = f"docker exec -it {self.container.id} /bin/bash"
@@ -505,8 +526,7 @@ if __name__ == "__main__":
     # Create an instance of DockerContainer with the desired image
     delete_containers(container_name_substr="DemoBrenthy")
     docker_container = BrenthyDocker(
-        container_name="DemoBrenthy",
-        auto_run=False
+        container_name="DemoBrenthy", auto_run=False
     )
 
     container_id = docker_container.container.id
@@ -517,7 +537,8 @@ if __name__ == "__main__":
 
     # Execute shell command on the container
     shell_output = docker_container.run_shell_command(
-        "systemctl status brenthy")
+        "systemctl status brenthy"
+    )
     print("Output of Shell command:", shell_output)
 
     # Execute Python command on the container
@@ -527,8 +548,7 @@ if __name__ == "__main__":
     )
     print("Output of Python command:", python_output)
 
-    docker_container.transfer_file(
-        "brenthy_docker.py", "/tmp/test/wad.py")
+    docker_container.transfer_file("brenthy_docker.py", "/tmp/test/wad.py")
     docker_container.run_shell_command("ls /tmp/test/")
 
     remote_tempfile = docker_container.write_to_tempfile("Hello there!")
@@ -539,6 +559,7 @@ if __name__ == "__main__":
     docker_container = BrenthyDocker(container_id=container_id)
     docker_container.start()
     shell_output = docker_container.run_shell_command(
-        "systemctl status brenthy")
+        "systemctl status brenthy"
+    )
     print("Output of Shell command:", shell_output)
     docker_container.stop()

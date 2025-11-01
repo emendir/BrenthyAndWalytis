@@ -4,7 +4,7 @@
 
 - [ ] remove dependence on walytis_beta_tools._experimental
 - [x] fix pip installation in docker prereqs
-- [ ] new docker container using embedded IPFS node
+- [ ] new docker container using embedded IPFS node ⏫ 
 
 ## Repo-Organisation
 

@@ -16,7 +16,7 @@ from install import (
     install,
     try_install_python_modules,
 )
-from ipfs_tk_generics import IpfsClient
+from ipfs_tk_generics.client import IpfsClient
 if True:  # pylint: disable=using-constant-test
     SRC_DIR=os.path.abspath(os.path.dirname(__file__))
     WALYTIS_SRC_DIR=os.path.abspath(

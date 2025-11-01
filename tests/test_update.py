@@ -84,10 +84,12 @@ def stop_brenthy() -> None:
 def run_docker() -> None:
     """Run this test's docker container."""
     global brenthy_docker
+    print("Creating docker image...")
     brenthy_docker = BrenthyDocker(
         image="local/brenthy_testing",
         container_name=DOCKER_CONTAINER_NAME
     )
+    print("Created docker image!")
     time.sleep(10)
 
 
@@ -183,7 +185,9 @@ def run_tests() -> None:
     prepare()
     print("\nRunning tests for update system...")
     run_docker()
+    print("\nFinding peer...")
     test_find_peer()
+    print("\nPreparing update...")
     test_walytis_beta_update()
     test_brenthy_update()
 
