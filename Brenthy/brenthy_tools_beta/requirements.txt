@@ -1,2 +1,3 @@
 pyzmq
 termcolor
+pathspec
