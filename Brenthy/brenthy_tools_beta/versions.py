@@ -10,7 +10,7 @@ BRENTHY_API_PROTOCOL_VERSION = 4
 BRENTHY_CORE_VERSION = (
     BRENTHY_API_PROTOCOL_VERSION,  # major: the BrenthyAPI Protocol version
     1,  # minor: significant changes to Brenthy since the last major update
-    13,  # patch: minor changes to Brenthy since the last minor update
+    14,  # patch: minor changes to Brenthy since the last minor update
 )
 
 
@@ -19,7 +19,7 @@ BRENTHY_CORE_VERSION = (
 BRENTHY_TOOLS_VERSION = (
     BRENTHY_API_PROTOCOL_VERSION,  # major: the BrenthyAPI Protocol version
     0,  # minor: changes to brenthy_api but not BAP since the last major update
-    10,  # patch: changes outside brenthy_api since the last minor update
+    11,  # patch: changes outside brenthy_api since the last minor update
 )
 
 _BRENTHY_TOOLS_BETA_VERSION = ".".join([str(v) for v in BRENTHY_TOOLS_VERSION])
