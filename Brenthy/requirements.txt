@@ -1,3 +1,7 @@
+# WARNING:
+# this is for Brenthy, NOT for brenthy_tools_beta
+# For brenthy_tools_beta, see ./brenthy_tools_beta/requirements.txt
+
 appdirs>=1.4.3
 pyzmq>=23.2.0
 termcolor

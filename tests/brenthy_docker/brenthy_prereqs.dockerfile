@@ -13,9 +13,11 @@ COPY requirements-devops.txt /opt/brenthy_installer
 RUN ../brenthy_installer/Brenthy/InstallScripts/install_brenthy_linux_systemd_cpython.sh  /opt/Brenthy /opt/Brenthy/BlockchainData false true
 
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/Brenthy/requirements.txt
+RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/Brenthy/brenthy_tools_beta/requirements.txt
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/requirements-devops.txt
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta
+RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta/legacy_packaging/walytis_beta_api
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/brenthy_installer/Brenthy/blockchains/Walytis_Beta/legacy_packaging/walytis_beta_embedded
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -e /opt/Brenthy/tests/brenthy_docker
 

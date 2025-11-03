@@ -109,10 +109,12 @@ else
   virtualenv $install_dir/Python
   source $install_dir/Python/bin/activate
   pip install -q --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
+  # install brenthy_tools_beta from source
+  pip install -q --root-user-action ignore -e $install_dir/Brenthy/
+
   pip install -q --root-user-action ignore -r $install_dir/Brenthy/blockchains/Walytis_Beta/requirements.txt
+  pip install -q --root-user-action ignore -e $install_dir/Brenthy/blockchains/Walytis_Beta/legacy_packaging/walytis_beta_api
   
-  # # install brenthy_tools from source
-  # Python/bin/python -m pip -qq install --root-user-action ignore -e $install_dir/Brenthy/
   # # rm -r $install_dir/Brenthy/build/
   # # install walytis_beta library from source
   # Python/bin/python -m pip -qq install --root-user-action ignore -e $install_dir/Brenthy/blockchains/Walytis_Beta/

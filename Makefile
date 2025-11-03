@@ -51,7 +51,12 @@ coverage: ## Run tests with coverage report
 .PHONY: build clean clean-preview install
 
 build: clean ## Build distribution package
-	$(PYTHON) -m build
+	$(PYTHON) -m build Brenthy; \
+		mv ./Brenthy/dist ./; \
+	$(PYTHON) -m build ./tests/brenthy_docker/; \
+		mv ./tests/brenthy_docker/dist/* ./dist/; \
+		rm -r ./tests/brenthy_docker/dist
+
 
 clean: ## Remove items from CLEANUP section in .gitignore
 	@tmpfile=$$(mktemp); \

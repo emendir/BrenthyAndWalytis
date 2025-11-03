@@ -65,13 +65,13 @@ def install(
             print("To cancel installation, press Ctrl+D.")
             sudo = "sudo"   # docker doesn't have sudo, most other distros do
 
-        pypy_cmd = (
+        cpython_cmd = (
             f"{sudo} bash "
             "./InstallScripts/install_brenthy_linux_systemd_cpython.sh "
             f"{INSTALL_DIR} {data_dir} "
             f"{str('--install-dont-run' not in sys.argv).lower()}"
         )
-        cpython_cmd = (
+        pypy_cmd = (
             f"{sudo} bash "
             "./InstallScripts/install_brenthy_linux_systemd_pypy.sh "
             f"{INSTALL_DIR} {data_dir} "
@@ -82,10 +82,10 @@ def install(
             exit_code = os.system(cpython_cmd)
         elif install_pypy is None:
             # try installing with PyPy instead of CPython
-            exit_code = os.system(pypy_cmd)
-            # if installation failed, install with CPython instead of PyPy
+            exit_code = os.system(cpython_cmd)
+            # if installation failed, install with PyPy instead of CPython
             if exit_code != 0:
-                exit_code = os.system(cpython_cmd)
+                exit_code = os.system(pypy_cmd)
         elif install_pypy:
             # install with PyPy
             exit_code = os.system(pypy_cmd)

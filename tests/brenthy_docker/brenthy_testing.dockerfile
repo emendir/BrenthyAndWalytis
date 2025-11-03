@@ -19,6 +19,7 @@ RUN usermod -s /bin/bash brenthy
 RUN systemctl enable brenthy ipfs
 
 COPY tests /opt/Brenthy/tests
+RUN find /opt/ -type d -name "*.egg-info" -exec rm -rf {} +
 # COPY Brenthy/blockchains/Walytis_Beta/tests /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/tests
 ## Run with:
 # docker run -it --privileged local/brenthy_testing

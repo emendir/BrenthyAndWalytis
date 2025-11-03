@@ -127,11 +127,14 @@ else
   mv ${TEMP_DIR}/${EXTRACTED_DIR_NAME}/* $install_dir/Python/
 
   # install pip, the package manager
-  Python/bin/python -m ensurepip
-  Python/bin/python -m pip -q install --root-user-action ignore --upgrade pip
-  
-  Python/bin/python -m pip -q install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
-  Python/bin/python -m pip -q install --root-user-action ignore -r $install_dir/Brenthy/blockchains/Walytis_Beta/requirements.txt
+  $install_dir/Python/bin/python -m ensurepip
+  $install_dir/Python/bin/python -m pip -q install --root-user-action ignore --upgrade pip
+  $install_dir/Python/bin/python -m pip -q install --root-user-action ignore -r $install_dir/Brenthy/requirements.txt
+  # install brenthy_tools_beta from source
+  $install_dir/Python/bin/python -m pip -q install --root-user-action ignore -e $install_dir/Brenthy/
+
+  $install_dir/Python/bin/python -m pip -q install --root-user-action ignore -r $install_dir/Brenthy/blockchains/Walytis_Beta/requirements.txt
+  $install_dir/Python/bin/python -m pip -q install --root-user-action ignore -e $install_dir/Brenthy/blockchains/Walytis_Beta/legacy_packaging/walytis_beta_api
   
   # # install brenthy_tools from source
   # Python/bin/python -m piu -qq install --root-user-action ignore -e $install_dir/Brenthy/
