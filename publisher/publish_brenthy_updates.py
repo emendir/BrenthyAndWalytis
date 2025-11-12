@@ -146,21 +146,23 @@ def publish_release(
 
 WB = os.path.join("blockchains", "Walytis_Beta")
 PATHS_TO_DELETE = [
-    os.path.join(WB,  ".git"),
+    os.path.join(WB, ".git"),
 ]
 IGNORE_PATTERNS = [
-        ".git",
-        "_hanuki",
-        "__pycache__",
-        "build",
-        "dist",
-        "*.egg-info",
-        "docs",
-        ".blockchains",
-        ".ipfs_repo",
-        ".mypy_cache",
-        "*.log"
-        ]
+    ".git",
+    "_hanuki",
+    "__pycache__",
+    ".pytest_cache",
+    "build",
+    "dist",
+    "*.egg-info",
+    "docs",
+    ".blockchains",
+    ".ipfs_repo",
+    ".mypy_cache",
+    "*.log",
+    ".obsidian",
+]
 
 
 def publish_project_on_ipfs() -> str:
@@ -170,7 +172,6 @@ def publish_project_on_ipfs() -> str:
     shutil.copytree("../Brenthy", os.path.join(tempdir, "Brenthy"))
     shutil.copy("../__main__.py", os.path.join(tempdir, "__main__.py"))
     shutil.copy("../ReadMe.md", os.path.join(tempdir, "ReadMe.md"))
-
 
     for rm_dir in PATHS_TO_DELETE:
         rm_path = os.path.join(tempdir, "Brenthy", rm_dir)

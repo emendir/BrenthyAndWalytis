@@ -1,5 +1,8 @@
 """Various functions used by Brenthy Core and `brenthy_api`."""
 
+import pathspec
+from pathlib import Path
+import shutil
 import platform
 import stat
 import importlib
@@ -34,7 +37,9 @@ def are_elements_unique(array: list) -> bool:
 def encode_timestamp(date_time: datetime) -> bytearray:
     """Get a timestamp encoded in bytes without [0]s."""
     if not date_time.tzinfo == timezone.utc:
-        raise ValueError("Ensure your datetime is time-zone aware and set to UTC")
+        raise ValueError(
+            "Ensure your datetime is time-zone aware and set to UTC"
+        )
     return (
         to_b254_no_0s1s(date_time.year)
         + bytearray([1])
@@ -72,20 +77,22 @@ def decode_timestamp(array: bytearray) -> datetime:
         minute=numbers[4],
         second=numbers[5],
         microsecond=numbers[6],
-        tzinfo=timezone.utc
+        tzinfo=timezone.utc,
     )
 
 
 def time_to_string(date_time: datetime) -> str:
     """Get a string representation of a datetime."""
     if not date_time.tzinfo == timezone.utc:
-        raise ValueError("Ensure your datetime is time-zone aware and set to UTC")
+        raise ValueError(
+            "Ensure your datetime is time-zone aware and set to UTC"
+        )
     return date_time.strftime(TIME_FORMAT)
 
 
 def string_to_time(string: str) -> datetime:
     """Convert a timestamp string back to a datetime."""
-    result =  datetime.strptime(string, TIME_FORMAT)
+    result = datetime.strptime(string, TIME_FORMAT)
     result = result.replace(tzinfo=timezone.utc)
     return result
 
@@ -259,9 +266,9 @@ def function_name(parents: int = 0) -> str:
 
 def make_file_readable(file_path: str) -> None:
     """Make a file readable to all the operating system's users."""
-    if platform.system() in ['Linux', 'Darwin']:  # Unix-based systems
+    if platform.system() in ["Linux", "Darwin"]:  # Unix-based systems
         os.chmod(file_path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-    elif platform.system() == 'Windows':
+    elif platform.system() == "Windows":
         os.chmod(file_path, 0o444)
     else:
         raise NotImplementedError(f"Unsupported platform: {platform.system()}")
@@ -269,19 +276,36 @@ def make_file_readable(file_path: str) -> None:
 
 def make_directory_readable(directory_path: str) -> None:
     """Make a directory readable to all the operating system's users."""
-    if platform.system() in ['Linux', 'Darwin']:  # Unix-based systems
-        os.chmod(directory_path, stat.S_IRUSR | stat.S_IXUSR |
-                 stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
-    elif platform.system() == 'Windows':
+    if platform.system() in ["Linux", "Darwin"]:  # Unix-based systems
+        os.chmod(
+            directory_path,
+            stat.S_IRUSR
+            | stat.S_IXUSR
+            | stat.S_IRGRP
+            | stat.S_IXGRP
+            | stat.S_IROTH
+            | stat.S_IXOTH,
+        )
+    elif platform.system() == "Windows":
         os.chmod(directory_path, 0o555)
     else:
         raise NotImplementedError(f"Unsupported platform: {platform.system()}")
 
-import os
-import shutil
-from pathlib import Path
-import pathspec
 
+def _find_tree_matches(spec: pathspec.GitIgnoreSpec, dir: str):
+    """Recursively traverse a file tree finding files or folders that match the spec.
+
+    Doesn't traverse already ignored folders.
+    """
+    ignored_paths = []
+    for name in os.listdir(dir):
+        full_path = os.path.join(dir, name)
+        if spec.match_file(name):
+            ignored_paths.append(full_path)
+        else:
+            if os.path.isdir(full_path):
+                ignored_paths += _find_tree_matches(spec, full_path)
+    return ignored_paths
 
 
 def clean_directory(
@@ -295,7 +319,7 @@ def clean_directory(
     spec = pathspec.GitIgnoreSpec.from_lines(patterns)
 
     root = root.resolve()
-    matches = spec.match_tree(str(root))
+    matches = _find_tree_matches(spec, root)
     matches = [root.joinpath(p).resolve() for p in matches]
 
     for p in matches:

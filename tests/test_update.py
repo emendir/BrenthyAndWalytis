@@ -1,6 +1,5 @@
 """Tests that Brenthy Core's automatic update system works."""
 
-
 # if you do not have any other important brenthy docker containers,
 # you can set this to true to automatically remove unpurged docker containers
 # after failed tests
@@ -24,7 +23,9 @@ if True:
     sys.path.insert(0, brenthy_dir)
     import run
     import publish_brenthy_updates  # pylint: disable=import-error
-    
+
+    publish_brenthy_updates.DRY_RUN = False
+
     import shutil
     import time
 
@@ -32,27 +33,30 @@ if True:
     import pytest
 
     import _testing_utils
-    from brenthy_docker import BrenthyDocker, delete_containers, build_docker_image
+    from brenthy_docker import (
+        BrenthyDocker,
+        delete_containers,
+        build_docker_image,
+    )
     from update import get_walytis_appdata_dir
     from _testing_utils import mark, polite_wait, test_threads_cleanup
-    
+
     _testing_utils.BREAKPOINTS = BREAKPOINTS
 
 test_upd_blck_path = ""
 brenthy_docker: BrenthyDocker
 
-DELAY=90
+DELAY = 90
+
 
 def prepare() -> None:
     """Get everything needed to run the tests ready."""
     global test_upd_blck_path
     if DELETE_ALL_BRENTHY_DOCKERS:
         delete_containers(
-            image="local/brenthy_testing",
-            container_name_substr="brenthy"
+            image="local/brenthy_testing", container_name_substr="brenthy"
         )
     if REBUILD_DOCKER:
-
         build_docker_image(verbose=False)
     run.TRY_INSTALL = False
     run.log.set_print_level("important")
@@ -86,8 +90,7 @@ def run_docker() -> None:
     global brenthy_docker
     # print("Creating docker image...")
     brenthy_docker = BrenthyDocker(
-        image="local/brenthy_testing",
-        container_name=DOCKER_CONTAINER_NAME
+        image="local/brenthy_testing", container_name=DOCKER_CONTAINER_NAME
     )
     # print("Created docker image!")
     time.sleep(10)
@@ -98,7 +101,7 @@ def get_docker_brenthy_version() -> str:
     return brenthy_docker.run_python_code(
         "import brenthy_tools_beta;"
         "print(brenthy_tools_beta.get_brenthy_version_string())",
-        print_output=False
+        print_output=False,
     ).split("\n")[-1]
 
 
@@ -107,7 +110,7 @@ def get_docker_walytis_beta_version() -> str:
     return brenthy_docker.run_python_code(
         "import walytis_beta_api;"
         "print(walytis_beta_api.get_walytis_beta_version_string())",
-        print_output=False
+        print_output=False,
     ).split("\n")[-1]
 
 
@@ -124,6 +127,7 @@ def test_find_peer() -> None:
 
     mark(success, "ipfs.peers.find")
 
+
 def test_walytis_beta_update() -> None:
     """Test that updating Walytis_Beta works."""
     # allow docker filesystem to consolidate after renaming updates blockchain
@@ -138,24 +142,28 @@ def test_walytis_beta_update() -> None:
     print("Reinstalling walytis_beta_api")
     brenthy_docker.run_shell_command(
         "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/build;",
-        print_output=False, ignore_errors=True
+        print_output=False,
+        ignore_errors=True,
     )
     brenthy_docker.run_shell_command(
         "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/*.egg-info;",
-        print_output=False, ignore_errors=True
+        print_output=False,
+        ignore_errors=True,
     )
     brenthy_docker.run_shell_command(
         "python3 -m pip install --break-system-packages /opt/Brenthy/Brenthy/blockchains/Walytis_Beta",
-        print_output=False
+        print_output=False,
     )
     walytis_beta_version_2 = get_docker_walytis_beta_version()
     brenthy_version_2 = get_docker_brenthy_version()
-    
-    mark((walytis_beta_version_2 == "9999" + walytis_beta_version_1),
+
+    mark(
+        (walytis_beta_version_2 == "9999" + walytis_beta_version_1),
         f"Walytis update {(walytis_beta_version_1, walytis_beta_version_2)}",
     )
-    
-    mark((brenthy_version_2 == brenthy_version_1),
+
+    mark(
+        (brenthy_version_2 == brenthy_version_1),
         "Walytis_Beta update Brenthy version still the same",
         # (brenthy_version_1, brenthy_version_2),
     )
@@ -169,7 +177,8 @@ def test_brenthy_update() -> None:
     brenthy_docker.restart()
     # breakpoint()
     version_2 = get_docker_brenthy_version()
-    mark((version_2 == "9999" + version_1),
+    mark(
+        (version_2 == "9999" + version_1),
         f"Brenthy update {(version_1, version_2)}",
     )
 
