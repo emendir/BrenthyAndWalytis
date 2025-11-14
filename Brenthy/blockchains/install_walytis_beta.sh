@@ -7,5 +7,5 @@ cd $SCRIPT_DIR
 set -e # Exit if any command fails
 
 if ! [ -e ./Walytis_Beta/__init__.py ];then
-  git clone --branch v2.4.19 --single-branch https://github.com/emendir/Walytis_Beta ./Walytis_Beta
+  git clone --branch v2.4.26 --single-branch https://github.com/emendir/Walytis_Beta ./Walytis_Beta
 fi
