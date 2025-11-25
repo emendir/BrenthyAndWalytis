@@ -398,9 +398,8 @@ class BrenthyDocker:
             )
             if remote_path not in check_result:
                 raise RuntimeError(
-                    f"File does not appear to exist in container after transfer: {
-                        remote_path
-                    }"
+                    f"File does not appear to exist in container after transfer:"
+                    f" {remote_path}"
                 )
 
             return remote_path
