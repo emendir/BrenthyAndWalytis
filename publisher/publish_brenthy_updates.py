@@ -153,6 +153,7 @@ IGNORE_PATTERNS = [
     "_hanuki",
     "__pycache__",
     ".pytest_cache",
+    ".sonarlint",
     "build",
     "dist",
     "*.egg-info",
