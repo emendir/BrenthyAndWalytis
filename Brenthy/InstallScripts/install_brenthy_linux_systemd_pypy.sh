@@ -1,13 +1,16 @@
 #!/bin/bash
 # must be run with root privileges from the directory of Brenthy's source
 
+set -euo pipefail # Exit if any command fails
+
 # get arguments passed to script:
 install_dir=$1
 data_dir=$2
 run_brenthy=$3 # True of False; whether or not the installed Brenthy should be run when finished
 docker_testing=$4 # True of False; whether or not this script is being run for docker testing image
 
-set -e # Exit if any command fails
+ENVIRONMENT_FILE=$install_dir/Brenthy.env
+
 
 echo "Running Brenthy Installer for Linux with Systemd using PyPy with args:"
 echo "Install Dir: $install_dir"
@@ -48,6 +51,7 @@ if [ -d $install_dir/Brenthy ];then
   rm -r $install_dir/Brenthy
 fi
 mkdir -p $install_dir/Brenthy
+touch $ENVIRONMENT_FILE
 
 # create data_dir as a directory or symlink to the user-provided directory
 if [[ "$data_dir" == "$DEF_DATA_DIR" ]];then
@@ -149,12 +153,17 @@ echo "Registering systemd service..."
 echo "[Unit]
 Description=the platform for developing and deploying the next generation of blockchains
 Wants=ipfs.service
+After=ipfs.service
+Requires=ipfs.service
+PartOf=ipfs.service
 
 [Service]
 User=brenthy
 WorkingDirectory=${install_dir}/Brenthy
+EnvironmentFile=$ENVIRONMENT_FILE
 ExecStart=${install_dir}/Python/bin/python ${install_dir}/Brenthy --dont-install
 Restart=always
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target
