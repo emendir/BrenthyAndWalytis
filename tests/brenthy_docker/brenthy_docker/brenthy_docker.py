@@ -1,3 +1,4 @@
+from datetime import timedelta
 import json
 import io
 import os
@@ -12,8 +13,6 @@ import docker
 import pexpect
 import pyperclip
 
-# from _testing_utils import ipfs
-from walytis_beta_tools._experimental.ipfs_interface import ipfs
 from termcolor import colored as coloured
 
 DEF_OUTPUT_COLOUR = "light_yellow"
@@ -216,6 +215,7 @@ class BrenthyDocker:
         background: bool = False,
         timeout: int | None = None,
         ignore_errors: bool = False,
+        python_cmd: str = "/bin/python3",
     ) -> str:
         """Run single-line python code, returning its output.
 
@@ -228,7 +228,7 @@ class BrenthyDocker:
             background
             timeout: currently only implemented for print_output==True
         """
-        python_command = 'python -c "' + command + '"'
+        python_command = f'{python_cmd} -c "{command}"'
         return self.run_shell_command(
             python_command,
             user=user,
@@ -248,6 +248,7 @@ class BrenthyDocker:
         background: bool = False,
         timeout: int | None = None,
         ignore_errors: bool = False,
+        python_cmd: str = "/bin/python3",
     ) -> str:
         """Run any python code in the docker container, returning its output.
 
@@ -266,7 +267,7 @@ class BrenthyDocker:
         remote_tempfile = self.write_to_tempfile(code)
         # print(f"Running python code {remote_tempfile}")
         return self.run_shell_command(
-            f"/bin/python3 {remote_tempfile}",
+            f"{python_cmd} {remote_tempfile}",
             user=user,
             print_output=print_output,
             colour=colour,
@@ -291,36 +292,46 @@ class BrenthyDocker:
         self.container.start()
 
         if await_brenthy:
-            # print("Awaiting BrenthyUpdatesTEST switch...")
-            # wait till docker container's Brenthy has renamed its update blockhain
-            # and restarted
-            while (
-                not self.run_python_command(
-                    (
-                        "import os;"
-                        "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"
-                    ),
-                    print_output=False,
-                )
-                == "True"
-            ):
-                sleep(0.2)
-            sleep(0.2)
+            self.await_brenthy()
         if await_ipfs:
-            # print("Awaiting IPFS init...")
-            self.ipfs_id = ""
+            self.await_ipfs()
 
-            while not (self.ipfs_id and ipfs.peers.find(self.ipfs_id)):
-                try:
-                    self.ipfs_id = self.run_shell_command(
-                        'ipfs id -f="<id>"', print_output=False
-                    )
-                except:
-                    pass
-                if self.ipfs_id:
-                    self._docker_swarm_connect()
-                sleep(1)
-        # print("BrenthyDocker started!")
+    def await_brenthy(self):
+        # wait till docker container's Brenthy has renamed its update blockhain
+        # and restarted
+        while (
+            not self.run_python_command(
+                (
+                    "import os;"
+                    "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"
+                ),
+                print_output=False,
+            )
+            == "True"
+        ):
+            sleep(0.2)
+        sleep(0.2)
+
+    def get_ipfs_id(self):
+        try:
+            self.ipfs_id = self.run_shell_command(
+                'ipfs id -f="<id>"', print_output=False
+            )
+        except:
+            pass
+        return self.ipfs_id
+
+    def await_ipfs(self):
+        self.ipfs_id = ""
+
+        from walytis_beta_tools._experimental.ipfs_interface import ipfs
+
+        self.get_ipfs_id()
+        while not (self.ipfs_id and ipfs.peers.find(self.ipfs_id)):
+            if self.ipfs_id:
+                self._docker_swarm_connect()
+            sleep(1)
+            self.get_ipfs_id()
 
     def stop(self, force=False) -> None:
         """Stop this container."""
@@ -419,6 +430,8 @@ class BrenthyDocker:
         # Out of all our IPFS multi-addresses, choose the first non-localhost
         # IP address for both IPv4 & IPv6, and get the our multi_addresses for
         # those IP-addresses for both UDP & TCP
+        from walytis_beta_tools._experimental.ipfs_interface import ipfs
+
         multi_addresses = ipfs.get_addrs()
         ip6_tcp_maddr = [
             address
@@ -480,6 +493,22 @@ class BrenthyDocker:
         pyperclip.copy(command)
         print(command)
         print("Command copied to clipboard.")
+
+    def set_brenthy_clock_offset(self, offset: timedelta):
+        self.run_shell_command(
+            "echo '"
+            "LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1"
+            "' > /opt/Brenthy/Brenthy.env"
+        )
+        offset_seconds = offset.total_seconds()
+        if offset_seconds >= 0:
+            offset_string = f"+{offset_seconds}s"
+        else:
+            offset_string = f"{offset_seconds}s"
+        self.run_shell_command(
+            f"echo 'FAKETIME={offset_string}' >> /opt/Brenthy/Brenthy.env"
+        )
+        self.run_shell_command("systemctl restart brenthy")
 
 
 def delete_containers(

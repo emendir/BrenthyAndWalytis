@@ -4,8 +4,10 @@ COPY Brenthy /opt/brenthy_installer/Brenthy
 
 
 ## Install Brenthy:
-# RUN python3 ../brenthy_installer/Brenthy --dont-update --install-dont-run
-RUN ../brenthy_installer/Brenthy/InstallScripts/install_brenthy_linux_systemd_cpython.sh  /opt/Brenthy /opt/Brenthy/BlockchainData false true
+# RUN ../brenthy_installer/Brenthy/InstallScripts/install_brenthy_linux_systemd_cpython.sh  /opt/Brenthy /opt/Brenthy/BlockchainData false true
+
+RUN rm -rf /opt/Brenthy/Brenthy && cp -r /opt/brenthy_installer/Brenthy /opt/Brenthy/Brenthy && chown -R brenthy:nogroup /opt/Brenthy/Brenthy && chmod -R u=rwX,go=rX /opt/Brenthy/Brenthy/ && find /opt/Brenthy/Brenthy -type f -exec chmod go-x {} +
+
 
 # make Brenthy listen on all IP interfaces
 RUN sed -i ':a;N;$!ba;s/User=brenthy/User=brenthy\nEnvironment=BRENTHY_API_IP_LISTEN_ADDRESS=0.0.0.0/g' /etc/systemd/system/brenthy.service
