@@ -46,7 +46,7 @@ if True:
 test_upd_blck_path = ""
 brenthy_docker: BrenthyDocker
 
-DELAY = 90
+DELAY = 15
 
 
 def prepare() -> None:
@@ -98,6 +98,7 @@ def run_docker() -> None:
 
 def get_docker_brenthy_version() -> str:
     """Get this test's docker container's running Brenthy-Core version."""
+    global brenthy_docker
     return brenthy_docker.run_python_code(
         "import brenthy_tools_beta;"
         "print(brenthy_tools_beta.get_brenthy_version_string())",
@@ -107,6 +108,7 @@ def get_docker_brenthy_version() -> str:
 
 def get_docker_walytis_beta_version() -> str:
     """Get this test's docker container's running Walytis-Core version."""
+    global brenthy_docker
     return brenthy_docker.run_python_code(
         "import walytis_beta_api;"
         "print(walytis_beta_api.get_walytis_beta_version_string())",
@@ -119,6 +121,7 @@ def get_docker_walytis_beta_version() -> str:
 
 def test_find_peer() -> None:
     """Test that we are connected to the Brenthy docker container via IPFS."""
+    global brenthy_docker
     success = False
     for _ in range(5):
         success = ipfs.peers.find(brenthy_docker.ipfs_id)
@@ -130,6 +133,7 @@ def test_find_peer() -> None:
 
 def test_walytis_beta_update() -> None:
     """Test that updating Walytis_Beta works."""
+    global brenthy_docker
     # allow docker filesystem to consolidate after renaming updates blockchain
     # to avoid errors when copying Brenthy update folders
     brenthy_docker.restart()
@@ -140,20 +144,20 @@ def test_walytis_beta_update() -> None:
     polite_wait(DELAY)
     brenthy_docker.restart()
     print("Reinstalling walytis_beta_api")
-    brenthy_docker.run_shell_command(
-        "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/build;",
-        print_output=False,
-        ignore_errors=True,
-    )
-    brenthy_docker.run_shell_command(
-        "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/*.egg-info;",
-        print_output=False,
-        ignore_errors=True,
-    )
-    brenthy_docker.run_shell_command(
-        "python3 -m pip install --break-system-packages /opt/Brenthy/Brenthy/blockchains/Walytis_Beta",
-        print_output=False,
-    )
+    # brenthy_docker.run_shell_command(
+    #     "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/build;",
+    #     print_output=False,
+    #     ignore_errors=True,
+    # )
+    # brenthy_docker.run_shell_command(
+    #     "rm -r /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/*.egg-info;",
+    #     print_output=False,
+    #     ignore_errors=True,
+    # )
+    # brenthy_docker.run_shell_command(
+    #     "python3 -m pip install --break-system-packages /opt/Brenthy/Brenthy/blockchains/Walytis_Beta",
+    #     print_output=False,
+    # )
     walytis_beta_version_2 = get_docker_walytis_beta_version()
     brenthy_version_2 = get_docker_brenthy_version()
 
@@ -171,6 +175,7 @@ def test_walytis_beta_update() -> None:
 
 def test_brenthy_update() -> None:
     """Test that Brenthy-Core udpates are installed."""
+    global brenthy_docker
     version_1 = get_docker_brenthy_version()
     publish_brenthy_updates.publish_release(testing_brenthy_update=True)
     polite_wait(DELAY)
@@ -186,11 +191,13 @@ def test_brenthy_update() -> None:
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request: pytest.FixtureRequest | None = None) -> None:
     """Clean up after running tests with PyTest."""
+    global brenthy_docker
     brenthy_docker.stop()
 
 
 def run_tests() -> None:
     """Run all tests."""
+    global brenthy_docker
     prepare()
     print("\nRunning tests for update system...")
     run_docker()

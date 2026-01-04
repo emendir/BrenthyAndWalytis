@@ -3,7 +3,7 @@ WORKDIR /opt/Brenthy
 RUN mkdir /opt/tmp/
 
 ## Install Prerequisites:
-RUN apt update && apt install -y python3 python3-dev python3-venv python3-pip python-is-python3 virtualenv git jq faketime
+RUN apt update && apt install -y python3 python3-dev python3-venv python3-pip python-is-python3 virtualenv git jq faketime unzip
 RUN python3 -m pip install --break-system-packages --upgrade setuptools build 
 
 COPY Brenthy /opt/brenthy_installer/Brenthy
@@ -11,6 +11,11 @@ COPY tests /opt/Brenthy/tests
 COPY requirements-devops.txt /opt/brenthy_installer
 
 RUN ../brenthy_installer/Brenthy/InstallScripts/install_brenthy_linux_systemd_cpython.sh  /opt/Brenthy /opt/Brenthy/BlockchainData false true
+
+## install update blockchain as BrenthyUpdatesTEST
+RUN mkdir -p /opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST
+RUN unzip /opt/brenthy_installer/Brenthy/InstallScripts/BrenthyUpdates.zip -d /opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST
+RUN chown -R brenthy:nogroup /opt/Brenthy/BlockchainData && chmod -R u=rwX,go=rX /opt/Brenthy/BlockchainData/ && find /opt/Brenthy/BlockchainData -type f -exec chmod go-x {} +
 
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/Brenthy/requirements.txt
 RUN python3 -m pip install --break-system-packages --root-user-action ignore -r /opt/brenthy_installer/Brenthy/brenthy_tools_beta/requirements.txt

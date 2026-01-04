@@ -6,8 +6,8 @@ set -euo pipefail # Exit if any command fails
 # get arguments passed to script:
 install_dir=$1
 data_dir=$2
-run_brenthy=$3 # True of False; whether or not the installed Brenthy should be run when finished
-docker_testing=$4 # True of False; whether or not this script is being run for docker testing image
+run_brenthy=${3-'True'} # True of False; whether or not the installed Brenthy should be run when finished
+docker_testing=${4-'False'} # True of False; whether or not this script is being run for docker testing image
 
 ENVIRONMENT_FILE=$install_dir/Brenthy.env
 

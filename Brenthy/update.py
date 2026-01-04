@@ -107,7 +107,8 @@ def check_on_updates() -> None:
             block = update_blockchain_blocks_listener.get_block(
                 latest_block_id
             )
-            on_update_released(block)
+            if "genesis" not in block.topics:
+                on_update_released(block)
         except Exception as e:
             log.error(str(e))
             log.error("Failed to check latest update block.")
