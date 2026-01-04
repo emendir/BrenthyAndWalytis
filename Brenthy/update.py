@@ -18,6 +18,7 @@ from walytis_beta_api import (
     BlocksListener,
     join_blockchain_from_zip,
     list_blockchain_ids,
+    get_latest_blocks,
 )
 from brenthy_tools_beta import log
 from brenthy_tools_beta.utils import string_to_bytes
@@ -97,6 +98,19 @@ def check_on_updates() -> None:
             )
             # update_blockchain_blocks_listener = Blockchain(
             #     "BrenthyUpdates", "Brenthy", on_update_released)
+
+        # check if latest block contains an update we should install
+        try:
+            latest_block_id = get_latest_blocks(
+                update_blockchain_blocks_listener.blockchain_id, amount=1
+            )[0]
+            block = update_blockchain_blocks_listener.get_block(
+                latest_block_id
+            )
+            on_update_released(block)
+        except Exception as e:
+            log.error(str(e))
+            log.error("Failed to check latest update block.")
     else:
         log.warning(
             "NOT listening for updates because we don't have the update "
@@ -238,7 +252,7 @@ def process_update_block(block: Block) -> bool:
         shutil.rmtree(download_path)
 
         return False
-    
+
     log.debug("Moving update...")
     shutil.move(
         release_path,
