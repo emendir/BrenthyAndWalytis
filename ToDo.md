@@ -36,6 +36,7 @@
 - [ ] uninstall
 - [ ] test updates before installing them
 - [ ] update immediately on reception as soon as no processes are running?
+- [ ] new update system with rigorous dependency management
 
 ### Debugging
 
