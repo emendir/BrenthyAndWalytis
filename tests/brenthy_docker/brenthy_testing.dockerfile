@@ -6,7 +6,7 @@ COPY Brenthy /opt/brenthy_installer/Brenthy
 ## Install Brenthy:
 # RUN ../brenthy_installer/Brenthy/InstallScripts/install_brenthy_linux_systemd_cpython.sh  /opt/Brenthy /opt/Brenthy/BlockchainData false true
 
-RUN rm -rf /opt/Brenthy/Brenthy && cp -r /opt/brenthy_installer/Brenthy /opt/Brenthy/Brenthy && chown -R brenthy:nogroup /opt/Brenthy/Brenthy && chmod -R u=rwX,go=rX /opt/Brenthy/Brenthy/ && find /opt/Brenthy/Brenthy -type f -exec chmod go-x {} +
+RUN rm -rf /opt/Brenthy/Brenthy && cp -r /opt/brenthy_installer/Brenthy /opt/Brenthy/Brenthy && chown -R brenthy:nogroup /opt/Brenthy/ && chmod -R u=rwX,go=rX /opt/Brenthy/ && find /opt/Brenthy/ -type f -exec chmod go-x {} +
 
 
 # make Brenthy listen on all IP interfaces
@@ -22,6 +22,7 @@ RUN systemctl enable brenthy ipfs
 
 COPY tests /opt/Brenthy/tests
 RUN find /opt/ -type d -name "*.egg-info" -exec rm -rf {} +
+RUN find /opt/ -type f -name "*.log" -exec rm -f {} + || true
 # COPY Brenthy/blockchains/Walytis_Beta/tests /opt/Brenthy/Brenthy/blockchains/Walytis_Beta/tests
 ## Run with:
 # docker run -it --privileged local/brenthy_testing
