@@ -1,4 +1,7 @@
 from datetime import timedelta
+import io
+import os
+import tarfile
 import json
 import io
 import os
@@ -75,6 +78,10 @@ class BrenthyDocker:
                 await_brenthy=await_brenthy,
                 await_ipfs=await_ipfs,
             )
+
+    @property
+    def container_name(self) -> str:
+        return self.container.name
 
     def run_shell_command(
         self,
@@ -299,15 +306,14 @@ class BrenthyDocker:
     def await_brenthy(self):
         # wait till docker container's Brenthy has renamed its update blockhain
         # and restarted
-        while (
-            not self.run_python_command(
-                (
-                    "import os;"
-                    "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"
-                ),
-                print_output=False,
-            )
-            == "True"
+        while not self.run_python_command(
+            (
+                "import os;"
+                "print(os.path.exists('/opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST'))"
+            ),
+            print_output=False,
+        ) == "True" or "(running)" not in self.run_shell_command(
+            "systemctl status ipfs | grep active"
         ):
             sleep(0.2)
         sleep(0.2)
@@ -378,6 +384,65 @@ class BrenthyDocker:
             f"mkdir -p {os.path.dirname(remote_filepath)}", print_output=False
         )
         self.container.put_archive(dst_dir, stream.getvalue())
+
+    def download(self, remote_path: str, local_path: str) -> None:
+        """
+        Download a file or directory from a Docker container and extract it locally.
+
+        Args:
+            remote_path (str): Path inside the container to retrieve
+            local_path (str): Local destination path (file or directory)
+
+        Raises:
+            ValueError: If a directory is downloaded but local_path is a file
+            RuntimeError: If archive extraction fails
+        """
+        bits, stat = self.container.get_archive(remote_path)
+
+        is_remote_dir = (
+            stat.get("mode", 0) & 0o40000 == 0o40000
+        )  # directory bit
+
+        # If remote is a directory, local_path must not be an existing file
+        if is_remote_dir and os.path.isfile(local_path):
+            raise ValueError(
+                f"Cannot extract directory '{remote_path}' into file '{
+                    local_path
+                }'"
+            )
+
+        # Collect tar stream into memory
+        tar_bytes = io.BytesIO()
+        for chunk in bits:
+            tar_bytes.write(chunk)
+        tar_bytes.seek(0)
+
+        with tarfile.open(fileobj=tar_bytes) as tar:
+            members = tar.getmembers()
+
+            if not is_remote_dir:
+                # Single file download
+                member = members[0]
+
+                if os.path.isdir(local_path):
+                    # Extract into directory
+                    target_path = os.path.join(
+                        local_path, os.path.basename(member.name)
+                    )
+                    member.name = os.path.basename(member.name)
+                    tar.extract(member, path=local_path)
+                else:
+                    # Extract to specific file path
+                    parent = os.path.dirname(local_path)
+                    if parent:
+                        os.makedirs(parent, exist_ok=True)
+
+                    member.name = os.path.basename(local_path)
+                    tar.extract(member, path=parent or ".")
+            else:
+                # Directory download
+                os.makedirs(local_path, exist_ok=True)
+                tar.extractall(path=local_path)
 
     def write_to_tempfile(self, data: str | bytes) -> str:
         if isinstance(data, str):
