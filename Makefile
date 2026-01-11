@@ -97,7 +97,7 @@ dist: build ## List built distributions
 	ls -lh $(DIST_DIR)
 
 publish: build ## Upload package to PyPI (requires twine)
-	python3 publish.py
+	$(PYTHON) publish.py
 
 # ----------------------------
 # Help
