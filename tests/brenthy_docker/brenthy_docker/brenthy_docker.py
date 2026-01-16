@@ -406,9 +406,8 @@ class BrenthyDocker:
         # If remote is a directory, local_path must not be an existing file
         if is_remote_dir and os.path.isfile(local_path):
             raise ValueError(
-                f"Cannot extract directory '{remote_path}' into file '{
-                    local_path
-                }'"
+                f"Cannot extract directory '{remote_path}' into file "
+                f"'{local_path}'"
             )
 
         # Collect tar stream into memory
