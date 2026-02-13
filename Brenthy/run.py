@@ -17,27 +17,32 @@ from install import (
     try_install_python_modules,
 )
 from ipfs_tk_generics.client import IpfsClient
+
 if True:  # pylint: disable=using-constant-test
-    SRC_DIR=os.path.abspath(os.path.dirname(__file__))
-    WALYTIS_SRC_DIR=os.path.abspath(
+    SRC_DIR = os.path.abspath(os.path.dirname(__file__))
+    WALYTIS_SRC_DIR = os.path.abspath(
         os.path.join(SRC_DIR, "blockchains", "Walytis_Beta", "src")
     )
     if not os.path.exists(WALYTIS_SRC_DIR):
         raise Exception(
-            f"The Walytis_Beta blockchain isn't installed at {WALYTIS_SRC_DIR}\n"
+            f"The Walytis_Beta blockchain isn't installed at "
+            f"{WALYTIS_SRC_DIR}\n"
             "Install it by running:\n"
             "Brenthy/blockchains/install_walytis_beta.sh"
         )
     sys.path.insert(0, WALYTIS_SRC_DIR)
     sys.path.insert(0, SRC_DIR)
     os.chdir(SRC_DIR)
-    
+
     import brenthy_tools_beta
+
     assert SRC_DIR in os.path.abspath(brenthy_tools_beta.__file__)
     from brenthy_tools_beta import log
+
     # First things first: get logging working
     try:
         from app_data import logs_dir
+
         log.LOG_DIR = logs_dir
     except ImportError:
         print(
@@ -51,14 +56,16 @@ if True:  # pylint: disable=using-constant-test
     log.add_empty_line()
     log.important("Starting up Brenthy...")
     log.important(
-        "Logging to " +
-        os.path.abspath(os.path.join(log.LOG_DIR, log.LOG_FILENAME))
+        "Logging to "
+        + os.path.abspath(os.path.join(log.LOG_DIR, log.LOG_FILENAME))
     )
-    os.environ["WALYTIS_BETA_LOG_PATH"]=os.path.join(log.LOG_DIR, "Walytis_Beta.log")
+    os.environ["WALYTIS_BETA_TOOLS_LOG_NAME"] = "Brenthy_Walytis"
     import walytis_beta_tools
+
     assert WALYTIS_SRC_DIR in os.path.abspath(walytis_beta_tools.__file__)
-    
+
     from brenthy_tools_beta.versions import BRENTHY_CORE_VERSION
+
     print(f"Brenthy {BRENTHY_CORE_VERSION}")
     # log.set_print_level("Info")
 # install required python modules if they don't yet exist
@@ -72,7 +79,6 @@ if str(sys.version)[0] != "3":  # pylint: disable=magic-value-comparison
 print(__file__)
 
 
-
 TRY_INSTALL = True
 DATA_DIR = ""
 CHECK_UPDATES = True
@@ -84,7 +90,8 @@ INSTALL_PYPY = None
 api_terminal = None
 blockchain_manager = None
 update = None
-ipfs:IpfsClient|None=None
+ipfs: IpfsClient | None = None
+
 
 def run_brenthy() -> None:
     """Run Brenthy."""
@@ -118,7 +125,6 @@ def run_brenthy() -> None:
                 raise ValueError(error_message)
             DATA_DIR = data_dir
         if "--install-pypy" in sys.argv:
-
             INSTALL_PYPY = True
         if "--install-cpython" in sys.argv:
             if INSTALL_PYPY:
@@ -152,9 +158,7 @@ def run_brenthy() -> None:
                     case InstallationResult.DECLINED:
                         log.important("Installation declined by user")
         if "--install-dont-run" in sys.argv:
-            log.important(
-                "Exiting because --install-dont-run is specified."
-            )
+            log.important("Exiting because --install-dont-run is specified.")
             exit_brenthy = True
     except:  # pylint: disable=bare-except
         log.fatal(traceback.format_exc())
@@ -169,7 +173,7 @@ def run_brenthy() -> None:
     try:
         # Wait till IPFS comes online
         from walytis_beta_tools._experimental.ipfs_interface import ipfs
-  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
 
         log.info(f"Our IPFS Peer ID: {ipfs.peer_id}")
 
@@ -190,6 +194,7 @@ def run_brenthy() -> None:
         from walytis_beta_api import walytis_beta_interface
 
         from brenthy_tools_beta import bt_endpoints
+
         bt_endpoints.initialise()
         # walytis_beta_interface.log.PRINT_DEBUG = not am_i_installed() or update.TESTING
 
@@ -270,4 +275,3 @@ if __name__ == "__main__":
     run_brenthy()
     print("Press Ctrl+C to stop Brenthy.")
     atexit.register(stop_brenthy)
-    

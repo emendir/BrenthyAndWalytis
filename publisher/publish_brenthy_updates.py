@@ -163,6 +163,7 @@ IGNORE_PATTERNS = [
     ".mypy_cache",
     "*.log",
     ".obsidian",
+    "**/report-*",
 ]
 
 

@@ -161,6 +161,7 @@ PartOf=ipfs.service
 User=brenthy
 WorkingDirectory=${install_dir}/Brenthy
 EnvironmentFile=$ENVIRONMENT_FILE
+Environment=BRENTHY_WALYTIS_LOG_DIR=${install_dir}
 ExecStart=${install_dir}/Python/bin/python ${install_dir}/Brenthy --dont-install
 Restart=always
 LimitNOFILE=65536
