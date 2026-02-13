@@ -1,3 +1,5 @@
+import string
+import secrets
 from datetime import timedelta
 import io
 import os
@@ -339,6 +341,54 @@ class BrenthyDocker:
             sleep(1)
             self.get_ipfs_id()
 
+        # self.await_ipfs_ping()
+        self.await_ipfs_cat()
+
+    def await_ipfs_ping(self):
+        from walytis_beta_tools._experimental.ipfs_interface import ipfs
+
+        for i in range(5):
+            try:
+                self.run_shell_command(
+                    f"ipfs ping -n 3 {ipfs.peer_id}", timeout=3
+                )
+                print("IPFS PING succeeded")
+                return
+            except Exception:
+                print("IPFS PING FAILED")
+                self.run_shell_command(
+                    "for peer in $(ipfs swarm peers);do ipfs swarm disconnect $peer; done"
+                )
+                self._docker_swarm_connect()
+        raise Exception("Testing IPFS ping failed repeatedly.")
+
+    def await_ipfs_cat(self):
+        from walytis_beta_tools._experimental.ipfs_interface import ipfs
+
+        try:
+            tmpfile = os.path.join(tempfile.gettempdir(), "ipfs_cat_test_file")
+            with open(tmpfile, "w+") as file:
+                file.write(generate_random_string(50))
+            ipfs_cid = ipfs.files.publish(tmpfile)
+
+            for i in range(5):
+                try:
+                    self.run_shell_command(f"ipfs cat {ipfs_cid}", timeout=3)
+                    print("IPFS CAT succeeded")
+                    return
+                except Exception:
+                    print("IPFS CAT FAILED")
+                    self.run_shell_command(
+                        "for peer in $(ipfs swarm peers);do ipfs swarm disconnect $peer; done"
+                    )
+                    self._docker_swarm_connect()
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            print(e)
+        raise Exception("Testing IPFS cat failed repeatedly.")
+
     def stop(self, force=False) -> None:
         """Stop this container."""
         if force:
@@ -611,6 +661,15 @@ def delete_containers(
 
 class ContainerNotRunningError(Exception):
     """When the container isn't running."""
+
+
+def generate_random_string(num_chars: int):
+    # Define the alphabet you want to use
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+
+    # Generate a 200-character secure random string
+    secure_string = "".join(secrets.choice(alphabet) for _ in range(num_chars))
+    return secure_string
 
 
 # Example usage:
