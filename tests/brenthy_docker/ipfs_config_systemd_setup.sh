@@ -15,23 +15,23 @@ set -e # exit on error
 SCRIPT_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 
-# IPFS router mercy: limit IPv4 communication
-cp $SCRIPT_DIR/ipfs_router_mercy.sh /opt/ipfs_router_mercy.sh
-chmod +x /opt/ipfs_router_mercy.sh
+# IPFS Config Script
+cp $SCRIPT_DIR/ipfs_config.sh /opt/ipfs_config.sh
+chmod +x /opt/ipfs_config.sh
 # create one-shot systemd service to run the IPFS initialisation script
 echo "[Unit]
-Description=IPFS router mercy config
+Description=IPFS node config
 After=ipfs-init.service
 Before=ipfs.service
 
 [Service]
 Environment=IPFS_PATH=/root/.ipfs
 Type=oneshot
-ExecStart=/bin/bash /opt/ipfs_router_mercy.sh
+ExecStart=/bin/bash /opt/ipfs_config.sh
 
 [Install]
 WantedBy=multi-user.target
-" | tee /etc/systemd/system/ipfs_router_mercy.service
+" | tee /etc/systemd/system/ipfs_config.service
 
 # systemctl daemon-reload
-systemctl enable ipfs_router_mercy
+systemctl enable ipfs_config

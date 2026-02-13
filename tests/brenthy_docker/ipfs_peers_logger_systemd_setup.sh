@@ -5,10 +5,8 @@ set -e # exit on error
 SCRIPT_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 
-# IPFS router mercy: limit IPv4 communication
-cp $SCRIPT_DIR/ipfs_peers_logger.py /opt/ipfs_peers_logger.py
-
-
+# IPFS peer logging script
+cp "$SCRIPT_DIR"/ipfs_peers_logger.py /opt/ipfs_peers_logger.py
 echo "[Unit]
 Description=Log IPFS peer connections
 DefaultDependencies=no

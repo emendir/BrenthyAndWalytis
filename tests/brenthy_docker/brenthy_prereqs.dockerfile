@@ -34,7 +34,7 @@ RUN find /opt/ -type d -name "*.egg-info" -exec rm -rf {} +
 
 
 
-RUN /opt/Brenthy/tests/brenthy_docker/ipfs_router_mercy_systemd_setup.sh
+RUN /opt/Brenthy/tests/brenthy_docker/ipfs_config_systemd_setup.sh
 RUN /opt/Brenthy/tests/brenthy_docker/ipfs_peers_logger_systemd_setup.sh
 RUN mkdir -p /root/.cache/log/
 RUN ln -s /root/.cache/log/ /opt/log

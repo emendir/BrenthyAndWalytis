@@ -13,7 +13,7 @@ RUN rm -rf /opt/Brenthy/Brenthy && cp -r /opt/brenthy_installer/Brenthy /opt/Bre
 RUN sed -i ':a;N;$!ba;s/User=brenthy/User=brenthy\nEnvironment=BRENTHY_API_IP_LISTEN_ADDRESS=0.0.0.0/g' /etc/systemd/system/brenthy.service
 
 # make IPFS listen on all IP interfaces
-RUN sed -i ':a;N;$!ba;s/## disable TCP communications/ipfs config Addresses.API "\/ip4\/0.0.0.0\/tcp\/5001"\n\n## disable TCP communications/g' /opt/ipfs_router_mercy.sh
+RUN sed -i ':a;N;$!ba;s/## disable TCP communications/ipfs config Addresses.API "\/ip4\/0.0.0.0\/tcp\/5001"\n\n## disable TCP communications/g' /opt/ipfs_config.sh
 ## allow brenthy user to use shell for debugging
 RUN usermod -s /bin/bash brenthy
 
