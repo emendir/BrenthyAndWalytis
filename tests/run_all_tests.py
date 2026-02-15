@@ -1,5 +1,7 @@
 """Run all tests."""
+
 if True:
+    import os
     import test_update
     import test_brenthy_api
     import test_brenthy_logs
@@ -16,3 +18,5 @@ if __name__ == "__main__":
     test_update.run_tests()
     test_brenthy_api.run_tests()
     test_brenthy_logs.run_tests()
+
+    os._exit(0)
