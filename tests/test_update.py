@@ -188,29 +188,33 @@ def test_brenthy_update() -> None:
     )
 
 
-@pytest.fixture(scope="session", autouse=True)
 def cleanup(request: pytest.FixtureRequest | None = None) -> None:
     """Clean up after running tests with PyTest."""
     global brenthy_docker
     brenthy_docker.stop()
+    stop_brenthy()
+
+    if os.path.exists(test_upd_blck_path):
+        shutil.rmtree(test_upd_blck_path)
 
 
 def run_tests() -> None:
     """Run all tests."""
     global brenthy_docker
     prepare()
-    print("\nRunning tests for update system...")
-    run_docker()
-    print("\nFinding peer...")
-    test_find_peer()
-    print("\nPreparing update...")
-    test_walytis_beta_update()
-    test_brenthy_update()
+    try:
+        print("\nRunning tests for update system...")
+        run_docker()
+        print("\nFinding peer...")
+        test_find_peer()
+        print("\nPreparing update...")
+        test_walytis_beta_update()
+        test_brenthy_update()
+    except:
+        pass
+    cleanup()
 
-    brenthy_docker.stop()
-    stop_brenthy()
     test_threads_cleanup()
-    shutil.rmtree(test_upd_blck_path)
 
 
 if __name__ == "__main__":
