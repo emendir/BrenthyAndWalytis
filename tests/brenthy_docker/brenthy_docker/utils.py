@@ -12,6 +12,8 @@ def get_logs_and_delete_docker(
     """Download logs from then delete docker containers."""
     for log_file in log_files:
         for report_dir in log_dirs:
+            if not os.path.exists(report_dir):
+                os.makedirs(report_dir)
             download_path = os.path.join(
                 report_dir,
                 f"{docker_container.container_name}-"
