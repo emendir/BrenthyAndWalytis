@@ -16,8 +16,8 @@ description = (
     "A framework for developing and running the next generation of blockchains"
 )
 long_description = ""
-if os.path.exists("ReadMe.md"):
-    with open("ReadMe.md", "r", encoding="utf-8") as fh:
+if os.path.exists("README.md"):
+    with open("README.md", "r", encoding="utf-8") as fh:
         long_description = fh.read()
 long_description_content_type = "text/markdown"
 url = (

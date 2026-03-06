@@ -9,7 +9,7 @@ dynamic = ["dependencies", "version"]
 name = "brenthy_tools_beta"
 authors = [{ name = "Emendir" }]
 description = "A library for interacting with Brenthy (`brenthy_api`) and a collection of tools common to Brenthy Core and `brenthy_api`."
-# readme = {file = "ReadMe.md", content-type = "text/markdown"}
+# readme = {file = "README.md", content-type = "text/markdown"}
 
 [project.urls]
 # Homepage = "https://emendir.tech/Projects/BrenthyAndWalytis"

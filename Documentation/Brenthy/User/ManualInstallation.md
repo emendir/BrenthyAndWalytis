@@ -66,7 +66,7 @@ INSTALL_DIR
 	├── __main__.py
 	├── pip_install.py
 	├── __project__.py
-	├── ReadMe.md
+	├── README.md
 	├── recent_blocks_record.py
 	├── requirements.txt
 	├── run.py

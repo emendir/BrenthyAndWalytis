@@ -29,7 +29,7 @@ It also provides API-infrastructure to ease the development of blockchain APIs f
 Using these ready-made features of Brenthy's allows developers of new blockchains to focus on developing their blockchain's core.
 
 Learn about Brenthy here: [Introduction to Brenthy](/Documentation/Brenthy/Meaning/IntroductionToBrenthy.md)  
-Brenthy project source: [./Brenthy](/Brenthy/ReadMe.md)
+Brenthy project source: [./Brenthy](/Brenthy/README.md)
 
 ### What makes Walytis special to Brenthy:
 

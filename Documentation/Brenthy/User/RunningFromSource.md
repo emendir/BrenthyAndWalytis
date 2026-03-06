@@ -48,7 +48,7 @@ cd Brenthy
 	├── __main__.py
 	├── pip_install.py
 	├── __project__.py
-	├── ReadMe.md
+	├── README.md
 	├── requirements.txt
 	├── run.py
 	├── setup.py

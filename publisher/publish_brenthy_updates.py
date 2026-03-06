@@ -173,7 +173,7 @@ def publish_project_on_ipfs() -> str:
 
     shutil.copytree("../Brenthy", os.path.join(tempdir, "Brenthy"))
     shutil.copy("../__main__.py", os.path.join(tempdir, "__main__.py"))
-    shutil.copy("../ReadMe.md", os.path.join(tempdir, "ReadMe.md"))
+    shutil.copy("../README.md", os.path.join(tempdir, "README.md"))
 
     for rm_dir in PATHS_TO_DELETE:
         rm_path = os.path.join(tempdir, "Brenthy", rm_dir)

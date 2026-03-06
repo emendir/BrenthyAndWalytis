@@ -7,13 +7,13 @@ name = "brenthy_docker"
 version = "0.4.1"
 description="Interact with docker containers running IPFS and Brenthy."
 dynamic=["dependencies"]
-readme = "brenthy_docker/ReadMe.md"
+readme = "brenthy_docker/README.md"
 keywords = ["brenthy", "walytis", "docker", "test"]
 
 [project.urls]
-Github = "https://github.com/emendir/BrenthyAndWalytis/tree/master/tests/brenthy_docker/brenthy_docker/ReadMe.md"
-Homepage = "https://ipfs.io/ipns/emendir.tech/#BrenthyAndWalytis/tests/brenthy_docker/brenthy_docker/ReadMe.md"
-IPNS = "https://ipfs.io/ipns/emendir.tech/#BrenthyAndWalytis/tests/brenthy_docker/brenthy_docker/ReadMe.md"
+Github = "https://github.com/emendir/BrenthyAndWalytis/tree/master/tests/brenthy_docker/brenthy_docker/README.md"
+Homepage = "https://ipfs.io/ipns/emendir.tech/#BrenthyAndWalytis/tests/brenthy_docker/brenthy_docker/README.md"
+IPNS = "https://ipfs.io/ipns/emendir.tech/#BrenthyAndWalytis/tests/brenthy_docker/brenthy_docker/README.md"
 
 
 [tool.setuptools.dynamic]
