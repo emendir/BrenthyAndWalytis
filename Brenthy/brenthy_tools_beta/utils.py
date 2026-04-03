@@ -21,16 +21,10 @@ TIME_FORMAT = "%Y.%m.%d_%H.%M.%S.%f"
 
 def are_elements_unique(array: list) -> bool:
     """Check if the provided array only has unique elements."""
-    # going through each element in the array
-    # and comparing each to all alements in the array that follow it
-    i = 0
-    while i < len(array):  # for each element in the array
-        j = i + 1
-        while j < len(array):  # for each element in the array after array[i]
+    for i in range(len(array)):
+        for j in range(i + 1, len(array)):
             if array[i] == array[j]:
                 return False
-            j = j + 1
-        i = i + 1
     return True
 
 
