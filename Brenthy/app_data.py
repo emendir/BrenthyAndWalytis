@@ -26,4 +26,7 @@ else:  # Brenthy is not installed
         os.makedirs(appdata_dir)
     logs_dir = appdata_dir
 
+# override if environment variable is set
+logs_dir = os.environ.get("BRENTHY_LOG_DIR", logs_dir)
+
 blockchaintypes_dir = os.path.join(appdata_dir, "BlockchainData")

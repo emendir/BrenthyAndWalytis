@@ -1,5 +1,6 @@
 """Custom logging manager for Brenthy."""
 
+from environs import Env
 import os
 import shutil
 import traceback
@@ -60,7 +61,12 @@ RECORD_FATAL = True
 LOG_ERROR_TRACEBACK = True
 LOG_FATAL_TRACEBACK = True
 
-LOG_DIR = "."
+
+env = Env()
+# initialise IPFS
+LOG_DIR = os.environ.get("BRENTHY_LOG_DIR", ".")
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 LOG_ARCHIVE_DIRNAME = ".log_archive"
 LOG_FILENAME = ".log"
 TIME_FORMAT = "%Y-%m-%d-%H:%M:%S"
@@ -79,6 +85,7 @@ unlogged_messages = []
 #     "Brenthy: logging to "
 #     f"{os.path.abspath(os.path.join(LOG_DIR, LOG_FILENAME))}"
 # )
+
 
 def record(message: str, record_timestamp: bool = True) -> None:
     """Write a the provided text to the logfile.
@@ -104,7 +111,7 @@ def record(message: str, record_timestamp: bool = True) -> None:
         for unlogged_message in unlogged_messages:
             with open(log_file_path, "a+", encoding="utf-8") as f:
                 f.write(unlogged_message)
-        unlogged_messages=[]
+        unlogged_messages = []
     except PermissionError:
         print(f"Logging: Permission denied: {os.path.abspath(log_file_path)}")
     except OSError as e:

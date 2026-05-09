@@ -22,6 +22,9 @@ from termcolor import colored as coloured
 
 DEF_OUTPUT_COLOUR = "light_yellow"
 
+DEFAULT_HOST_LOG_DIR_ROOT = "/tmp/TestLogs_Walytis"
+CONTAINER_LOG_DIR = "/opt/log"
+
 
 class DockerShellError(Exception):
     """When a shell command run in the docker container produces an Exception."""
@@ -64,15 +67,34 @@ class BrenthyDocker:
         auto_run: bool = True,
         await_brenthy: bool = True,
         await_ipfs: bool = True,
+        host_log_dir: str | None = None,
     ):
         self._docker = docker.from_env()
         self.ipfs_id = ""
+        self.host_log_dir: str | None = None
 
         if container_id:
             self.container = self._docker.containers.get(container_id)
         else:
+            if not container_name:
+                container_name = f"brenthy-{uuid.uuid4().hex[:12]}"
+            if host_log_dir is None:
+                host_log_dir = os.path.join(
+                    DEFAULT_HOST_LOG_DIR_ROOT, container_name
+                )
+            # fresh container → fresh host log dir
+            if os.path.exists(host_log_dir):
+                shutil.rmtree(host_log_dir, ignore_errors=True)
+            os.makedirs(host_log_dir, exist_ok=True)
+            os.chmod(host_log_dir, 0o777)
+            self.host_log_dir = host_log_dir
             self.container = self._docker.containers.create(
-                image, privileged=True, name=container_name
+                image,
+                privileged=True,
+                name=container_name,
+                volumes={
+                    host_log_dir: {"bind": CONTAINER_LOG_DIR, "mode": "rw"}
+                },
             )
         self.docker_id = self.container.id
         if auto_run:

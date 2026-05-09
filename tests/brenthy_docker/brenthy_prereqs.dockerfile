@@ -11,6 +11,7 @@ COPY tests /opt/Brenthy/tests
 COPY requirements-devops.txt /opt/brenthy_installer
 
 RUN ../brenthy_installer/Brenthy/InstallScripts/install_brenthy_linux_systemd_cpython.sh  /opt/Brenthy /opt/Brenthy/BlockchainData false true
+RUN echo "BRENTHY_LOG_DIR=/opt/log/Brenthy" | tee /opt/Brenthy/Brenthy.env
 
 ## install update blockchain as BrenthyUpdatesTEST
 RUN mkdir -p /opt/Brenthy/BlockchainData/Walytis_Beta/BrenthyUpdatesTEST
@@ -36,9 +37,10 @@ RUN find /opt/ -type d -name "*.egg-info" -exec rm -rf {} +
 
 RUN /opt/Brenthy/tests/brenthy_docker/ipfs_config_systemd_setup.sh
 RUN /opt/Brenthy/tests/brenthy_docker/ipfs_peers_logger_systemd_setup.sh
-RUN mkdir -p /root/.cache/log/
-RUN ln -s /root/.cache/log/ /opt/log
-RUN ln -s /opt/Brenthy/Brenthy.log /opt/log/Brenthy.log
-RUN ln -s /opt/Brenthy/Walytis_Beta.log /opt/log/Walytis_Beta.log
+# /opt/log is the canonical location for all log files, so a single
+# bind-mount of /opt/log on the host exposes every log at runtime.
+# /opt/Brenthy/*.log are symlinks into /opt/log; brenthy.service writes
+# through them, materialising the targets on first write.
+RUN mkdir -p /opt/log && chmod 0777 /opt/log
 ## Run with:
 # docker run -it --privileged local/brenthy_prereqs

@@ -43,7 +43,6 @@ if True:  # pylint: disable=using-constant-test
     try:
         from app_data import logs_dir
 
-        log.LOG_DIR = logs_dir
     except ImportError:
         print(
             "Failed to import some required packages. You will be able to "
@@ -51,15 +50,17 @@ if True:  # pylint: disable=using-constant-test
             "to install its dependencies first from Brenthy/requirements.txt"
         )
         logs_dir = "."
+    log.LOG_DIR = logs_dir
     log.LOG_FILENAME = "Brenthy.log"
     log.LOG_ARCHIVE_DIRNAME = ".log_archive"
     log.add_empty_line()
     log.important("Starting up Brenthy...")
     log.important(
         "Logging to "
-        + os.path.abspath(os.path.join(log.LOG_DIR, log.LOG_FILENAME))
+        + os.path.abspath(os.path.join(logs_dir, log.LOG_FILENAME))
     )
     os.environ["WALYTIS_BETA_TOOLS_LOG_NAME"] = "Brenthy_Walytis"
+    os.environ["BRENTHY_WALYTIS_LOG_DIR"] = logs_dir
     import walytis_beta_tools
 
     assert WALYTIS_SRC_DIR in os.path.abspath(walytis_beta_tools.__file__)
