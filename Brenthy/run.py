@@ -5,6 +5,7 @@
 """
 
 # pylint: disable=global-statement
+import threading
 import os
 import sys
 import traceback
@@ -92,6 +93,9 @@ api_terminal = None
 blockchain_manager = None
 update = None
 ipfs: IpfsClient | None = None
+
+
+tried_to_run_brenthy = False
 
 
 def run_brenthy() -> None:
@@ -196,6 +200,9 @@ def run_brenthy() -> None:
 
         from brenthy_tools_beta import bt_endpoints
 
+        global tried_to_run_brenthy
+        tried_to_run_brenthy = True
+
         bt_endpoints.initialise()
         # walytis_beta_interface.log.PRINT_DEBUG = not am_i_installed() or update.TESTING
 
@@ -235,6 +242,9 @@ def run_brenthy() -> None:
 
 def stop_brenthy() -> None:
     """Stop Brenthy-Core."""
+    if not tried_to_run_brenthy:
+        return
+
     log.important("Stopping Brenthy...")
     # if ipfs:
     #     ipfs.terminate()
@@ -270,9 +280,17 @@ def restart_brenthy() -> None:  # pylint: disable=unused-variable
     run_brenthy()
 
 
-if __name__ == "__main__":
-    import atexit
+def run_till_user_interrupt():
+    try:
+        run_brenthy()
+        print("Press Ctrl+C to stop Brenthy.")
+        threading.Event().wait()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stop_brenthy()
+        print("Exiting!")
 
-    run_brenthy()
-    print("Press Ctrl+C to stop Brenthy.")
-    atexit.register(stop_brenthy)
+
+if __name__ == "__main__":
+    run_till_user_interrupt()

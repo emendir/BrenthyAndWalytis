@@ -698,13 +698,13 @@ def docker_swarm_connect(source: BrenthyDocker, target: BrenthyDocker) -> None:
     candidates: list[str] = []
     for addr in multi_addrs:
         parts = addr.split("/")
-        if len(parts) < 3:
+        if len(parts) < 4:
             continue
         if addr.startswith("/ip4/127.0.0.1/") or addr.startswith("/ip6/::1/"):
             continue
         if not (addr.startswith("/ip4/") or addr.startswith("/ip6/")):
             continue
-        if parts[2] not in ("tcp", "udp"):
+        if parts[3] not in ("tcp", "udp"):
             continue
         candidates.append(addr)
     if not candidates:
