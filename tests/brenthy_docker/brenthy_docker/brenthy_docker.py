@@ -366,10 +366,10 @@ class BrenthyDocker:
         # self.await_ipfs_ping()
         self.await_ipfs_cat()
 
-    def await_ipfs_ping(self):
+    def await_ipfs_ping(self, num_tries=5):
         from walytis_beta_tools._experimental.ipfs_interface import ipfs
 
-        for i in range(5):
+        for i in range(num_tries):
             try:
                 self.run_shell_command(
                     f"ipfs ping -n 3 {ipfs.peer_id}", timeout=3
@@ -411,6 +411,10 @@ class BrenthyDocker:
             print(e)
         raise Exception("Testing IPFS cat failed repeatedly.")
 
+    def await_ipfs_and_brenthy(self):
+        self.await_ipfs()
+        self.await_brenthy()
+
     def stop(self, force=False) -> None:
         """Stop this container."""
         if force:
@@ -423,14 +427,15 @@ class BrenthyDocker:
         self.container.restart()
 
         sleep(0.2)
-        # why is this necessary? Seems to sometimes work without...
-        while True:
-            try:
-                self.run_shell_command("systemctl start ipfs")
-                break
-            except DockerShellError:
-                print("Waiting for docker to restart...")
-                sleep(0.2)
+        # # why is this necessary? Seems to sometimes work without...
+        # while True:
+        #     try:
+        #         self.run_shell_command("systemctl start ipfs")
+        #         break
+        #     except DockerShellError:
+        #         print("Waiting for docker to restart...")
+        #         sleep(0.2)
+        # self.await_ipfs()
 
     def delete(self, force=False) -> None:
         if force:
@@ -634,7 +639,7 @@ class BrenthyDocker:
         self.run_shell_command(
             "echo '"
             "LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1"
-            "' > /opt/Brenthy/Brenthy.env"
+            "' >> /opt/Brenthy/Brenthy.env"
         )
         offset_seconds = offset.total_seconds()
         if offset_seconds >= 0:
@@ -679,6 +684,35 @@ def delete_containers(
             f"--filter 'name={container_name_substr}*' "
             "-aq) >/dev/null 2>&1"
         )
+
+
+def docker_swarm_connect(source: BrenthyDocker, target: BrenthyDocker) -> None:
+    """Make `source` container's IPFS swarm-connect to `target` container.
+
+    BrenthyDocker._docker_swarm_connect only links host↔container; this fills
+    in the missing container↔container edges.
+    """
+    source.await_ipfs()
+    target.await_ipfs()
+    multi_addrs = target.get_multi_addrs()
+    candidates: list[str] = []
+    for addr in multi_addrs:
+        parts = addr.split("/")
+        if len(parts) < 3:
+            continue
+        if addr.startswith("/ip4/127.0.0.1/") or addr.startswith("/ip6/::1/"):
+            continue
+        if not (addr.startswith("/ip4/") or addr.startswith("/ip6/")):
+            continue
+        if parts[2] not in ("tcp", "udp"):
+            continue
+        candidates.append(addr)
+    if not candidates:
+        raise Exception(
+            f"No suitable IPFS multi-addr found on {target.container.name}"
+        )
+    commands = [f"ipfs swarm connect {a}" for a in candidates]
+    source.run_bash_code(" & ".join(commands), print_output=False)
 
 
 class ContainerNotRunningError(Exception):
