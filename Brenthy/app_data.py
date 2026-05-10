@@ -14,7 +14,7 @@ if am_i_installed():
     # set the appdata directory to the Brenthy installation directory
     install_dir = os.path.dirname(os.path.dirname(__file__))
     appdata_dir = install_dir
-    logs_dir = install_dir
+    def_logs_dir = install_dir
 else:  # Brenthy is not installed
     # only import appdirs here, so that it doesn't raise an error
     # in a Brenthy installation where this library failed to install
@@ -24,9 +24,13 @@ else:  # Brenthy is not installed
     appdata_dir = os.path.join(appdirs.user_data_dir(), "Brenthy")
     if not os.path.exists(appdata_dir):
         os.makedirs(appdata_dir)
-    logs_dir = appdata_dir
+    def_logs_dir = appdata_dir
+
+
+def_blockchaintypes_dir = os.path.join(appdata_dir, "BlockchainData")
 
 # override if environment variable is set
-logs_dir = os.environ.get("BRENTHY_LOG_DIR", logs_dir)
-
-blockchaintypes_dir = os.path.join(appdata_dir, "BlockchainData")
+logs_dir = os.environ.get("BRENTHY_LOG_DIR", def_logs_dir)
+blockchaintypes_dir = os.environ.get(
+    "BRENTHY_BLOCKCHAIN_DATA_DIR", def_blockchaintypes_dir
+)
