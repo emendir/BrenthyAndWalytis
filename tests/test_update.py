@@ -46,7 +46,7 @@ if True:
 test_upd_blck_path = ""
 brenthy_docker: BrenthyDocker
 
-DELAY = 15
+DELAY = 30
 
 
 def prepare() -> None:
